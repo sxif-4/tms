@@ -3,14 +3,17 @@ import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import { DecorIcon } from "~/components/decor-icon";
 import { AppBreadcrumbs } from "~/components/app-breadcrumbs";
-import { navLinks } from "~/components/app-shared";
+import { getNavLinks } from "~/components/app-shared";
 import { CustomSidebarTrigger } from "~/components/custom-sidebar-trigger";
+import { ModeToggle } from "~/components/mode-toggle";
 import { NavUser } from "~/components/nav-user";
+import { useCurrentUser } from "~/features/auth";
 import { SendIcon, BellIcon } from "lucide-react";
 
-const activeItem = navLinks.find((item) => item.isActive);
-
 export function AppHeader() {
+  const user = useCurrentUser();
+  const activeItem = getNavLinks(user?.role).find((item) => item.isActive);
+
   return (
     <header
       className={cn(
@@ -34,6 +37,7 @@ export function AppHeader() {
         <Button aria-label="Notifications" size="icon-sm" variant="outline">
           <BellIcon />
         </Button>
+        <ModeToggle />
         <Separator
           className="h-4 data-[orientation=vertical]:self-center"
           orientation="vertical"

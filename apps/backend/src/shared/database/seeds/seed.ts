@@ -62,6 +62,54 @@ async function main(): Promise<void> {
     console.log(`✅ Seeded admin: ${adminEmail}`);
   }
 
+  // Staff accounts — one per staff role (a user holds a single role), idempotent
+  // by email. Override the shared password with STAFF_PASSWORD if needed.
+  const STAFF_SEED = [
+    {
+      name: 'Hotel Staff',
+      email: 'hotel@example.com',
+      roleSlug: 'hotel_staff',
+    },
+    {
+      name: 'Ferry Staff',
+      email: 'ferry@example.com',
+      roleSlug: 'ferry_staff',
+    },
+    { name: 'Park Staff', email: 'park@example.com', roleSlug: 'park_staff' },
+  ];
+  const staffPassword = process.env.STAFF_PASSWORD ?? 'ChangeMe123!';
+  const staffPasswordHash = await bcrypt.hash(staffPassword, 12);
+
+  for (const staff of STAFF_SEED) {
+    const exists = db
+      .select()
+      .from(users)
+      .where(eq(users.email, staff.email))
+      .get();
+    if (exists) {
+      console.log(`ℹ️  Staff already exists: ${staff.email}`);
+      continue;
+    }
+
+    const staffRole = db
+      .select()
+      .from(roles)
+      .where(eq(roles.slug, staff.roleSlug))
+      .get();
+    if (!staffRole)
+      throw new Error(`${staff.roleSlug} role missing after seed`);
+
+    db.insert(users)
+      .values({
+        name: staff.name,
+        email: staff.email,
+        passwordHash: staffPasswordHash,
+        roleId: staffRole.id,
+      })
+      .run();
+    console.log(`✅ Seeded staff: ${staff.email} (${staff.roleSlug})`);
+  }
+
   console.log('✅ Seed complete');
   sqlite.close();
 }

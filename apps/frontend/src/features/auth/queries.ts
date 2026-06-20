@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryOptions } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
 import { toast } from 'sonner';
@@ -11,6 +11,11 @@ export const meQueryOptions = queryOptions({
   queryFn: () => getCurrentUser(),
   staleTime: 5 * 60 * 1000,
 });
+
+/** Reads the current user from the auth cache. Returns null when signed out. */
+export function useCurrentUser() {
+  return useQuery(meQueryOptions).data ?? null;
+}
 
 /** Logout mutation: clears the session and returns home. */
 export function useLogout() {

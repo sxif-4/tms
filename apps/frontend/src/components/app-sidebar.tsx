@@ -11,11 +11,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "~/components/ui/sidebar";
-import { footerNavLinks, navGroups } from "~/components/app-shared";
+import { footerNavLinks, getNavGroups } from "~/components/app-shared";
 import { LatestChange } from "~/components/latest-change";
 import { NavGroup } from "~/components/nav-group";
+import { useCurrentUser } from "~/features/auth";
 
 export function AppSidebar() {
+  const user = useCurrentUser();
+  const navGroups = getNavGroups(user?.role);
+
   return (
     <Sidebar
       className={cn(
@@ -40,7 +44,6 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
       <SidebarFooter className="gap-0 p-0">
-        <LatestChange />
         <SidebarMenu className="border-t p-2">
           {footerNavLinks.map((item) => (
             <SidebarMenuItem key={item.title}>

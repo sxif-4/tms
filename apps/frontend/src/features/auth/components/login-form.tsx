@@ -15,6 +15,7 @@ import { Input } from "~/components/ui/input";
 import { cn } from "~/lib/utils";
 import { getErrorMessage, getErrorStatus, loginRequest } from "../api";
 import { meQueryOptions } from "../queries";
+import { landingPathForRole } from "../redirects";
 import { loginSchema, type LoginValues } from "../schemas";
 import { SocialLogins } from "./social-logins";
 
@@ -41,7 +42,7 @@ export function LoginForm({
       queryClient.setQueryData(meQueryOptions.queryKey, user);
       await router.invalidate();
       toast.success(`Welcome back, ${user.name}`);
-      await navigate({ to: redirectTo || "/" });
+      await navigate({ to: redirectTo || landingPathForRole(user.role) });
     },
     onError: (err) =>
       toast.error(
@@ -78,12 +79,6 @@ export function LoginForm({
         <Field>
           <div className="flex items-center">
             <FieldLabel htmlFor="password">Password</FieldLabel>
-            <a
-              href="#"
-              className="ml-auto text-sm underline-offset-4 hover:underline"
-            >
-              Forgot your password?
-            </a>
           </div>
           <Input
             id="password"

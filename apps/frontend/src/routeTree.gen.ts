@@ -11,8 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DashboardAdminRouteRouteImport } from './routes/dashboard/admin/route'
+import { Route as DashboardParkIndexRouteImport } from './routes/dashboard/park/index'
+import { Route as DashboardHotelIndexRouteImport } from './routes/dashboard/hotel/index'
+import { Route as DashboardFerryIndexRouteImport } from './routes/dashboard/ferry/index'
 import { Route as DashboardAdminOverviewRouteImport } from './routes/dashboard/admin/overview'
 
 const SignupRoute = SignupRouteImport.update({
@@ -25,73 +28,106 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRouteRoute = DashboardRouteRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardAdminRouteRoute = DashboardAdminRouteRouteImport.update({
-  id: '/dashboard/admin',
-  path: '/dashboard/admin',
-  getParentRoute: () => rootRouteImport,
+const DashboardParkIndexRoute = DashboardParkIndexRouteImport.update({
+  id: '/park/',
+  path: '/park/',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardHotelIndexRoute = DashboardHotelIndexRouteImport.update({
+  id: '/hotel/',
+  path: '/hotel/',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardFerryIndexRoute = DashboardFerryIndexRouteImport.update({
+  id: '/ferry/',
+  path: '/ferry/',
+  getParentRoute: () => DashboardRouteRoute,
 } as any)
 const DashboardAdminOverviewRoute = DashboardAdminOverviewRouteImport.update({
-  id: '/overview',
-  path: '/overview',
-  getParentRoute: () => DashboardAdminRouteRoute,
+  id: '/admin/overview',
+  path: '/admin/overview',
+  getParentRoute: () => DashboardRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/dashboard/admin': typeof DashboardAdminRouteRouteWithChildren
   '/dashboard/admin/overview': typeof DashboardAdminOverviewRoute
+  '/dashboard/ferry/': typeof DashboardFerryIndexRoute
+  '/dashboard/hotel/': typeof DashboardHotelIndexRoute
+  '/dashboard/park/': typeof DashboardParkIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/dashboard/admin': typeof DashboardAdminRouteRouteWithChildren
   '/dashboard/admin/overview': typeof DashboardAdminOverviewRoute
+  '/dashboard/ferry': typeof DashboardFerryIndexRoute
+  '/dashboard/hotel': typeof DashboardHotelIndexRoute
+  '/dashboard/park': typeof DashboardParkIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/dashboard/admin': typeof DashboardAdminRouteRouteWithChildren
   '/dashboard/admin/overview': typeof DashboardAdminOverviewRoute
+  '/dashboard/ferry/': typeof DashboardFerryIndexRoute
+  '/dashboard/hotel/': typeof DashboardHotelIndexRoute
+  '/dashboard/park/': typeof DashboardParkIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/dashboard'
     | '/login'
     | '/signup'
-    | '/dashboard/admin'
     | '/dashboard/admin/overview'
+    | '/dashboard/ferry/'
+    | '/dashboard/hotel/'
+    | '/dashboard/park/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/dashboard'
     | '/login'
     | '/signup'
-    | '/dashboard/admin'
     | '/dashboard/admin/overview'
+    | '/dashboard/ferry'
+    | '/dashboard/hotel'
+    | '/dashboard/park'
   id:
     | '__root__'
     | '/'
+    | '/dashboard'
     | '/login'
     | '/signup'
-    | '/dashboard/admin'
     | '/dashboard/admin/overview'
+    | '/dashboard/ferry/'
+    | '/dashboard/hotel/'
+    | '/dashboard/park/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
-  DashboardAdminRouteRoute: typeof DashboardAdminRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -110,6 +146,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -117,39 +160,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard/admin': {
-      id: '/dashboard/admin'
-      path: '/dashboard/admin'
-      fullPath: '/dashboard/admin'
-      preLoaderRoute: typeof DashboardAdminRouteRouteImport
-      parentRoute: typeof rootRouteImport
+    '/dashboard/park/': {
+      id: '/dashboard/park/'
+      path: '/park'
+      fullPath: '/dashboard/park/'
+      preLoaderRoute: typeof DashboardParkIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/hotel/': {
+      id: '/dashboard/hotel/'
+      path: '/hotel'
+      fullPath: '/dashboard/hotel/'
+      preLoaderRoute: typeof DashboardHotelIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/ferry/': {
+      id: '/dashboard/ferry/'
+      path: '/ferry'
+      fullPath: '/dashboard/ferry/'
+      preLoaderRoute: typeof DashboardFerryIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
     }
     '/dashboard/admin/overview': {
       id: '/dashboard/admin/overview'
-      path: '/overview'
+      path: '/admin/overview'
       fullPath: '/dashboard/admin/overview'
       preLoaderRoute: typeof DashboardAdminOverviewRouteImport
-      parentRoute: typeof DashboardAdminRouteRoute
+      parentRoute: typeof DashboardRouteRoute
     }
   }
 }
 
-interface DashboardAdminRouteRouteChildren {
+interface DashboardRouteRouteChildren {
   DashboardAdminOverviewRoute: typeof DashboardAdminOverviewRoute
+  DashboardFerryIndexRoute: typeof DashboardFerryIndexRoute
+  DashboardHotelIndexRoute: typeof DashboardHotelIndexRoute
+  DashboardParkIndexRoute: typeof DashboardParkIndexRoute
 }
 
-const DashboardAdminRouteRouteChildren: DashboardAdminRouteRouteChildren = {
+const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardAdminOverviewRoute: DashboardAdminOverviewRoute,
+  DashboardFerryIndexRoute: DashboardFerryIndexRoute,
+  DashboardHotelIndexRoute: DashboardHotelIndexRoute,
+  DashboardParkIndexRoute: DashboardParkIndexRoute,
 }
 
-const DashboardAdminRouteRouteWithChildren =
-  DashboardAdminRouteRoute._addFileChildren(DashboardAdminRouteRouteChildren)
+const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
+  DashboardRouteRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRouteRoute: DashboardRouteRouteWithChildren,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
-  DashboardAdminRouteRoute: DashboardAdminRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -15,6 +15,7 @@ import { Input } from "~/components/ui/input";
 import { cn } from "~/lib/utils";
 import { getErrorMessage, getErrorStatus, registerRequest } from "../api";
 import { meQueryOptions } from "../queries";
+import { landingPathForRole } from "../redirects";
 import { signupSchema, type SignupValues } from "../schemas";
 import { SocialLogins } from "./social-logins";
 
@@ -40,7 +41,7 @@ export function SignupForm({ className }: { className?: string }) {
       queryClient.setQueryData(meQueryOptions.queryKey, user);
       await router.invalidate();
       toast.success(`Welcome, ${user.name}!`);
-      await navigate({ to: "/" });
+      await navigate({ to: landingPathForRole(user.role) });
     },
     onError: (err) =>
       toast.error(
