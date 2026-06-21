@@ -26,9 +26,11 @@ export function useLogout() {
     mutationFn: logoutRequest,
     onSuccess: async () => {
       queryClient.setQueryData(meQueryOptions.queryKey, null);
+      // Leave the protected route before invalidating, otherwise the dashboard
+      // guard re-runs first and bounces to /login (a brief login-screen flash).
+      await router.navigate({ to: '/' });
       await router.invalidate();
       toast.success('Signed out');
-      await router.navigate({ to: '/' });
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });

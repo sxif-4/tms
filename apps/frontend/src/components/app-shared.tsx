@@ -165,7 +165,7 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
     {
       label: "Administration",
       items: [
-        { title: "Users", path: "#/users", icon: <UsersIcon /> },
+        { title: "Users", path: "/dashboard/admin/users", icon: <UsersIcon /> },
         { title: "Audit Logs", path: "#/audit-logs", icon: <ScrollTextIcon /> },
         { title: "Roles", path: "#/roles", icon: <ShieldCheckIcon /> },
         { title: "Settings", path: "#/settings", icon: <SettingsIcon /> },

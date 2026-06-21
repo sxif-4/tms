@@ -57,4 +57,19 @@ export class UsersService {
     await this.usersRepo.setActive(id, false);
     return this.findByIdWithRole(id);
   }
+
+  /** Reassigns a user to a different role (admin-driven). */
+  async updateRole(id: number, role: Role): Promise<UserWithRole> {
+    await this.findByIdWithRole(id); // 404 if missing
+
+    const roleRow = await this.usersRepo.findRoleBySlug(role);
+    if (!roleRow) {
+      throw new InternalServerErrorException(
+        `${role} role is not seeded — run \`npm run db:seed\``,
+      );
+    }
+
+    await this.usersRepo.updateRole(id, roleRow.id);
+    return this.findByIdWithRole(id);
+  }
 }
