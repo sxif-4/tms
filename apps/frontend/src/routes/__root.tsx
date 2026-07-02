@@ -91,8 +91,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body className="bg-background text-foreground min-h-svh">
         {children}
         <Toaster richColors />
-        <TanStackRouterDevtools position="bottom-right" />
-        <ReactQueryDevtools buttonPosition="bottom-left" />
+        {/* <TanStackRouterDevtools position="bottom-right" />
+        <ReactQueryDevtools buttonPosition="bottom-left" /> */}
         <Scripts />
       </body>
     </html>

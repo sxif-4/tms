@@ -10,7 +10,7 @@ export const roleLandingPath: Record<Role, string> = {
   hotel_staff: "/dashboard/hotel",
   ferry_staff: "/dashboard/ferry",
   park_staff: "/dashboard/park",
-  admin: "/dashboard/admin/overview",
+  admin: "/dashboard/admin",
 };
 
 /** Landing path for a role, falling back to home for anything unmapped. */

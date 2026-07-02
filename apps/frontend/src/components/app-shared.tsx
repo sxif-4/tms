@@ -145,7 +145,7 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
       items: [
         {
           title: "Dashboard",
-          path: "/dashboard/admin/overview",
+          path: "/dashboard/admin/",
           icon: <LayoutGridIcon />,
           isActive: true,
         },

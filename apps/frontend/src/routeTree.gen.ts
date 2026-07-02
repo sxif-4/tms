@@ -16,7 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardParkIndexRouteImport } from './routes/dashboard/park/index'
 import { Route as DashboardHotelIndexRouteImport } from './routes/dashboard/hotel/index'
 import { Route as DashboardFerryIndexRouteImport } from './routes/dashboard/ferry/index'
-import { Route as DashboardAdminOverviewRouteImport } from './routes/dashboard/admin/overview'
+import { Route as DashboardAdminIndexRouteImport } from './routes/dashboard/admin/index'
 import { Route as DashboardAdminUsersIndexRouteImport } from './routes/dashboard/admin/users/index'
 
 const SignupRoute = SignupRouteImport.update({
@@ -54,9 +54,9 @@ const DashboardFerryIndexRoute = DashboardFerryIndexRouteImport.update({
   path: '/ferry/',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
-const DashboardAdminOverviewRoute = DashboardAdminOverviewRouteImport.update({
-  id: '/admin/overview',
-  path: '/admin/overview',
+const DashboardAdminIndexRoute = DashboardAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
 const DashboardAdminUsersIndexRoute =
@@ -71,7 +71,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/dashboard/admin/overview': typeof DashboardAdminOverviewRoute
+  '/dashboard/admin/': typeof DashboardAdminIndexRoute
   '/dashboard/ferry/': typeof DashboardFerryIndexRoute
   '/dashboard/hotel/': typeof DashboardHotelIndexRoute
   '/dashboard/park/': typeof DashboardParkIndexRoute
@@ -82,7 +82,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/dashboard/admin/overview': typeof DashboardAdminOverviewRoute
+  '/dashboard/admin': typeof DashboardAdminIndexRoute
   '/dashboard/ferry': typeof DashboardFerryIndexRoute
   '/dashboard/hotel': typeof DashboardHotelIndexRoute
   '/dashboard/park': typeof DashboardParkIndexRoute
@@ -94,7 +94,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/dashboard/admin/overview': typeof DashboardAdminOverviewRoute
+  '/dashboard/admin/': typeof DashboardAdminIndexRoute
   '/dashboard/ferry/': typeof DashboardFerryIndexRoute
   '/dashboard/hotel/': typeof DashboardHotelIndexRoute
   '/dashboard/park/': typeof DashboardParkIndexRoute
@@ -107,7 +107,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/signup'
-    | '/dashboard/admin/overview'
+    | '/dashboard/admin/'
     | '/dashboard/ferry/'
     | '/dashboard/hotel/'
     | '/dashboard/park/'
@@ -118,7 +118,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/signup'
-    | '/dashboard/admin/overview'
+    | '/dashboard/admin'
     | '/dashboard/ferry'
     | '/dashboard/hotel'
     | '/dashboard/park'
@@ -129,7 +129,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/signup'
-    | '/dashboard/admin/overview'
+    | '/dashboard/admin/'
     | '/dashboard/ferry/'
     | '/dashboard/hotel/'
     | '/dashboard/park/'
@@ -194,11 +194,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardFerryIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
-    '/dashboard/admin/overview': {
-      id: '/dashboard/admin/overview'
-      path: '/admin/overview'
-      fullPath: '/dashboard/admin/overview'
-      preLoaderRoute: typeof DashboardAdminOverviewRouteImport
+    '/dashboard/admin/': {
+      id: '/dashboard/admin/'
+      path: '/admin'
+      fullPath: '/dashboard/admin/'
+      preLoaderRoute: typeof DashboardAdminIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
     '/dashboard/admin/users/': {
@@ -212,7 +212,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface DashboardRouteRouteChildren {
-  DashboardAdminOverviewRoute: typeof DashboardAdminOverviewRoute
+  DashboardAdminIndexRoute: typeof DashboardAdminIndexRoute
   DashboardFerryIndexRoute: typeof DashboardFerryIndexRoute
   DashboardHotelIndexRoute: typeof DashboardHotelIndexRoute
   DashboardParkIndexRoute: typeof DashboardParkIndexRoute
@@ -220,7 +220,7 @@ interface DashboardRouteRouteChildren {
 }
 
 const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
-  DashboardAdminOverviewRoute: DashboardAdminOverviewRoute,
+  DashboardAdminIndexRoute: DashboardAdminIndexRoute,
   DashboardFerryIndexRoute: DashboardFerryIndexRoute,
   DashboardHotelIndexRoute: DashboardHotelIndexRoute,
   DashboardParkIndexRoute: DashboardParkIndexRoute,

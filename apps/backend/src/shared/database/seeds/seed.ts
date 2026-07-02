@@ -6,6 +6,7 @@ import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import * as schema from '../schema';
 import { roles, users } from '../schema';
+import { seedDemo } from './demo';
 
 const ROLE_SEED = [
   { slug: 'visitor', name: 'Visitor' },
@@ -109,6 +110,9 @@ async function main(): Promise<void> {
       .run();
     console.log(`✅ Seeded staff: ${staff.email} (${staff.roleSlug})`);
   }
+
+  // Demo data across every domain (idempotent; skipped if hotels exist).
+  await seedDemo(db);
 
   console.log('✅ Seed complete');
   sqlite.close();
