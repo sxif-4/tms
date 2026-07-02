@@ -154,7 +154,7 @@ Each phase is a vertical slice (backend schema → module → frontend feature �
 ## 6. Suggested build order (checklist)
 
 - [x] **P0** admin route guard → real dashboard shell → `audit_logs` table + `AuditService` (instrument user mutations) ✅
-- [ ] **P1** create-staff + activate/deactivate (backend endpoints → users feature UI)
+- [x] **P1** create-staff + activate/deactivate (backend endpoints → users feature UI) ✅
 - [ ] **P2** advertisements CRUD → promotions CRUD (+ audit) → routes + sidebar
 - [ ] **P3** `map_locations` CRUD → Leaflet client-only map feature → route + sidebar
 - [ ] **P4** booking/payment schemas + demo seed → reports module → dashboard KPIs + analytics charts + audit-log viewer

@@ -4,6 +4,8 @@
  * audit viewer share one vocabulary.
  */
 export enum AuditAction {
+  UserCreated = 'user.created',
   UserRoleUpdated = 'user.role_updated',
+  UserActivated = 'user.activated',
   UserDeactivated = 'user.deactivated',
 }
