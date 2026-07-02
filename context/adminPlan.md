@@ -59,7 +59,7 @@ All tables follow the conventions block at the top of [Db_Schema.md](Db_Schema.m
 
 **Built but out of admin scope:** `user_assignments`, `images`/`imageables` — tables + seed data exist for completeness/other teams, but no admin feature in this plan manages them this round.
 
-> **Coordination note:** the hotel/ferry/park booking schemas are now authored + seeded here (Db_Schema.md-aligned). Domain teams build their _booking/management modules_ on top of these existing tables — flag any column change so we regenerate one shared migration rather than colliding.
+> **Coordination note:** the hotel/ferry/park booking schemas are now authored + seeded here (Db*Schema.md-aligned). Domain teams build their \_booking/management modules* on top of these existing tables — flag any column change so we regenerate one shared migration rather than colliding.
 
 ---
 
@@ -153,7 +153,7 @@ Each phase is a vertical slice (backend schema → module → frontend feature �
 
 ## 6. Suggested build order (checklist)
 
-- [ ] **P0** admin route guard → real dashboard shell → `audit_logs` table + `AuditService` (instrument user mutations)
+- [x] **P0** admin route guard → real dashboard shell → `audit_logs` table + `AuditService` (instrument user mutations) ✅
 - [ ] **P1** create-staff + activate/deactivate (backend endpoints → users feature UI)
 - [ ] **P2** advertisements CRUD → promotions CRUD (+ audit) → routes + sidebar
 - [ ] **P3** `map_locations` CRUD → Leaflet client-only map feature → route + sidebar

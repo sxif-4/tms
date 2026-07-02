@@ -44,14 +44,17 @@ export class UsersController {
       throw new ForbiddenException('You cannot change your own role');
     }
     return new UserResponseDto(
-      await this.usersService.updateRole(id, dto.role),
+      await this.usersService.updateRole(id, dto.role, currentUser.id),
     );
   }
 
   @Patch(':id/deactivate')
   async deactivate(
     @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() currentUser: AuthenticatedUser,
   ): Promise<UserResponseDto> {
-    return new UserResponseDto(await this.usersService.deactivate(id));
+    return new UserResponseDto(
+      await this.usersService.deactivate(id, currentUser.id),
+    );
   }
 }

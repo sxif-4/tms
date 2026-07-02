@@ -29,7 +29,7 @@ export function SiteHeader() {
             </span>
             {user.role === "admin" && (
               <Link
-                to="/dashboard/admin/overview"
+                to="/dashboard/admin"
                 className={buttonVariants({ variant: "ghost", size: "sm" })}
               >
                 Admin
