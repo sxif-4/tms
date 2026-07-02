@@ -19,6 +19,7 @@ import {
   ReceiptIcon,
   ShieldCheckIcon,
   ScrollTextIcon,
+  MegaphoneIcon,
 } from "lucide-react";
 import type { Role } from "~/features/auth";
 
@@ -159,7 +160,16 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
         { title: "Ferries", path: "#/ferries", icon: <ShipIcon /> },
         { title: "Theme Park", path: "#/park", icon: <FerrisWheelIcon /> },
         { title: "Payments", path: "#/payments", icon: <ReceiptIcon /> },
-        { title: "Promotions", path: "#/promotions", icon: <PercentIcon /> },
+        {
+          title: "Advertisements",
+          path: "/dashboard/admin/ads",
+          icon: <MegaphoneIcon />,
+        },
+        {
+          title: "Promotions",
+          path: "/dashboard/admin/promotions",
+          icon: <PercentIcon />,
+        },
       ],
     },
     {

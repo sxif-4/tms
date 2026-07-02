@@ -16,9 +16,7 @@ export const imageables = sqliteTable(
     imageableId: integer('imageable_id').notNull(),
     imageableType: text('imageable_type').notNull(),
   },
-  (t) => [
-    primaryKey({ columns: [t.imageId, t.imageableId, t.imageableType] }),
-  ],
+  (t) => [primaryKey({ columns: [t.imageId, t.imageableId, t.imageableType] })],
 );
 
 export type Imageable = typeof imageables.$inferSelect;

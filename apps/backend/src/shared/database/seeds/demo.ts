@@ -95,12 +95,48 @@ export async function seedDemo(db: DemoDb): Promise<void> {
   const [grandLoc, seasideLoc, , , beachLoc] = db
     .insert(mapLocations)
     .values([
-      { name: 'Grand Island Hotel', description: 'Flagship hotel on the main island.', type: 'hotel', latitude: '48.8583700', longitude: '2.2944813' },
-      { name: 'Seaside Resort', description: 'Beachfront resort near the ferry dock.', type: 'hotel', latitude: '48.8606110', longitude: '2.3376411' },
-      { name: 'North Ferry Terminal', description: 'Departure point on the main island.', type: 'ferry_terminal', latitude: '48.8529680', longitude: '2.3499020' },
-      { name: 'Theme Park Ferry Dock', description: 'Arrival dock on the theme-park island.', type: 'ferry_terminal', latitude: '48.8737910', longitude: '2.2950275' },
-      { name: 'Sunset Beach', description: 'Popular picnic and beach-event spot.', type: 'beach', latitude: '48.8656330', longitude: '2.3212357' },
-      { name: 'Thrill Coaster Plaza', description: 'Main attraction square in the theme park.', type: 'attraction', latitude: '48.8467860', longitude: '2.3431043' },
+      {
+        name: 'Grand Island Hotel',
+        description: 'Flagship hotel on the main island.',
+        type: 'hotel',
+        latitude: '48.8583700',
+        longitude: '2.2944813',
+      },
+      {
+        name: 'Seaside Resort',
+        description: 'Beachfront resort near the ferry dock.',
+        type: 'hotel',
+        latitude: '48.8606110',
+        longitude: '2.3376411',
+      },
+      {
+        name: 'North Ferry Terminal',
+        description: 'Departure point on the main island.',
+        type: 'ferry_terminal',
+        latitude: '48.8529680',
+        longitude: '2.3499020',
+      },
+      {
+        name: 'Theme Park Ferry Dock',
+        description: 'Arrival dock on the theme-park island.',
+        type: 'ferry_terminal',
+        latitude: '48.8737910',
+        longitude: '2.2950275',
+      },
+      {
+        name: 'Sunset Beach',
+        description: 'Popular picnic and beach-event spot.',
+        type: 'beach',
+        latitude: '48.8656330',
+        longitude: '2.3212357',
+      },
+      {
+        name: 'Thrill Coaster Plaza',
+        description: 'Main attraction square in the theme park.',
+        type: 'attraction',
+        latitude: '48.8467860',
+        longitude: '2.3431043',
+      },
     ])
     .returning()
     .all();
@@ -109,8 +145,18 @@ export async function seedDemo(db: DemoDb): Promise<void> {
   const [grand, seaside] = db
     .insert(hotels)
     .values([
-      { name: 'Grand Island Hotel', description: 'Five-star stay in the island centre.', mapLocationId: grandLoc.id, maxRooms: 50 },
-      { name: 'Seaside Resort', description: 'Relaxed beachfront rooms and suites.', mapLocationId: seasideLoc.id, maxRooms: 30 },
+      {
+        name: 'Grand Island Hotel',
+        description: 'Five-star stay in the island centre.',
+        mapLocationId: grandLoc.id,
+        maxRooms: 50,
+      },
+      {
+        name: 'Seaside Resort',
+        description: 'Relaxed beachfront rooms and suites.',
+        mapLocationId: seasideLoc.id,
+        maxRooms: 30,
+      },
     ])
     .returning()
     .all();
@@ -118,9 +164,24 @@ export async function seedDemo(db: DemoDb): Promise<void> {
   const [standard, deluxe, suite] = db
     .insert(roomTypes)
     .values([
-      { name: 'Standard', description: 'Cosy room with a queen bed.', basePricePerNight: '120.00', maxOccupancy: 2 },
-      { name: 'Deluxe', description: 'Spacious room with sea view.', basePricePerNight: '200.00', maxOccupancy: 3 },
-      { name: 'Suite', description: 'Premium suite with lounge.', basePricePerNight: '350.00', maxOccupancy: 4 },
+      {
+        name: 'Standard',
+        description: 'Cosy room with a queen bed.',
+        basePricePerNight: '120.00',
+        maxOccupancy: 2,
+      },
+      {
+        name: 'Deluxe',
+        description: 'Spacious room with sea view.',
+        basePricePerNight: '200.00',
+        maxOccupancy: 3,
+      },
+      {
+        name: 'Suite',
+        description: 'Premium suite with lounge.',
+        basePricePerNight: '350.00',
+        maxOccupancy: 4,
+      },
     ])
     .returning()
     .all();
@@ -128,13 +189,48 @@ export async function seedDemo(db: DemoDb): Promise<void> {
   const [g101, g102, g201, g301, s101, s102, s201] = db
     .insert(rooms)
     .values([
-      { hotelId: grand.id, roomTypeId: standard.id, roomNumber: '101', status: 'available' },
-      { hotelId: grand.id, roomTypeId: standard.id, roomNumber: '102', status: 'available' },
-      { hotelId: grand.id, roomTypeId: deluxe.id, roomNumber: '201', status: 'occupied' },
-      { hotelId: grand.id, roomTypeId: suite.id, roomNumber: '301', status: 'available' },
-      { hotelId: seaside.id, roomTypeId: standard.id, roomNumber: '101', status: 'available' },
-      { hotelId: seaside.id, roomTypeId: deluxe.id, roomNumber: '102', status: 'available' },
-      { hotelId: seaside.id, roomTypeId: suite.id, roomNumber: '201', status: 'available' },
+      {
+        hotelId: grand.id,
+        roomTypeId: standard.id,
+        roomNumber: '101',
+        status: 'available',
+      },
+      {
+        hotelId: grand.id,
+        roomTypeId: standard.id,
+        roomNumber: '102',
+        status: 'available',
+      },
+      {
+        hotelId: grand.id,
+        roomTypeId: deluxe.id,
+        roomNumber: '201',
+        status: 'occupied',
+      },
+      {
+        hotelId: grand.id,
+        roomTypeId: suite.id,
+        roomNumber: '301',
+        status: 'available',
+      },
+      {
+        hotelId: seaside.id,
+        roomTypeId: standard.id,
+        roomNumber: '101',
+        status: 'available',
+      },
+      {
+        hotelId: seaside.id,
+        roomTypeId: deluxe.id,
+        roomNumber: '102',
+        status: 'available',
+      },
+      {
+        hotelId: seaside.id,
+        roomTypeId: suite.id,
+        roomNumber: '201',
+        status: 'available',
+      },
     ])
     .returning()
     .all();
@@ -144,11 +240,56 @@ export async function seedDemo(db: DemoDb): Promise<void> {
   const hotelBookingRows = db
     .insert(hotelBookings)
     .values([
-      { bookingReference: ref('HB', 1), userId: alice.id, roomId: g101.id, checkIn: at(-10), checkOut: at(-7), guests: 2, totalAmount: '360.00', status: 'completed' },
-      { bookingReference: ref('HB', 2), userId: bob.id, roomId: g201.id, checkIn: at(-3), checkOut: at(1), guests: 2, totalAmount: '800.00', status: 'confirmed' },
-      { bookingReference: ref('HB', 3), userId: carol.id, roomId: s201.id, checkIn: at(5), checkOut: at(9), guests: 3, totalAmount: '1400.00', status: 'confirmed' },
-      { bookingReference: ref('HB', 4), userId: alice.id, roomId: s101.id, checkIn: at(14), checkOut: at(16), guests: 1, totalAmount: '240.00', status: 'pending' },
-      { bookingReference: ref('HB', 5), userId: bob.id, roomId: g301.id, checkIn: at(-30), checkOut: at(-28), guests: 2, totalAmount: '700.00', status: 'cancelled' },
+      {
+        bookingReference: ref('HB', 1),
+        userId: alice.id,
+        roomId: g101.id,
+        checkIn: at(-10),
+        checkOut: at(-7),
+        guests: 2,
+        totalAmount: '360.00',
+        status: 'completed',
+      },
+      {
+        bookingReference: ref('HB', 2),
+        userId: bob.id,
+        roomId: g201.id,
+        checkIn: at(-3),
+        checkOut: at(1),
+        guests: 2,
+        totalAmount: '800.00',
+        status: 'confirmed',
+      },
+      {
+        bookingReference: ref('HB', 3),
+        userId: carol.id,
+        roomId: s201.id,
+        checkIn: at(5),
+        checkOut: at(9),
+        guests: 3,
+        totalAmount: '1400.00',
+        status: 'confirmed',
+      },
+      {
+        bookingReference: ref('HB', 4),
+        userId: alice.id,
+        roomId: s101.id,
+        checkIn: at(14),
+        checkOut: at(16),
+        guests: 1,
+        totalAmount: '240.00',
+        status: 'pending',
+      },
+      {
+        bookingReference: ref('HB', 5),
+        userId: bob.id,
+        roomId: g301.id,
+        checkIn: at(-30),
+        checkOut: at(-28),
+        guests: 2,
+        totalAmount: '700.00',
+        status: 'cancelled',
+      },
     ])
     .returning()
     .all();
@@ -157,17 +298,49 @@ export async function seedDemo(db: DemoDb): Promise<void> {
   // ── Ferry domain ─────────────────────────────────────────────────────────
   const route = db
     .insert(ferryRoutes)
-    .values({ name: 'Island ↔ Theme Park', origin: 'Main Island', destination: 'Theme Park Island' })
+    .values({
+      name: 'Island ↔ Theme Park',
+      origin: 'Main Island',
+      destination: 'Theme Park Island',
+    })
     .returning()
     .get();
 
   const [depOut, , futOut] = db
     .insert(ferrySchedules)
     .values([
-      { routeId: route.id, departureAt: at(-9), direction: 'to_theme_park', capacity: 100, basePrice: '25.00', status: 'departed' },
-      { routeId: route.id, departureAt: at(-9), direction: 'to_island', capacity: 100, basePrice: '25.00', status: 'departed' },
-      { routeId: route.id, departureAt: at(6), direction: 'to_theme_park', capacity: 100, basePrice: '25.00', status: 'scheduled' },
-      { routeId: route.id, departureAt: at(6), direction: 'to_island', capacity: 100, basePrice: '25.00', status: 'scheduled' },
+      {
+        routeId: route.id,
+        departureAt: at(-9),
+        direction: 'to_theme_park',
+        capacity: 100,
+        basePrice: '25.00',
+        status: 'departed',
+      },
+      {
+        routeId: route.id,
+        departureAt: at(-9),
+        direction: 'to_island',
+        capacity: 100,
+        basePrice: '25.00',
+        status: 'departed',
+      },
+      {
+        routeId: route.id,
+        departureAt: at(6),
+        direction: 'to_theme_park',
+        capacity: 100,
+        basePrice: '25.00',
+        status: 'scheduled',
+      },
+      {
+        routeId: route.id,
+        departureAt: at(6),
+        direction: 'to_island',
+        capacity: 100,
+        basePrice: '25.00',
+        status: 'scheduled',
+      },
     ])
     .returning()
     .all();
@@ -175,9 +348,35 @@ export async function seedDemo(db: DemoDb): Promise<void> {
   const ferryBookingRows = db
     .insert(ferryBookings)
     .values([
-      { bookingReference: ref('FB', 1), userId: alice.id, scheduleId: depOut.id, hotelBookingId: hb1.id, passengerCount: 2, totalAmount: '50.00', validatedBy: ferryStaff.id, validatedAt: at(-9), status: 'validated' },
-      { bookingReference: ref('FB', 2), userId: carol.id, scheduleId: futOut.id, hotelBookingId: hb3.id, passengerCount: 3, totalAmount: '75.00', status: 'confirmed' },
-      { bookingReference: ref('FB', 3), userId: bob.id, scheduleId: futOut.id, hotelBookingId: hb2.id, passengerCount: 2, totalAmount: '50.00', status: 'pending' },
+      {
+        bookingReference: ref('FB', 1),
+        userId: alice.id,
+        scheduleId: depOut.id,
+        hotelBookingId: hb1.id,
+        passengerCount: 2,
+        totalAmount: '50.00',
+        validatedBy: ferryStaff.id,
+        validatedAt: at(-9),
+        status: 'validated',
+      },
+      {
+        bookingReference: ref('FB', 2),
+        userId: carol.id,
+        scheduleId: futOut.id,
+        hotelBookingId: hb3.id,
+        passengerCount: 3,
+        totalAmount: '75.00',
+        status: 'confirmed',
+      },
+      {
+        bookingReference: ref('FB', 3),
+        userId: bob.id,
+        scheduleId: futOut.id,
+        hotelBookingId: hb2.id,
+        passengerCount: 2,
+        totalAmount: '50.00',
+        status: 'pending',
+      },
     ])
     .returning()
     .all();
@@ -195,11 +394,57 @@ export async function seedDemo(db: DemoDb): Promise<void> {
   const parkTicketRows = db
     .insert(parkTickets)
     .values([
-      { ticketReference: ref('PT', 1), userId: alice.id, ticketTypeId: dayPass.id, visitDate: at(-8), quantity: 2, totalAmount: '120.00', channel: 'online', status: 'used' },
-      { ticketReference: ref('PT', 2), userId: bob.id, ticketTypeId: vipPass.id, visitDate: at(6), quantity: 1, totalAmount: '120.00', channel: 'online', status: 'active' },
-      { ticketReference: ref('PT', 3), userId: carol.id, ticketTypeId: dayPass.id, visitDate: at(6), quantity: 3, totalAmount: '180.00', channel: 'online', status: 'active' },
-      { ticketReference: ref('PT', 4), userId: bob.id, ticketTypeId: dayPass.id, visitDate: at(0), quantity: 2, totalAmount: '120.00', channel: 'gate', soldByUserId: parkStaff.id, status: 'active' },
-      { ticketReference: ref('PT', 5), userId: alice.id, ticketTypeId: dayPass.id, visitDate: at(-20), quantity: 1, totalAmount: '60.00', channel: 'online', status: 'used' },
+      {
+        ticketReference: ref('PT', 1),
+        userId: alice.id,
+        ticketTypeId: dayPass.id,
+        visitDate: at(-8),
+        quantity: 2,
+        totalAmount: '120.00',
+        channel: 'online',
+        status: 'used',
+      },
+      {
+        ticketReference: ref('PT', 2),
+        userId: bob.id,
+        ticketTypeId: vipPass.id,
+        visitDate: at(6),
+        quantity: 1,
+        totalAmount: '120.00',
+        channel: 'online',
+        status: 'active',
+      },
+      {
+        ticketReference: ref('PT', 3),
+        userId: carol.id,
+        ticketTypeId: dayPass.id,
+        visitDate: at(6),
+        quantity: 3,
+        totalAmount: '180.00',
+        channel: 'online',
+        status: 'active',
+      },
+      {
+        ticketReference: ref('PT', 4),
+        userId: bob.id,
+        ticketTypeId: dayPass.id,
+        visitDate: at(0),
+        quantity: 2,
+        totalAmount: '120.00',
+        channel: 'gate',
+        soldByUserId: parkStaff.id,
+        status: 'active',
+      },
+      {
+        ticketReference: ref('PT', 5),
+        userId: alice.id,
+        ticketTypeId: dayPass.id,
+        visitDate: at(-20),
+        quantity: 1,
+        totalAmount: '60.00',
+        channel: 'online',
+        status: 'used',
+      },
     ])
     .returning()
     .all();
@@ -208,9 +453,30 @@ export async function seedDemo(db: DemoDb): Promise<void> {
   const [coaster, dolphin, bonfire] = db
     .insert(events)
     .values([
-      { name: 'Roller Coaster', description: 'The islands fastest ride.', eventType: 'ride', locationType: 'theme_park', basePrice: '15.00', isActive: true },
-      { name: 'Dolphin Show', description: 'Live dolphin performance.', eventType: 'show', locationType: 'theme_park', basePrice: '20.00', isActive: true },
-      { name: 'Beach Bonfire', description: 'Evening bonfire on Sunset Beach.', eventType: 'beach_event', locationType: 'beach', basePrice: '30.00', isActive: true },
+      {
+        name: 'Roller Coaster',
+        description: 'The islands fastest ride.',
+        eventType: 'ride',
+        locationType: 'theme_park',
+        basePrice: '15.00',
+        isActive: true,
+      },
+      {
+        name: 'Dolphin Show',
+        description: 'Live dolphin performance.',
+        eventType: 'show',
+        locationType: 'theme_park',
+        basePrice: '20.00',
+        isActive: true,
+      },
+      {
+        name: 'Beach Bonfire',
+        description: 'Evening bonfire on Sunset Beach.',
+        eventType: 'beach_event',
+        locationType: 'beach',
+        basePrice: '30.00',
+        isActive: true,
+      },
     ])
     .returning()
     .all();
@@ -229,9 +495,33 @@ export async function seedDemo(db: DemoDb): Promise<void> {
   const eventBookingRows = db
     .insert(eventBookings)
     .values([
-      { bookingReference: ref('EB', 1), userId: alice.id, eventScheduleId: coasterPast.id, parkTicketId: pt1.id, quantity: 2, totalAmount: '30.00', status: 'confirmed' },
-      { bookingReference: ref('EB', 2), userId: carol.id, eventScheduleId: dolphinFut.id, parkTicketId: pt3.id, quantity: 3, totalAmount: '60.00', status: 'confirmed' },
-      { bookingReference: ref('EB', 3), userId: bob.id, eventScheduleId: bonfireFut.id, parkTicketId: pt2.id, quantity: 1, totalAmount: '30.00', status: 'pending' },
+      {
+        bookingReference: ref('EB', 1),
+        userId: alice.id,
+        eventScheduleId: coasterPast.id,
+        parkTicketId: pt1.id,
+        quantity: 2,
+        totalAmount: '30.00',
+        status: 'confirmed',
+      },
+      {
+        bookingReference: ref('EB', 2),
+        userId: carol.id,
+        eventScheduleId: dolphinFut.id,
+        parkTicketId: pt3.id,
+        quantity: 3,
+        totalAmount: '60.00',
+        status: 'confirmed',
+      },
+      {
+        bookingReference: ref('EB', 3),
+        userId: bob.id,
+        eventScheduleId: bonfireFut.id,
+        parkTicketId: pt2.id,
+        quantity: 1,
+        totalAmount: '30.00',
+        status: 'pending',
+      },
     ])
     .returning()
     .all();
@@ -286,8 +576,32 @@ export async function seedDemo(db: DemoDb): Promise<void> {
   const [summer, welcome] = db
     .insert(promotions)
     .values([
-      { name: 'Summer Splash 10%', description: '10% off select stays and shows.', code: null, discountType: 'percentage', discountValue: '10.00', minSpend: '100.00', usageLimit: 100, perUserLimit: 2, validFrom: at(-30), validTo: at(30), isActive: true },
-      { name: 'Welcome £25', description: '£25 off your first ferry booking.', code: 'WELCOME25', discountType: 'fixed', discountValue: '25.00', minSpend: null, usageLimit: 500, perUserLimit: 1, validFrom: at(-60), validTo: at(60), isActive: true },
+      {
+        name: 'Summer Splash 10%',
+        description: '10% off select stays and shows.',
+        code: null,
+        discountType: 'percentage',
+        discountValue: '10.00',
+        minSpend: '100.00',
+        usageLimit: 100,
+        perUserLimit: 2,
+        validFrom: at(-30),
+        validTo: at(30),
+        isActive: true,
+      },
+      {
+        name: 'Welcome £25',
+        description: '£25 off your first ferry booking.',
+        code: 'WELCOME25',
+        discountType: 'fixed',
+        discountValue: '25.00',
+        minSpend: null,
+        usageLimit: 500,
+        perUserLimit: 1,
+        validFrom: at(-60),
+        validTo: at(60),
+        isActive: true,
+      },
     ])
     .returning()
     .all();
@@ -296,23 +610,63 @@ export async function seedDemo(db: DemoDb): Promise<void> {
     .values([
       { promotionId: summer.id, targetType: 'room_type', targetId: deluxe.id },
       { promotionId: summer.id, targetType: 'event', targetId: dolphin.id },
-      { promotionId: welcome.id, targetType: 'ferry_route', targetId: route.id },
+      {
+        promotionId: welcome.id,
+        targetType: 'ferry_route',
+        targetId: route.id,
+      },
     ])
     .run();
 
   db.insert(promotionUsages)
     .values([
-      { promotionId: summer.id, userId: bob.id, appliedToType: 'hotel_booking', appliedToId: hb2.id, discountAmount: '80.00' },
-      { promotionId: welcome.id, userId: alice.id, appliedToType: 'ferry_booking', appliedToId: ferryBookingRows[0].id, discountAmount: '25.00' },
+      {
+        promotionId: summer.id,
+        userId: bob.id,
+        appliedToType: 'hotel_booking',
+        appliedToId: hb2.id,
+        discountAmount: '80.00',
+      },
+      {
+        promotionId: welcome.id,
+        userId: alice.id,
+        appliedToType: 'ferry_booking',
+        appliedToId: ferryBookingRows[0].id,
+        discountAmount: '25.00',
+      },
     ])
     .run();
 
   // ── Advertisements ───────────────────────────────────────────────────────
   db.insert(advertisements)
     .values([
-      { title: 'Summer Splash Sale', image: 'https://picsum.photos/seed/summer/800/300', targetUrl: '/promotions', placement: 'homepage', startsAt: at(-10), endsAt: at(20), isActive: true },
-      { title: 'Go VIP at the Park', image: 'https://picsum.photos/seed/vip/400/600', targetUrl: '/park', placement: 'sidebar', startsAt: at(-5), endsAt: at(25), isActive: true },
-      { title: 'Sunset Beach Bonfire', image: 'https://picsum.photos/seed/bonfire/800/300', targetUrl: '/events', placement: 'map', startsAt: at(0), endsAt: at(14), isActive: true },
+      {
+        title: 'Summer Splash Sale',
+        image: 'https://picsum.photos/seed/summer/800/300',
+        targetUrl: '/promotions',
+        placement: 'homepage',
+        startsAt: at(-10),
+        endsAt: at(20),
+        isActive: true,
+      },
+      {
+        title: 'Go VIP at the Park',
+        image: 'https://picsum.photos/seed/vip/400/600',
+        targetUrl: '/park',
+        placement: 'sidebar',
+        startsAt: at(-5),
+        endsAt: at(25),
+        isActive: true,
+      },
+      {
+        title: 'Sunset Beach Bonfire',
+        image: 'https://picsum.photos/seed/bonfire/800/300',
+        targetUrl: '/events',
+        placement: 'map',
+        startsAt: at(0),
+        endsAt: at(14),
+        isActive: true,
+      },
     ])
     .run();
 
@@ -335,18 +689,48 @@ export async function seedDemo(db: DemoDb): Promise<void> {
   // ── Staff assignments ────────────────────────────────────────────────────
   db.insert(userAssignments)
     .values([
-      { userId: hotelStaff.id, assignableType: 'hotel', assignableId: grand.id },
-      { userId: ferryStaff.id, assignableType: 'ferry_route', assignableId: route.id },
-      { userId: parkStaff.id, assignableType: 'event', assignableId: coaster.id },
+      {
+        userId: hotelStaff.id,
+        assignableType: 'hotel',
+        assignableId: grand.id,
+      },
+      {
+        userId: ferryStaff.id,
+        assignableType: 'ferry_route',
+        assignableId: route.id,
+      },
+      {
+        userId: parkStaff.id,
+        assignableType: 'event',
+        assignableId: coaster.id,
+      },
     ])
     .run();
 
   // ── Audit trail (sample admin/system actions) ────────────────────────────
   db.insert(auditLogs)
     .values([
-      { userId: admin.id, action: 'user.created', subjectType: 'User', subjectId: alice.id, metadata: { role: 'visitor' } },
-      { userId: admin.id, action: 'promotion.created', subjectType: 'Promotion', subjectId: summer.id, metadata: { name: 'Summer Splash 10%' } },
-      { userId: admin.id, action: 'advertisement.published', subjectType: 'Advertisement', subjectId: 1, metadata: { placement: 'homepage' } },
+      {
+        userId: admin.id,
+        action: 'user.created',
+        subjectType: 'User',
+        subjectId: alice.id,
+        metadata: { role: 'visitor' },
+      },
+      {
+        userId: admin.id,
+        action: 'promotion.created',
+        subjectType: 'Promotion',
+        subjectId: summer.id,
+        metadata: { name: 'Summer Splash 10%' },
+      },
+      {
+        userId: admin.id,
+        action: 'advertisement.published',
+        subjectType: 'Advertisement',
+        subjectId: 1,
+        metadata: { placement: 'homepage' },
+      },
     ])
     .run();
 

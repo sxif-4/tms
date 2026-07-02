@@ -12,6 +12,8 @@ import { DatabaseModule } from './shared/database/database.module';
 import { JwtAuthGuard } from './shared/guards/jwt-auth.guard';
 import { RolesGuard } from './shared/guards/roles.guard';
 import { UsersModule } from './modules/users/users.module';
+import { AdvertisementsModule } from './modules/advertisements/advertisements.module';
+import { PromotionsModule } from './modules/promotions/promotions.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { UsersModule } from './modules/users/users.module';
     DatabaseModule,
     UsersModule,
     AuthModule,
+    AdvertisementsModule,
+    PromotionsModule,
   ],
   controllers: [HealthController],
   providers: [
