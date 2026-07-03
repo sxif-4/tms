@@ -19,6 +19,8 @@ import { Route as DashboardHotelIndexRouteImport } from './routes/dashboard/hote
 import { Route as DashboardFerryIndexRouteImport } from './routes/dashboard/ferry/index'
 import { Route as DashboardAdminIndexRouteImport } from './routes/dashboard/admin/index'
 import { Route as DashboardAdminUsersIndexRouteImport } from './routes/dashboard/admin/users/index'
+import { Route as DashboardAdminSettingsIndexRouteImport } from './routes/dashboard/admin/settings/index'
+import { Route as DashboardAdminRolesIndexRouteImport } from './routes/dashboard/admin/roles/index'
 import { Route as DashboardAdminPromotionsIndexRouteImport } from './routes/dashboard/admin/promotions/index'
 import { Route as DashboardAdminMapIndexRouteImport } from './routes/dashboard/admin/map/index'
 import { Route as DashboardAdminAuditLogsIndexRouteImport } from './routes/dashboard/admin/audit-logs/index'
@@ -76,6 +78,18 @@ const DashboardAdminUsersIndexRoute =
     path: '/users/',
     getParentRoute: () => DashboardAdminRouteRoute,
   } as any)
+const DashboardAdminSettingsIndexRoute =
+  DashboardAdminSettingsIndexRouteImport.update({
+    id: '/settings/',
+    path: '/settings/',
+    getParentRoute: () => DashboardAdminRouteRoute,
+  } as any)
+const DashboardAdminRolesIndexRoute =
+  DashboardAdminRolesIndexRouteImport.update({
+    id: '/roles/',
+    path: '/roles/',
+    getParentRoute: () => DashboardAdminRouteRoute,
+  } as any)
 const DashboardAdminPromotionsIndexRoute =
   DashboardAdminPromotionsIndexRouteImport.update({
     id: '/promotions/',
@@ -120,6 +134,8 @@ export interface FileRoutesByFullPath {
   '/dashboard/admin/audit-logs/': typeof DashboardAdminAuditLogsIndexRoute
   '/dashboard/admin/map/': typeof DashboardAdminMapIndexRoute
   '/dashboard/admin/promotions/': typeof DashboardAdminPromotionsIndexRoute
+  '/dashboard/admin/roles/': typeof DashboardAdminRolesIndexRoute
+  '/dashboard/admin/settings/': typeof DashboardAdminSettingsIndexRoute
   '/dashboard/admin/users/': typeof DashboardAdminUsersIndexRoute
 }
 export interface FileRoutesByTo {
@@ -136,6 +152,8 @@ export interface FileRoutesByTo {
   '/dashboard/admin/audit-logs': typeof DashboardAdminAuditLogsIndexRoute
   '/dashboard/admin/map': typeof DashboardAdminMapIndexRoute
   '/dashboard/admin/promotions': typeof DashboardAdminPromotionsIndexRoute
+  '/dashboard/admin/roles': typeof DashboardAdminRolesIndexRoute
+  '/dashboard/admin/settings': typeof DashboardAdminSettingsIndexRoute
   '/dashboard/admin/users': typeof DashboardAdminUsersIndexRoute
 }
 export interface FileRoutesById {
@@ -154,6 +172,8 @@ export interface FileRoutesById {
   '/dashboard/admin/audit-logs/': typeof DashboardAdminAuditLogsIndexRoute
   '/dashboard/admin/map/': typeof DashboardAdminMapIndexRoute
   '/dashboard/admin/promotions/': typeof DashboardAdminPromotionsIndexRoute
+  '/dashboard/admin/roles/': typeof DashboardAdminRolesIndexRoute
+  '/dashboard/admin/settings/': typeof DashboardAdminSettingsIndexRoute
   '/dashboard/admin/users/': typeof DashboardAdminUsersIndexRoute
 }
 export interface FileRouteTypes {
@@ -173,6 +193,8 @@ export interface FileRouteTypes {
     | '/dashboard/admin/audit-logs/'
     | '/dashboard/admin/map/'
     | '/dashboard/admin/promotions/'
+    | '/dashboard/admin/roles/'
+    | '/dashboard/admin/settings/'
     | '/dashboard/admin/users/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -189,6 +211,8 @@ export interface FileRouteTypes {
     | '/dashboard/admin/audit-logs'
     | '/dashboard/admin/map'
     | '/dashboard/admin/promotions'
+    | '/dashboard/admin/roles'
+    | '/dashboard/admin/settings'
     | '/dashboard/admin/users'
   id:
     | '__root__'
@@ -206,6 +230,8 @@ export interface FileRouteTypes {
     | '/dashboard/admin/audit-logs/'
     | '/dashboard/admin/map/'
     | '/dashboard/admin/promotions/'
+    | '/dashboard/admin/roles/'
+    | '/dashboard/admin/settings/'
     | '/dashboard/admin/users/'
   fileRoutesById: FileRoutesById
 }
@@ -288,6 +314,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminUsersIndexRouteImport
       parentRoute: typeof DashboardAdminRouteRoute
     }
+    '/dashboard/admin/settings/': {
+      id: '/dashboard/admin/settings/'
+      path: '/settings'
+      fullPath: '/dashboard/admin/settings/'
+      preLoaderRoute: typeof DashboardAdminSettingsIndexRouteImport
+      parentRoute: typeof DashboardAdminRouteRoute
+    }
+    '/dashboard/admin/roles/': {
+      id: '/dashboard/admin/roles/'
+      path: '/roles'
+      fullPath: '/dashboard/admin/roles/'
+      preLoaderRoute: typeof DashboardAdminRolesIndexRouteImport
+      parentRoute: typeof DashboardAdminRouteRoute
+    }
     '/dashboard/admin/promotions/': {
       id: '/dashboard/admin/promotions/'
       path: '/promotions'
@@ -333,6 +373,8 @@ interface DashboardAdminRouteRouteChildren {
   DashboardAdminAuditLogsIndexRoute: typeof DashboardAdminAuditLogsIndexRoute
   DashboardAdminMapIndexRoute: typeof DashboardAdminMapIndexRoute
   DashboardAdminPromotionsIndexRoute: typeof DashboardAdminPromotionsIndexRoute
+  DashboardAdminRolesIndexRoute: typeof DashboardAdminRolesIndexRoute
+  DashboardAdminSettingsIndexRoute: typeof DashboardAdminSettingsIndexRoute
   DashboardAdminUsersIndexRoute: typeof DashboardAdminUsersIndexRoute
 }
 
@@ -343,6 +385,8 @@ const DashboardAdminRouteRouteChildren: DashboardAdminRouteRouteChildren = {
   DashboardAdminAuditLogsIndexRoute: DashboardAdminAuditLogsIndexRoute,
   DashboardAdminMapIndexRoute: DashboardAdminMapIndexRoute,
   DashboardAdminPromotionsIndexRoute: DashboardAdminPromotionsIndexRoute,
+  DashboardAdminRolesIndexRoute: DashboardAdminRolesIndexRoute,
+  DashboardAdminSettingsIndexRoute: DashboardAdminSettingsIndexRoute,
   DashboardAdminUsersIndexRoute: DashboardAdminUsersIndexRoute,
 }
 
