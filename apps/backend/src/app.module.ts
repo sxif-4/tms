@@ -15,6 +15,8 @@ import { UsersModule } from './modules/users/users.module';
 import { AdvertisementsModule } from './modules/advertisements/advertisements.module';
 import { PromotionsModule } from './modules/promotions/promotions.module';
 import { MapLocationsModule } from './modules/map-locations/map-locations.module';
+import { ReportsModule } from './modules/reports/reports.module';
+import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import { MapLocationsModule } from './modules/map-locations/map-locations.module
     AdvertisementsModule,
     PromotionsModule,
     MapLocationsModule,
+    ReportsModule,
+    AuditLogsModule,
   ],
   controllers: [HealthController],
   providers: [

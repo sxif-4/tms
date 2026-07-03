@@ -150,7 +150,11 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
           icon: <LayoutGridIcon />,
           isActive: true,
         },
-        { title: "Analytics", path: "#/analytics", icon: <BarChart3Icon /> },
+        {
+          title: "Analytics",
+          path: "/dashboard/admin/analytics",
+          icon: <BarChart3Icon />,
+        },
       ],
     },
     {
@@ -181,7 +185,11 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
       label: "Administration",
       items: [
         { title: "Users", path: "/dashboard/admin/users", icon: <UsersIcon /> },
-        { title: "Audit Logs", path: "#/audit-logs", icon: <ScrollTextIcon /> },
+        {
+          title: "Audit Logs",
+          path: "/dashboard/admin/audit-logs",
+          icon: <ScrollTextIcon />,
+        },
         { title: "Roles", path: "#/roles", icon: <ShieldCheckIcon /> },
         { title: "Settings", path: "#/settings", icon: <SettingsIcon /> },
       ],

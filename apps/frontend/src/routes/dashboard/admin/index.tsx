@@ -1,3 +1,4 @@
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import {
   ArrowRightIcon,
@@ -5,37 +6,27 @@ import {
   PoundSterlingIcon,
   TicketIcon,
   UsersIcon,
-  type LucideIcon,
 } from "lucide-react";
 import {
   Card,
   CardAction,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import { StatCard } from "~/features/reports/components/stat-card";
+import { gbp } from "~/features/reports/constants";
+import { overviewQueryOptions } from "~/features/reports/queries";
 
 export const Route = createFileRoute("/dashboard/admin/")({
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(overviewQueryOptions),
   component: AdminDashboardPage,
 });
 
-/**
- * KPI shell — values are placeholders until the reports module lands (Phase 4),
- * which will feed these cards from `GET /reports/overview`.
- */
-const STATS: { label: string; icon: LucideIcon; hint: string }[] = [
-  { label: "Total users", icon: UsersIcon, hint: "Registered accounts" },
-  {
-    label: "Active bookings",
-    icon: CalendarCheckIcon,
-    hint: "Confirmed & upcoming",
-  },
-  { label: "Revenue", icon: PoundSterlingIcon, hint: "Completed payments" },
-  { label: "Tickets sold", icon: TicketIcon, hint: "Park & event tickets" },
-];
-
 function AdminDashboardPage() {
+  const { data: overview } = useSuspenseQuery(overviewQueryOptions);
+
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-1">
@@ -46,26 +37,31 @@ function AdminDashboardPage() {
       </header>
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {STATS.map(({ label, icon: Icon, hint }) => (
-          <Card key={label}>
-            <CardHeader>
-              <CardDescription>{label}</CardDescription>
-              <CardTitle className="text-2xl">—</CardTitle>
-              <CardAction>
-                <Icon className="size-5 text-muted-foreground" />
-              </CardAction>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">{hint}</p>
-            </CardContent>
-          </Card>
-        ))}
+        <StatCard
+          label="Total users"
+          value={overview.totalUsers}
+          hint="Registered accounts"
+          icon={UsersIcon}
+        />
+        <StatCard
+          label="Active bookings"
+          value={overview.activeBookings}
+          hint="Confirmed &amp; upcoming"
+          icon={CalendarCheckIcon}
+        />
+        <StatCard
+          label="Revenue"
+          value={gbp(overview.revenue)}
+          hint="Completed payments"
+          icon={PoundSterlingIcon}
+        />
+        <StatCard
+          label="Tickets sold"
+          value={overview.ticketsSold}
+          hint="Park &amp; event tickets"
+          icon={TicketIcon}
+        />
       </section>
-
-      <p className="text-xs text-muted-foreground">
-        Live figures arrive with the reports module. In the meantime, manage the
-        platform below.
-      </p>
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <Link to="/dashboard/admin/users" className="group">
@@ -74,6 +70,19 @@ function AdminDashboardPage() {
               <CardTitle>Users</CardTitle>
               <CardDescription>
                 Review accounts and manage roles.
+              </CardDescription>
+              <CardAction>
+                <ArrowRightIcon className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+              </CardAction>
+            </CardHeader>
+          </Card>
+        </Link>
+        <Link to="/dashboard/admin/analytics" className="group">
+          <Card className="transition-colors group-hover:ring-foreground/20">
+            <CardHeader>
+              <CardTitle>Analytics</CardTitle>
+              <CardDescription>
+                Explore sales and usage reports.
               </CardDescription>
               <CardAction>
                 <ArrowRightIcon className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
