@@ -14,6 +14,7 @@ import { RolesGuard } from './shared/guards/roles.guard';
 import { UsersModule } from './modules/users/users.module';
 import { AdvertisementsModule } from './modules/advertisements/advertisements.module';
 import { PromotionsModule } from './modules/promotions/promotions.module';
+import { MapLocationsModule } from './modules/map-locations/map-locations.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { PromotionsModule } from './modules/promotions/promotions.module';
     AuthModule,
     AdvertisementsModule,
     PromotionsModule,
+    MapLocationsModule,
   ],
   controllers: [HealthController],
   providers: [

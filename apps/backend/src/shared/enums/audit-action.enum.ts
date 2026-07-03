@@ -14,4 +14,7 @@ export enum AuditAction {
   PromotionCreated = 'promotion.created',
   PromotionUpdated = 'promotion.updated',
   PromotionDeleted = 'promotion.deleted',
+  LocationCreated = 'location.created',
+  LocationUpdated = 'location.updated',
+  LocationDeleted = 'location.deleted',
 }

@@ -20,6 +20,7 @@ import { Route as DashboardFerryIndexRouteImport } from './routes/dashboard/ferr
 import { Route as DashboardAdminIndexRouteImport } from './routes/dashboard/admin/index'
 import { Route as DashboardAdminUsersIndexRouteImport } from './routes/dashboard/admin/users/index'
 import { Route as DashboardAdminPromotionsIndexRouteImport } from './routes/dashboard/admin/promotions/index'
+import { Route as DashboardAdminMapIndexRouteImport } from './routes/dashboard/admin/map/index'
 import { Route as DashboardAdminAdsIndexRouteImport } from './routes/dashboard/admin/ads/index'
 
 const SignupRoute = SignupRouteImport.update({
@@ -79,6 +80,11 @@ const DashboardAdminPromotionsIndexRoute =
     path: '/promotions/',
     getParentRoute: () => DashboardAdminRouteRoute,
   } as any)
+const DashboardAdminMapIndexRoute = DashboardAdminMapIndexRouteImport.update({
+  id: '/map/',
+  path: '/map/',
+  getParentRoute: () => DashboardAdminRouteRoute,
+} as any)
 const DashboardAdminAdsIndexRoute = DashboardAdminAdsIndexRouteImport.update({
   id: '/ads/',
   path: '/ads/',
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/hotel/': typeof DashboardHotelIndexRoute
   '/dashboard/park/': typeof DashboardParkIndexRoute
   '/dashboard/admin/ads/': typeof DashboardAdminAdsIndexRoute
+  '/dashboard/admin/map/': typeof DashboardAdminMapIndexRoute
   '/dashboard/admin/promotions/': typeof DashboardAdminPromotionsIndexRoute
   '/dashboard/admin/users/': typeof DashboardAdminUsersIndexRoute
 }
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/dashboard/hotel': typeof DashboardHotelIndexRoute
   '/dashboard/park': typeof DashboardParkIndexRoute
   '/dashboard/admin/ads': typeof DashboardAdminAdsIndexRoute
+  '/dashboard/admin/map': typeof DashboardAdminMapIndexRoute
   '/dashboard/admin/promotions': typeof DashboardAdminPromotionsIndexRoute
   '/dashboard/admin/users': typeof DashboardAdminUsersIndexRoute
 }
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/dashboard/hotel/': typeof DashboardHotelIndexRoute
   '/dashboard/park/': typeof DashboardParkIndexRoute
   '/dashboard/admin/ads/': typeof DashboardAdminAdsIndexRoute
+  '/dashboard/admin/map/': typeof DashboardAdminMapIndexRoute
   '/dashboard/admin/promotions/': typeof DashboardAdminPromotionsIndexRoute
   '/dashboard/admin/users/': typeof DashboardAdminUsersIndexRoute
 }
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
     | '/dashboard/hotel/'
     | '/dashboard/park/'
     | '/dashboard/admin/ads/'
+    | '/dashboard/admin/map/'
     | '/dashboard/admin/promotions/'
     | '/dashboard/admin/users/'
   fileRoutesByTo: FileRoutesByTo
@@ -153,6 +163,7 @@ export interface FileRouteTypes {
     | '/dashboard/hotel'
     | '/dashboard/park'
     | '/dashboard/admin/ads'
+    | '/dashboard/admin/map'
     | '/dashboard/admin/promotions'
     | '/dashboard/admin/users'
   id:
@@ -167,6 +178,7 @@ export interface FileRouteTypes {
     | '/dashboard/hotel/'
     | '/dashboard/park/'
     | '/dashboard/admin/ads/'
+    | '/dashboard/admin/map/'
     | '/dashboard/admin/promotions/'
     | '/dashboard/admin/users/'
   fileRoutesById: FileRoutesById
@@ -257,6 +269,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminPromotionsIndexRouteImport
       parentRoute: typeof DashboardAdminRouteRoute
     }
+    '/dashboard/admin/map/': {
+      id: '/dashboard/admin/map/'
+      path: '/map'
+      fullPath: '/dashboard/admin/map/'
+      preLoaderRoute: typeof DashboardAdminMapIndexRouteImport
+      parentRoute: typeof DashboardAdminRouteRoute
+    }
     '/dashboard/admin/ads/': {
       id: '/dashboard/admin/ads/'
       path: '/ads'
@@ -270,6 +289,7 @@ declare module '@tanstack/react-router' {
 interface DashboardAdminRouteRouteChildren {
   DashboardAdminIndexRoute: typeof DashboardAdminIndexRoute
   DashboardAdminAdsIndexRoute: typeof DashboardAdminAdsIndexRoute
+  DashboardAdminMapIndexRoute: typeof DashboardAdminMapIndexRoute
   DashboardAdminPromotionsIndexRoute: typeof DashboardAdminPromotionsIndexRoute
   DashboardAdminUsersIndexRoute: typeof DashboardAdminUsersIndexRoute
 }
@@ -277,6 +297,7 @@ interface DashboardAdminRouteRouteChildren {
 const DashboardAdminRouteRouteChildren: DashboardAdminRouteRouteChildren = {
   DashboardAdminIndexRoute: DashboardAdminIndexRoute,
   DashboardAdminAdsIndexRoute: DashboardAdminAdsIndexRoute,
+  DashboardAdminMapIndexRoute: DashboardAdminMapIndexRoute,
   DashboardAdminPromotionsIndexRoute: DashboardAdminPromotionsIndexRoute,
   DashboardAdminUsersIndexRoute: DashboardAdminUsersIndexRoute,
 }

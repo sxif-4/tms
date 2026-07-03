@@ -170,6 +170,11 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
           path: "/dashboard/admin/promotions",
           icon: <PercentIcon />,
         },
+        {
+          title: "Map & Locations",
+          path: "/dashboard/admin/map",
+          icon: <MapIcon />,
+        },
       ],
     },
     {
