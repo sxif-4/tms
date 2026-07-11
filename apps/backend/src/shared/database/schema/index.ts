@@ -123,6 +123,14 @@ export const hotelBookingsRelations = relations(
       fields: [hotelBookings.userId],
       references: [users.id],
     }),
+    hotel: one(hotels, {
+      fields: [hotelBookings.hotelId],
+      references: [hotels.id],
+    }),
+    roomType: one(roomTypes, {
+      fields: [hotelBookings.roomTypeId],
+      references: [roomTypes.id],
+    }),
     room: one(rooms, {
       fields: [hotelBookings.roomId],
       references: [rooms.id],

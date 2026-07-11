@@ -1,7 +1,11 @@
 import { BadRequestException, ConflictException } from '@nestjs/common';
 import { AuditAction } from '../../shared/enums/audit-action.enum';
+import { Role } from '../../shared/enums/role.enum';
+import type { AuthenticatedUser } from '../../shared/interfaces/authenticated-user.interface';
 import { CreatePromotionDto } from './dto/create-promotion.dto';
 import { PromotionsService } from './promotions.service';
+
+const admin: AuthenticatedUser = { id: 1, email: 'admin@example.com', role: Role.Admin };
 
 const baseDto = (
   over: Partial<CreatePromotionDto> = {},
@@ -25,6 +29,8 @@ describe('PromotionsService', () => {
     delete: jest.Mock;
     countUsages: jest.Mock;
   };
+  let roomTypesRepo: { hotelIdsUsingRoomType: jest.Mock };
+  let hotelAccess: { scopedHotelIds: jest.Mock };
   let audit: { record: jest.Mock };
 
   beforeEach(() => {
@@ -36,15 +42,22 @@ describe('PromotionsService', () => {
       delete: jest.fn(),
       countUsages: jest.fn(),
     };
+    roomTypesRepo = { hotelIdsUsingRoomType: jest.fn() };
+    hotelAccess = { scopedHotelIds: jest.fn() };
     audit = { record: jest.fn().mockResolvedValue(undefined) };
-    service = new PromotionsService(repo as never, audit as never);
+    service = new PromotionsService(
+      repo as never,
+      roomTypesRepo as never,
+      hotelAccess as never,
+      audit as never,
+    );
   });
 
   it('rejects a validFrom on/after validTo', async () => {
     await expect(
       service.create(
         baseDto({ validFrom: '2026-02-01', validTo: '2026-01-01' }),
-        1,
+        admin,
       ),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
@@ -53,7 +66,7 @@ describe('PromotionsService', () => {
     await expect(
       service.create(
         baseDto({ discountType: 'percentage', discountValue: '150' }),
-        1,
+        admin,
       ),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
@@ -66,7 +79,7 @@ describe('PromotionsService', () => {
     });
     repo.countUsages.mockResolvedValue(3);
 
-    await expect(service.remove(1, 1)).rejects.toBeInstanceOf(
+    await expect(service.remove(1, admin)).rejects.toBeInstanceOf(
       ConflictException,
     );
     expect(repo.delete).not.toHaveBeenCalled();
@@ -80,7 +93,7 @@ describe('PromotionsService', () => {
     });
     repo.countUsages.mockResolvedValue(0);
 
-    await service.remove(1, 1);
+    await service.remove(1, admin);
 
     expect(repo.delete).toHaveBeenCalledWith(1);
     expect(audit.record).toHaveBeenCalledWith(

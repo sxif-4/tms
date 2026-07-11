@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { LocationType } from "./types";
 
 export const LOCATION_TYPES: LocationType[] = [
@@ -18,15 +19,31 @@ export const LOCATION_TYPE_LABELS: Record<LocationType, string> = {
   landmark: "Landmark",
 };
 
-/** Marker colours per type, used for the map pins. */
+/**
+ * Pin colours per type — CSS var references only, never literal hex, so the
+ * map stays theme-consistent in light/dark mode.
+ */
 export const LOCATION_TYPE_COLORS: Record<LocationType, string> = {
-  hotel: "#2563eb",
-  ferry_terminal: "#0891b2",
-  attraction: "#db2777",
-  beach: "#d97706",
-  restaurant: "#16a34a",
-  landmark: "#7c3aed",
+  hotel: "var(--series-hotel)",
+  ferry_terminal: "var(--series-ferry)",
+  attraction: "var(--chart-3)",
+  beach: "var(--chart-4)",
+  restaurant: "var(--chart-1)",
+  landmark: "var(--chart-5)",
 };
 
-/** Fallback map centre (matches the seeded island coordinates). */
-export const DEFAULT_CENTER: [number, number] = [48.86, 2.33];
+/** Static island artwork every map view (admin + visitor) renders pins over. */
+export const ISLAND_MAP_IMAGE_SRC = "/images/map/Map_of_Island.png";
+
+/**
+ * Search-param shape for `/map` — a superset of `/hotels`' `{ minPrice,
+ * maxPrice, guests }` (see `features/hotel-browsing`) plus a `type` filter,
+ * so the two pages can share filter state via `Link`/`navigate` search.
+ */
+export const mapSearchSchema = z.object({
+  type: z.enum(LOCATION_TYPES as [LocationType, ...LocationType[]]).optional(),
+  minPrice: z.number().optional(),
+  maxPrice: z.number().optional(),
+  guests: z.number().optional(),
+});
+export type MapSearch = z.infer<typeof mapSearchSchema>;

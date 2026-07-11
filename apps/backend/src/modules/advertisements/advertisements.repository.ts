@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq, lte, gte } from 'drizzle-orm';
 import {
   DRIZZLE,
   type DrizzleDB,
@@ -20,6 +20,29 @@ export class AdvertisementsRepository {
       this.db
         .select()
         .from(advertisements)
+        .orderBy(desc(advertisements.createdAt))
+        .all(),
+    );
+  }
+
+  /** Currently-running, active ads — optionally narrowed to one placement. */
+  findActive(placement?: string): Promise<Advertisement[]> {
+    const now = new Date();
+    const conditions = [
+      eq(advertisements.isActive, true),
+      lte(advertisements.startsAt, now),
+      gte(advertisements.endsAt, now),
+    ];
+    if (placement) {
+      conditions.push(
+        eq(advertisements.placement, placement as Advertisement['placement']),
+      );
+    }
+    return Promise.resolve(
+      this.db
+        .select()
+        .from(advertisements)
+        .where(and(...conditions))
         .orderBy(desc(advertisements.createdAt))
         .all(),
     );

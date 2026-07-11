@@ -65,3 +65,24 @@ export const deleteAdvertisementServerFn = createServerFn({ method: "POST" })
     if (!res.ok)
       throw new Error(await errorMessage(res, "Failed to delete advertisement"));
   });
+
+/** Public homepage banner feed — no auth required on the API. */
+export const getActiveAdvertisementsServerFn = createServerFn({
+  method: "GET",
+})
+  .validator((input: unknown) =>
+    z.object({ placement: placementSchema.optional() }).parse(input ?? {}),
+  )
+  .handler(async ({ data }): Promise<Advertisement[]> => {
+    const params = new URLSearchParams();
+    if (data.placement) params.set("placement", data.placement);
+    const qs = params.toString();
+    const res = await apiFetch(
+      `/advertisements/active${qs ? `?${qs}` : ""}`,
+    );
+    if (!res.ok)
+      throw new Error(
+        await errorMessage(res, "Failed to load active advertisements"),
+      );
+    return (await res.json()) as Advertisement[];
+  });

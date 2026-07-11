@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1781888424139,
-      "tag": "0000_regular_swarm",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1783009653104,
-      "tag": "0001_material_nicolaos",
+      "when": 1783269380114,
+      "tag": "0000_yummy_mandrill",
       "breakpoints": true
     }
   ]

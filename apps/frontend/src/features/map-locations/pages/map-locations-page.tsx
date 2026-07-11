@@ -4,16 +4,13 @@ import {
   useSuspenseQuery,
 } from "@tanstack/react-query";
 import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
-import { Suspense, lazy, useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "~/components/confirm-dialog";
 import { Button } from "~/components/ui/button";
+import { IslandMapCanvas } from "../components/island-map-canvas";
 import { LocationDialog } from "../components/location-dialog";
-import {
-  DEFAULT_CENTER,
-  LOCATION_TYPE_COLORS,
-  LOCATION_TYPE_LABELS,
-} from "../constants";
+import { LOCATION_TYPE_COLORS, LOCATION_TYPE_LABELS } from "../constants";
 import { mapLocationsQueryOptions } from "../queries";
 import {
   deleteMapLocationServerFn,
@@ -21,38 +18,16 @@ import {
 } from "../server";
 import type { MapLocation } from "../types";
 
-// Client-only: Leaflet touches `window`, so keep it out of the SSR render.
-const LocationsMap = lazy(() => import("../components/locations-map"));
-
-function MapFallback() {
-  return (
-    <div className="flex h-full items-center justify-center bg-muted text-sm text-muted-foreground">
-      Loading map…
-    </div>
-  );
-}
-
 export function MapLocationsPage() {
   const queryClient = useQueryClient();
   const { data: locations } = useSuspenseQuery(mapLocationsQueryOptions);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<MapLocation | null>(null);
-  const [prefill, setPrefill] = useState<{ lat: number; lng: number } | null>(
+  const [prefill, setPrefill] = useState<{ top: number; left: number } | null>(
     null,
   );
   const [deleting, setDeleting] = useState<MapLocation | null>(null);
-
-  const center = useMemo<[number, number]>(() => {
-    if (locations.length === 0) return DEFAULT_CENTER;
-    const lat =
-      locations.reduce((s, l) => s + Number(l.latitude), 0) / locations.length;
-    const lng =
-      locations.reduce((s, l) => s + Number(l.longitude), 0) / locations.length;
-    return [lat, lng];
-  }, [locations]);
 
   const invalidate = () =>
     queryClient.invalidateQueries({
@@ -60,9 +35,9 @@ export function MapLocationsPage() {
     });
 
   const dragMutation = useMutation({
-    mutationFn: (v: { id: number; lat: number; lng: number }) =>
+    mutationFn: (v: { id: number; top: number; left: number }) =>
       updateMapLocationServerFn({
-        data: { id: v.id, latitude: v.lat, longitude: v.lng },
+        data: { id: v.id, positionTop: v.top, positionLeft: v.left },
       }),
     onSuccess: () => {
       invalidate();
@@ -87,12 +62,12 @@ export function MapLocationsPage() {
 
   const openCreate = () => {
     setEditing(null);
-    setPrefill({ lat: center[0], lng: center[1] });
+    setPrefill({ top: 50, left: 50 });
     setDialogOpen(true);
   };
-  const openCreateAt = (lat: number, lng: number) => {
+  const openCreateAt = (top: number, left: number) => {
     setEditing(null);
-    setPrefill({ lat, lng });
+    setPrefill({ top, left });
     setDialogOpen(true);
   };
   const openEdit = (loc: MapLocation) => {
@@ -119,25 +94,16 @@ export function MapLocationsPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        {/* `relative z-0` puts the map in its own stacking context at z-index
-            0, so Leaflet's high pane z-indexes (up to 800) can't paint over
-            modals/dropdowns (which sit at z-50). */}
-        <div className="relative z-0 h-150 overflow-hidden rounded-xl ring-1 ring-foreground/10 lg:col-span-2">
-          {mounted ? (
-            <Suspense fallback={<MapFallback />}>
-              <LocationsMap
-                locations={locations}
-                center={center}
-                onMapClick={openCreateAt}
-                onMarkerDragEnd={(id, lat, lng) =>
-                  dragMutation.mutate({ id, lat, lng })
-                }
-                onMarkerClick={openEdit}
-              />
-            </Suspense>
-          ) : (
-            <MapFallback />
-          )}
+        <div className="lg:col-span-2">
+          <IslandMapCanvas
+            locations={locations}
+            editable
+            onCanvasClick={openCreateAt}
+            onPinClick={openEdit}
+            onPinDragEnd={(id, top, left) =>
+              dragMutation.mutate({ id, top, left })
+            }
+          />
         </div>
 
         <div className="flex max-h-150 flex-col gap-2 overflow-y-auto">
@@ -158,8 +124,9 @@ export function MapLocationsPage() {
                     {loc.name}
                   </span>
                   <span className="truncate text-xs text-muted-foreground">
-                    {LOCATION_TYPE_LABELS[loc.type]} · {Number(loc.latitude).toFixed(4)},{" "}
-                    {Number(loc.longitude).toFixed(4)}
+                    {LOCATION_TYPE_LABELS[loc.type]} ·{" "}
+                    {Number(loc.positionTop).toFixed(1)}%,{" "}
+                    {Number(loc.positionLeft).toFixed(1)}%
                   </span>
                 </div>
                 <Button

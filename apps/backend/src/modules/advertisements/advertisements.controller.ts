@@ -9,8 +9,10 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator';
+import { Public } from '../../shared/decorators/public.decorator';
 import { Roles } from '../../shared/decorators/roles.decorator';
 import { type Advertisement } from '../../shared/database/schema';
 import { Role } from '../../shared/enums/role.enum';
@@ -19,11 +21,19 @@ import { AdvertisementsService } from './advertisements.service';
 import { CreateAdvertisementDto } from './dto/create-advertisement.dto';
 import { UpdateAdvertisementDto } from './dto/update-advertisement.dto';
 
-/** Admin-only advertisement CMS. */
+/** Admin-only advertisement CMS, plus a public feed of currently-running ads. */
 @Controller('advertisements')
 @Roles(Role.Admin)
 export class AdvertisementsController {
   constructor(private readonly adsService: AdvertisementsService) {}
+
+  /** Declared before `:id` so it isn't swallowed by the dynamic route. */
+  @Get('active')
+  @Public()
+  @Roles()
+  active(@Query('placement') placement?: string): Promise<Advertisement[]> {
+    return this.adsService.listActive(placement);
+  }
 
   @Get()
   findAll(): Promise<Advertisement[]> {

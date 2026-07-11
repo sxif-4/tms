@@ -21,6 +21,10 @@ export class AdvertisementsService {
     return this.adsRepo.findAll();
   }
 
+  listActive(placement?: string): Promise<Advertisement[]> {
+    return this.adsRepo.findActive(placement);
+  }
+
   async findById(id: number): Promise<Advertisement> {
     const ad = await this.adsRepo.findById(id);
     if (!ad) throw new NotFoundException(`Advertisement #${id} not found`);

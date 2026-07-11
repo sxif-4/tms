@@ -98,19 +98,23 @@ These apply across every table below unless a table explicitly notes otherwise:
 
 ### hotel_bookings
 
-| Column            | Type          | Constraints   | Description                                    |
-| ----------------- | ------------- | ------------- | ---------------------------------------------- |
-| id                | bigint        | PK, increment | Primary key                                    |
-| booking_reference | varchar(20)   | UNIQUE        | Unique booking reference                       |
-| user_id           | bigint        | FK → users.id | User who made the booking                      |
-| room_id           | bigint        | FK → rooms.id | Booked room                                    |
-| check_in          | date          | -             | Check-in date                                  |
-| check_out         | date          | -             | Check-out date                                 |
-| guests            | tinyint       | -             | Number of guests                               |
-| total_amount      | decimal(10,2) | -             | Price snapshot at booking time                 |
-| status            | varchar(50)   | -             | Booking status (pending, confirmed, cancelled) |
-| created_at        | timestamp     | -             | Record creation time                           |
-| updated_at        | timestamp     | -             | Record update time                             |
+Room-type-first: guests/staff pick a **room type** + dates at booking time; a specific room is assigned by staff afterward (`room_id` starts `NULL`), which makes "unassigned room" a real, queryable operational state. Availability is a capacity count, not a per-room overlap check: for a hotel + room type + date range, `available = (rooms of that type, status IN ('available','occupied')) − (hotel_bookings for that hotel+room type, status != 'cancelled', overlapping the range)`.
+
+| Column            | Type          | Constraints              | Description                                               |
+| ----------------- | ------------- | ------------------------- | ---------------------------------------------------------- |
+| id                | bigint        | PK, increment             | Primary key                                                |
+| booking_reference | varchar(20)   | UNIQUE                    | Unique booking reference                                   |
+| user_id           | bigint        | FK → users.id             | User who made the booking                                  |
+| hotel_id          | bigint        | FK → hotels.id            | Booked hotel                                                |
+| room_type_id      | bigint        | FK → room_types.id        | Booked room type                                            |
+| room_id           | bigint        | FK → rooms.id, nullable   | Specific room, assigned by staff after booking (nullable)  |
+| check_in          | date          | -                          | Check-in date                                               |
+| check_out         | date          | -                          | Check-out date                                              |
+| guests            | tinyint       | -                          | Number of guests                                            |
+| total_amount      | decimal(10,2) | -                          | Price snapshot at booking time                              |
+| status            | varchar(50)   | -                          | Booking status (pending, confirmed, cancelled, completed)  |
+| created_at        | timestamp     | -                          | Record creation time                                        |
+| updated_at        | timestamp     | -                          | Record update time                                          |
 
 ## ⛴️ FERRY DOMAIN
 

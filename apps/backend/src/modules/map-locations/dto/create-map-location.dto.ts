@@ -33,13 +33,14 @@ export class CreateMapLocationDto {
   })
   type!: LocationType;
 
+  /** Percentage position over the static island map image (0-100). */
   @IsNumber()
-  @Min(-90)
-  @Max(90)
-  latitude!: number;
+  @Min(0)
+  @Max(100)
+  positionTop!: number;
 
   @IsNumber()
-  @Min(-180)
-  @Max(180)
-  longitude!: number;
+  @Min(0)
+  @Max(100)
+  positionLeft!: number;
 }

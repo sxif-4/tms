@@ -20,27 +20,37 @@ import { UpdatePromotionDto } from './dto/update-promotion.dto';
 import { PromotionsService } from './promotions.service';
 import { type PromotionWithTargets } from './promotions.repository';
 
-/** Admin-only promotions management. */
+/**
+ * Promotions management. Admins see and manage everything; hotel staff are
+ * scoped to promotions targeting room types at their assigned hotels (see
+ * PromotionsService for the scoping rules).
+ */
 @Controller('promotions')
-@Roles(Role.Admin)
+@Roles(Role.Admin, Role.HotelStaff)
 export class PromotionsController {
   constructor(private readonly promoService: PromotionsService) {}
 
   @Get()
-  findAll(): Promise<PromotionWithTargets[]> {
-    return this.promoService.listAll();
+  findAll(
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<PromotionWithTargets[]> {
+    return this.promoService.listAll(currentUser);
   }
 
   @Get(':id')
   findOne(
     @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() currentUser: AuthenticatedUser,
   ): Promise<PromotionWithTargets> {
-    return this.promoService.findById(id);
+    return this.promoService.findById(id, currentUser);
   }
 
   @Get(':id/usages')
-  usages(@Param('id', ParseIntPipe) id: number): Promise<PromotionUsage[]> {
-    return this.promoService.listUsages(id);
+  usages(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<PromotionUsage[]> {
+    return this.promoService.listUsages(id, currentUser);
   }
 
   @Post()
@@ -48,7 +58,7 @@ export class PromotionsController {
     @Body() dto: CreatePromotionDto,
     @CurrentUser() currentUser: AuthenticatedUser,
   ): Promise<PromotionWithTargets> {
-    return this.promoService.create(dto, currentUser.id);
+    return this.promoService.create(dto, currentUser);
   }
 
   @Patch(':id')
@@ -57,7 +67,7 @@ export class PromotionsController {
     @Body() dto: UpdatePromotionDto,
     @CurrentUser() currentUser: AuthenticatedUser,
   ): Promise<PromotionWithTargets> {
-    return this.promoService.update(id, dto, currentUser.id);
+    return this.promoService.update(id, dto, currentUser);
   }
 
   @Delete(':id')
@@ -66,6 +76,6 @@ export class PromotionsController {
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() currentUser: AuthenticatedUser,
   ): Promise<void> {
-    return this.promoService.remove(id, currentUser.id);
+    return this.promoService.remove(id, currentUser);
   }
 }

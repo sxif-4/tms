@@ -11,9 +11,9 @@ export interface MapLocation {
   name: string;
   description: string;
   type: LocationType;
-  /** decimal(10,7) returned as a string; parse with Number() for the map. */
-  latitude: string;
-  longitude: string;
+  /** decimal(5,2) returned as a string — % position over Map_of_Island.png. */
+  positionTop: string;
+  positionLeft: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -22,6 +22,6 @@ export interface MapLocationInput {
   name: string;
   description: string;
   type: LocationType;
-  latitude: number;
-  longitude: number;
+  positionTop: number;
+  positionLeft: number;
 }
