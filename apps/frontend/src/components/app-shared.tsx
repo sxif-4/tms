@@ -96,17 +96,17 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
       items: [
         {
           title: "Dashboard",
-          path: "#/dashboard",
+          path: "/dashboard/ferry/",
           icon: <LayoutGridIcon />,
           isActive: true,
         },
-        { title: "Routes", path: "#/routes", icon: <MapIcon /> },
+        { title: "Routes", path: "/dashboard/ferry/routes", icon: <MapIcon /> },
         {
           title: "Schedules",
-          path: "#/schedules",
+          path: "/dashboard/ferry/schedules",
           icon: <CalendarCheckIcon />,
         },
-        { title: "Bookings", path: "#/bookings", icon: <TicketIcon /> },
+        { title: "Bookings", path: "/dashboard/ferry/bookings", icon: <TicketIcon /> },
       ],
     },
     {

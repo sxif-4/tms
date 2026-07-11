@@ -17,6 +17,7 @@ import { PromotionsModule } from './modules/promotions/promotions.module';
 import { MapLocationsModule } from './modules/map-locations/map-locations.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
+import { FerryModule } from './modules/ferry/ferry.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
     MapLocationsModule,
     ReportsModule,
     AuditLogsModule,
+    FerryModule,
   ],
   controllers: [HealthController],
   providers: [

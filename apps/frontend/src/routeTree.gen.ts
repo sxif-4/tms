@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardAdminRouteRouteImport } from './routes/dashboard/admin/route'
@@ -18,6 +19,9 @@ import { Route as DashboardParkIndexRouteImport } from './routes/dashboard/park/
 import { Route as DashboardHotelIndexRouteImport } from './routes/dashboard/hotel/index'
 import { Route as DashboardFerryIndexRouteImport } from './routes/dashboard/ferry/index'
 import { Route as DashboardAdminIndexRouteImport } from './routes/dashboard/admin/index'
+import { Route as DashboardFerrySchedulesIndexRouteImport } from './routes/dashboard/ferry/schedules/index'
+import { Route as DashboardFerryRoutesIndexRouteImport } from './routes/dashboard/ferry/routes/index'
+import { Route as DashboardFerryBookingsIndexRouteImport } from './routes/dashboard/ferry/bookings/index'
 import { Route as DashboardAdminUsersIndexRouteImport } from './routes/dashboard/admin/users/index'
 import { Route as DashboardAdminSettingsIndexRouteImport } from './routes/dashboard/admin/settings/index'
 import { Route as DashboardAdminRolesIndexRouteImport } from './routes/dashboard/admin/roles/index'
@@ -35,6 +39,11 @@ const SignupRoute = SignupRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRouteRoute = DashboardRouteRouteImport.update({
@@ -72,6 +81,24 @@ const DashboardAdminIndexRoute = DashboardAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardAdminRouteRoute,
 } as any)
+const DashboardFerrySchedulesIndexRoute =
+  DashboardFerrySchedulesIndexRouteImport.update({
+    id: '/ferry/schedules/',
+    path: '/ferry/schedules/',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardFerryRoutesIndexRoute =
+  DashboardFerryRoutesIndexRouteImport.update({
+    id: '/ferry/routes/',
+    path: '/ferry/routes/',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardFerryBookingsIndexRoute =
+  DashboardFerryBookingsIndexRouteImport.update({
+    id: '/ferry/bookings/',
+    path: '/ferry/bookings/',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
 const DashboardAdminUsersIndexRoute =
   DashboardAdminUsersIndexRouteImport.update({
     id: '/users/',
@@ -122,6 +149,7 @@ const DashboardAdminAdsIndexRoute = DashboardAdminAdsIndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/about': typeof AboutRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/dashboard/admin': typeof DashboardAdminRouteRouteWithChildren
@@ -137,10 +165,14 @@ export interface FileRoutesByFullPath {
   '/dashboard/admin/roles/': typeof DashboardAdminRolesIndexRoute
   '/dashboard/admin/settings/': typeof DashboardAdminSettingsIndexRoute
   '/dashboard/admin/users/': typeof DashboardAdminUsersIndexRoute
+  '/dashboard/ferry/bookings/': typeof DashboardFerryBookingsIndexRoute
+  '/dashboard/ferry/routes/': typeof DashboardFerryRoutesIndexRoute
+  '/dashboard/ferry/schedules/': typeof DashboardFerrySchedulesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/about': typeof AboutRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/dashboard/admin': typeof DashboardAdminIndexRoute
@@ -155,11 +187,15 @@ export interface FileRoutesByTo {
   '/dashboard/admin/roles': typeof DashboardAdminRolesIndexRoute
   '/dashboard/admin/settings': typeof DashboardAdminSettingsIndexRoute
   '/dashboard/admin/users': typeof DashboardAdminUsersIndexRoute
+  '/dashboard/ferry/bookings': typeof DashboardFerryBookingsIndexRoute
+  '/dashboard/ferry/routes': typeof DashboardFerryRoutesIndexRoute
+  '/dashboard/ferry/schedules': typeof DashboardFerrySchedulesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/about': typeof AboutRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/dashboard/admin': typeof DashboardAdminRouteRouteWithChildren
@@ -175,12 +211,16 @@ export interface FileRoutesById {
   '/dashboard/admin/roles/': typeof DashboardAdminRolesIndexRoute
   '/dashboard/admin/settings/': typeof DashboardAdminSettingsIndexRoute
   '/dashboard/admin/users/': typeof DashboardAdminUsersIndexRoute
+  '/dashboard/ferry/bookings/': typeof DashboardFerryBookingsIndexRoute
+  '/dashboard/ferry/routes/': typeof DashboardFerryRoutesIndexRoute
+  '/dashboard/ferry/schedules/': typeof DashboardFerrySchedulesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/about'
     | '/login'
     | '/signup'
     | '/dashboard/admin'
@@ -196,10 +236,14 @@ export interface FileRouteTypes {
     | '/dashboard/admin/roles/'
     | '/dashboard/admin/settings/'
     | '/dashboard/admin/users/'
+    | '/dashboard/ferry/bookings/'
+    | '/dashboard/ferry/routes/'
+    | '/dashboard/ferry/schedules/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/dashboard'
+    | '/about'
     | '/login'
     | '/signup'
     | '/dashboard/admin'
@@ -214,10 +258,14 @@ export interface FileRouteTypes {
     | '/dashboard/admin/roles'
     | '/dashboard/admin/settings'
     | '/dashboard/admin/users'
+    | '/dashboard/ferry/bookings'
+    | '/dashboard/ferry/routes'
+    | '/dashboard/ferry/schedules'
   id:
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/about'
     | '/login'
     | '/signup'
     | '/dashboard/admin'
@@ -233,11 +281,15 @@ export interface FileRouteTypes {
     | '/dashboard/admin/roles/'
     | '/dashboard/admin/settings/'
     | '/dashboard/admin/users/'
+    | '/dashboard/ferry/bookings/'
+    | '/dashboard/ferry/routes/'
+    | '/dashboard/ferry/schedules/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
+  AboutRoute: typeof AboutRoute
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
 }
@@ -256,6 +308,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -306,6 +365,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/admin/'
       preLoaderRoute: typeof DashboardAdminIndexRouteImport
       parentRoute: typeof DashboardAdminRouteRoute
+    }
+    '/dashboard/ferry/schedules/': {
+      id: '/dashboard/ferry/schedules/'
+      path: '/ferry/schedules'
+      fullPath: '/dashboard/ferry/schedules/'
+      preLoaderRoute: typeof DashboardFerrySchedulesIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/ferry/routes/': {
+      id: '/dashboard/ferry/routes/'
+      path: '/ferry/routes'
+      fullPath: '/dashboard/ferry/routes/'
+      preLoaderRoute: typeof DashboardFerryRoutesIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/ferry/bookings/': {
+      id: '/dashboard/ferry/bookings/'
+      path: '/ferry/bookings'
+      fullPath: '/dashboard/ferry/bookings/'
+      preLoaderRoute: typeof DashboardFerryBookingsIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
     }
     '/dashboard/admin/users/': {
       id: '/dashboard/admin/users/'
@@ -398,6 +478,9 @@ interface DashboardRouteRouteChildren {
   DashboardFerryIndexRoute: typeof DashboardFerryIndexRoute
   DashboardHotelIndexRoute: typeof DashboardHotelIndexRoute
   DashboardParkIndexRoute: typeof DashboardParkIndexRoute
+  DashboardFerryBookingsIndexRoute: typeof DashboardFerryBookingsIndexRoute
+  DashboardFerryRoutesIndexRoute: typeof DashboardFerryRoutesIndexRoute
+  DashboardFerrySchedulesIndexRoute: typeof DashboardFerrySchedulesIndexRoute
 }
 
 const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
@@ -405,6 +488,9 @@ const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardFerryIndexRoute: DashboardFerryIndexRoute,
   DashboardHotelIndexRoute: DashboardHotelIndexRoute,
   DashboardParkIndexRoute: DashboardParkIndexRoute,
+  DashboardFerryBookingsIndexRoute: DashboardFerryBookingsIndexRoute,
+  DashboardFerryRoutesIndexRoute: DashboardFerryRoutesIndexRoute,
+  DashboardFerrySchedulesIndexRoute: DashboardFerrySchedulesIndexRoute,
 }
 
 const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
@@ -414,6 +500,7 @@ const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
+  AboutRoute: AboutRoute,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
 }
