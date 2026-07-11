@@ -14,11 +14,11 @@ const inputSchema = z.object({
     "restaurant",
     "landmark",
   ]),
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
+  positionTop: z.number().min(0).max(100),
+  positionLeft: z.number().min(0).max(100),
 });
 
-/** Lists all map locations (admin-only on the API). */
+/** Lists all map locations. Public on the API — used by both admin and visitors. */
 export const getMapLocationsServerFn = createServerFn({ method: "GET" }).handler(
   async (): Promise<MapLocation[]> => {
     const res = await apiFetch("/map-locations");
@@ -68,3 +68,24 @@ export const deleteMapLocationServerFn = createServerFn({ method: "POST" })
     if (!res.ok)
       throw new Error(await errorMessage(res, "Failed to delete location"));
   });
+
+export interface HotelPin {
+  id: number;
+  positionTop: string | null;
+  positionLeft: string | null;
+}
+
+/**
+ * Minimal hotel pin lookup for the visitor island map — self-contained (calls
+ * `/public/hotels` directly) so this feature doesn't depend on the
+ * `hotel-browsing` feature's internals. Matches a `hotel`-type map location
+ * to its hotel by comparing position, since `/public/hotels` doesn't return
+ * `mapLocationId` directly.
+ */
+export const getPublicHotelPinsServerFn = createServerFn({
+  method: "GET",
+}).handler(async (): Promise<HotelPin[]> => {
+  const res = await apiFetch("/public/hotels");
+  if (!res.ok) return [];
+  return (await res.json()) as HotelPin[];
+});

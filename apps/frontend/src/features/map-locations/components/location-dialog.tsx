@@ -37,7 +37,7 @@ export function LocationDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   location: MapLocation | null;
-  prefill: { lat: number; lng: number } | null;
+  prefill: { top: number; left: number } | null;
 }) {
   const queryClient = useQueryClient();
   const isEdit = location != null;
@@ -45,8 +45,8 @@ export function LocationDialog({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState<LocationType>("landmark");
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
+  const [positionTop, setPositionTop] = useState("");
+  const [positionLeft, setPositionLeft] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -55,9 +55,11 @@ export function LocationDialog({
     setName(location?.name ?? "");
     setDescription(location?.description ?? "");
     setType(location?.type ?? "landmark");
-    setLatitude(location ? location.latitude : (prefill?.lat.toFixed(7) ?? ""));
-    setLongitude(
-      location ? location.longitude : (prefill?.lng.toFixed(7) ?? ""),
+    setPositionTop(
+      location ? location.positionTop : (prefill?.top.toFixed(2) ?? ""),
+    );
+    setPositionLeft(
+      location ? location.positionLeft : (prefill?.left.toFixed(2) ?? ""),
     );
   }, [open, location, prefill]);
 
@@ -67,8 +69,8 @@ export function LocationDialog({
         name: name.trim(),
         description: description.trim(),
         type,
-        latitude: Number(latitude),
-        longitude: Number(longitude),
+        positionTop: Number(positionTop),
+        positionLeft: Number(positionLeft),
       };
       return isEdit
         ? updateMapLocationServerFn({ data: { id: location.id, ...payload } })
@@ -85,17 +87,17 @@ export function LocationDialog({
       setError(err instanceof Error ? err.message : "Something went wrong"),
   });
 
-  const lat = Number(latitude);
-  const lng = Number(longitude);
+  const top = Number(positionTop);
+  const left = Number(positionLeft);
   const canSubmit =
     name.trim() &&
     description.trim() &&
-    latitude !== "" &&
-    longitude !== "" &&
-    lat >= -90 &&
-    lat <= 90 &&
-    lng >= -180 &&
-    lng <= 180;
+    positionTop !== "" &&
+    positionLeft !== "" &&
+    top >= 0 &&
+    top <= 100 &&
+    left >= 0 &&
+    left <= 100;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -143,26 +145,34 @@ export function LocationDialog({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="loc-lat">Latitude</Label>
+              <Label htmlFor="loc-top">Top (%)</Label>
               <Input
-                id="loc-lat"
+                id="loc-top"
                 type="number"
-                step="any"
-                value={latitude}
-                onChange={(e) => setLatitude(e.target.value)}
+                step="0.01"
+                min={0}
+                max={100}
+                value={positionTop}
+                onChange={(e) => setPositionTop(e.target.value)}
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="loc-lng">Longitude</Label>
+              <Label htmlFor="loc-left">Left (%)</Label>
               <Input
-                id="loc-lng"
+                id="loc-left"
                 type="number"
-                step="any"
-                value={longitude}
-                onChange={(e) => setLongitude(e.target.value)}
+                step="0.01"
+                min={0}
+                max={100}
+                value={positionLeft}
+                onChange={(e) => setPositionLeft(e.target.value)}
               />
             </div>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Position as a percentage of the map image — click the map or drag
+            a pin to set these automatically.
+          </p>
           {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
 

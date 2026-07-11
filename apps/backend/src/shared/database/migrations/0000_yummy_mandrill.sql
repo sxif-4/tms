@@ -1,3 +1,38 @@
+CREATE TABLE `roles` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`name` text NOT NULL,
+	`slug` text NOT NULL,
+	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch()) NOT NULL
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `roles_slug_unique` ON `roles` (`slug`);--> statement-breakpoint
+CREATE TABLE `users` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`name` text NOT NULL,
+	`email` text NOT NULL,
+	`password_hash` text NOT NULL,
+	`role_id` integer NOT NULL,
+	`phone` text,
+	`email_verified_at` integer,
+	`is_active` integer DEFAULT true NOT NULL,
+	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch()) NOT NULL,
+	FOREIGN KEY (`role_id`) REFERENCES `roles`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `users_email_unique` ON `users` (`email`);--> statement-breakpoint
+CREATE TABLE `refresh_tokens` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`user_id` integer NOT NULL,
+	`token_hash` text NOT NULL,
+	`expires_at` integer NOT NULL,
+	`revoked_at` integer,
+	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `refresh_tokens_token_hash_unique` ON `refresh_tokens` (`token_hash`);--> statement-breakpoint
 CREATE TABLE `user_assignments` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`user_id` integer NOT NULL,
@@ -48,7 +83,9 @@ CREATE TABLE `hotel_bookings` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`booking_reference` text NOT NULL,
 	`user_id` integer NOT NULL,
-	`room_id` integer NOT NULL,
+	`hotel_id` integer NOT NULL,
+	`room_type_id` integer NOT NULL,
+	`room_id` integer,
 	`check_in` integer NOT NULL,
 	`check_out` integer NOT NULL,
 	`guests` integer NOT NULL,
@@ -57,11 +94,15 @@ CREATE TABLE `hotel_bookings` (
 	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
 	`updated_at` integer DEFAULT (unixepoch()) NOT NULL,
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`hotel_id`) REFERENCES `hotels`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`room_type_id`) REFERENCES `room_types`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`room_id`) REFERENCES `rooms`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `hotel_bookings_booking_reference_unique` ON `hotel_bookings` (`booking_reference`);--> statement-breakpoint
 CREATE INDEX `hotel_bookings_user_id_idx` ON `hotel_bookings` (`user_id`);--> statement-breakpoint
+CREATE INDEX `hotel_bookings_hotel_id_idx` ON `hotel_bookings` (`hotel_id`);--> statement-breakpoint
+CREATE INDEX `hotel_bookings_room_type_id_idx` ON `hotel_bookings` (`room_type_id`);--> statement-breakpoint
 CREATE INDEX `hotel_bookings_room_id_idx` ON `hotel_bookings` (`room_id`);--> statement-breakpoint
 CREATE INDEX `hotel_bookings_check_in_idx` ON `hotel_bookings` (`check_in`);--> statement-breakpoint
 CREATE INDEX `hotel_bookings_check_out_idx` ON `hotel_bookings` (`check_out`);--> statement-breakpoint
@@ -263,8 +304,8 @@ CREATE TABLE `map_locations` (
 	`name` text NOT NULL,
 	`description` text NOT NULL,
 	`type` text NOT NULL,
-	`latitude` text NOT NULL,
-	`longitude` text NOT NULL,
+	`position_top` text NOT NULL,
+	`position_left` text NOT NULL,
 	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
 	`updated_at` integer DEFAULT (unixepoch()) NOT NULL
 );

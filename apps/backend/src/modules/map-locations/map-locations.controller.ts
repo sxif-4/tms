@@ -11,6 +11,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator';
+import { Public } from '../../shared/decorators/public.decorator';
 import { Roles } from '../../shared/decorators/roles.decorator';
 import { type MapLocation } from '../../shared/database/schema';
 import { Role } from '../../shared/enums/role.enum';
@@ -19,18 +20,25 @@ import { CreateMapLocationDto } from './dto/create-map-location.dto';
 import { UpdateMapLocationDto } from './dto/update-map-location.dto';
 import { MapLocationsService } from './map-locations.service';
 
-/** Admin-only management of island map locations. */
+/**
+ * Reads are public — the island map is shown to signed-out visitors too.
+ * Writes stay admin-only.
+ */
 @Controller('map-locations')
 @Roles(Role.Admin)
 export class MapLocationsController {
   constructor(private readonly locationsService: MapLocationsService) {}
 
   @Get()
+  @Public()
+  @Roles()
   findAll(): Promise<MapLocation[]> {
     return this.locationsService.listAll();
   }
 
   @Get(':id')
+  @Public()
+  @Roles()
   findOne(@Param('id', ParseIntPipe) id: number): Promise<MapLocation> {
     return this.locationsService.findById(id);
   }

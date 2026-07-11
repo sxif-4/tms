@@ -6,8 +6,8 @@ import { CreateMapLocationDto } from './dto/create-map-location.dto';
 import { UpdateMapLocationDto } from './dto/update-map-location.dto';
 import { MapLocationsRepository } from './map-locations.repository';
 
-/** decimal(10,7) is stored as text — keep exact 7-dp coordinates. */
-const coord = (n: number) => n.toFixed(7);
+/** decimal(5,2) is stored as text — keep exact percentage positions. */
+const coord = (n: number) => n.toFixed(2);
 
 @Injectable()
 export class MapLocationsService {
@@ -34,8 +34,8 @@ export class MapLocationsService {
       name: dto.name,
       description: dto.description,
       type: dto.type,
-      latitude: coord(dto.latitude),
-      longitude: coord(dto.longitude),
+      positionTop: coord(dto.positionTop),
+      positionLeft: coord(dto.positionLeft),
     });
 
     await this.audit.record({
@@ -59,8 +59,9 @@ export class MapLocationsService {
       name: dto.name,
       description: dto.description,
       type: dto.type,
-      latitude: dto.latitude != null ? coord(dto.latitude) : undefined,
-      longitude: dto.longitude != null ? coord(dto.longitude) : undefined,
+      positionTop: dto.positionTop != null ? coord(dto.positionTop) : undefined,
+      positionLeft:
+        dto.positionLeft != null ? coord(dto.positionLeft) : undefined,
     });
     if (!updated) throw new NotFoundException(`Location #${id} not found`);
 

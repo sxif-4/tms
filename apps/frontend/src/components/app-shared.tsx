@@ -76,18 +76,42 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
       items: [
         {
           title: "Dashboard",
-          path: "#/dashboard",
+          path: "/dashboard/hotel/",
           icon: <LayoutGridIcon />,
           isActive: true,
         },
-        { title: "Rooms", path: "#/rooms", icon: <BedDoubleIcon /> },
-        { title: "Bookings", path: "#/bookings", icon: <CalendarCheckIcon /> },
-        { title: "Guests", path: "#/guests", icon: <UsersIcon /> },
+        { title: "Rooms", path: "/dashboard/hotel/rooms", icon: <BedDoubleIcon /> },
+        {
+          title: "Bookings",
+          path: "/dashboard/hotel/bookings",
+          icon: <CalendarCheckIcon />,
+        },
       ],
     },
     {
       label: "Insights",
-      items: [{ title: "Reports", path: "#/reports", icon: <BarChart3Icon /> }],
+      items: [
+        {
+          title: "Reports",
+          path: "/dashboard/hotel/reports",
+          icon: <BarChart3Icon />,
+        },
+        {
+          title: "Promotions",
+          path: "/dashboard/hotel/promotions",
+          icon: <PercentIcon />,
+        },
+      ],
+    },
+    {
+      label: "Account",
+      items: [
+        {
+          title: "Settings",
+          path: "/dashboard/hotel/settings",
+          icon: <SettingsIcon />,
+        },
+      ],
     },
   ],
   ferry_staff: [

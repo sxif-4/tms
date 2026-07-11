@@ -17,6 +17,13 @@ import { PromotionsModule } from './modules/promotions/promotions.module';
 import { MapLocationsModule } from './modules/map-locations/map-locations.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
+import { HotelsModule } from './modules/hotels/hotels.module';
+import { RoomTypesModule } from './modules/room-types/room-types.module';
+import { RoomsModule } from './modules/rooms/rooms.module';
+import { HotelBookingsModule } from './modules/hotel-bookings/hotel-bookings.module';
+import { HotelDashboardModule } from './modules/hotel-dashboard/hotel-dashboard.module';
+import { HotelReportsModule } from './modules/hotel-reports/hotel-reports.module';
+import { PublicHotelsModule } from './modules/public-hotels/public-hotels.module';
 
 @Module({
   imports: [
@@ -40,6 +47,13 @@ import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
     MapLocationsModule,
     ReportsModule,
     AuditLogsModule,
+    HotelsModule,
+    RoomTypesModule,
+    RoomsModule,
+    HotelBookingsModule,
+    HotelDashboardModule,
+    HotelReportsModule,
+    PublicHotelsModule,
   ],
   controllers: [HealthController],
   providers: [
