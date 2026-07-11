@@ -15,9 +15,12 @@ export const mapLocations = sqliteTable('map_locations', {
       'landmark',
     ],
   }).notNull(),
-  // decimal(10,7) stored as text — exact coordinates, never float-coerced.
-  latitude: text('latitude').notNull(),
-  longitude: text('longitude').notNull(),
+  // decimal(5,2) stored as text — percentage position over the static island
+  // image (0-100), never float-coerced. Replaces real-world GPS coordinates:
+  // this is a fictional island rendered as one fixed illustration, not a
+  // real place, so pins are positioned relative to the image instead.
+  positionTop: text('position_top').notNull(),
+  positionLeft: text('position_left').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()
     .default(sql`(unixepoch())`),

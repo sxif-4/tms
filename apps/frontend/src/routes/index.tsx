@@ -1,12 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-export const Route = createFileRoute("/")({
-  component: Home,
-});
+import { activeAdvertisementsQueryOptions } from "~/features/advertisements/queries";
+import { HomePage } from "~/features/hotel-browsing/pages/home-page";
+import { publicHotelsQueryOptions } from "~/features/hotel-browsing/queries";
 
-function Home() {
-  return (
-    <div className="p-2">
-      <h3>Welcome Home!!!</h3>
-    </div>
-  );
-}
+export const Route = createFileRoute("/")({
+  loader: ({ context }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(publicHotelsQueryOptions()),
+      context.queryClient.ensureQueryData(
+        activeAdvertisementsQueryOptions("homepage"),
+      ),
+    ]),
+  component: HomePage,
+});

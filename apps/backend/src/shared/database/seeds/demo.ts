@@ -99,43 +99,43 @@ export async function seedDemo(db: DemoDb): Promise<void> {
         name: 'Grand Island Hotel',
         description: 'Flagship hotel on the main island.',
         type: 'hotel',
-        latitude: '48.8583700',
-        longitude: '2.2944813',
+        positionTop: '38.00',
+        positionLeft: '52.00',
       },
       {
         name: 'Seaside Resort',
         description: 'Beachfront resort near the ferry dock.',
         type: 'hotel',
-        latitude: '48.8606110',
-        longitude: '2.3376411',
+        positionTop: '22.00',
+        positionLeft: '38.00',
       },
       {
         name: 'North Ferry Terminal',
         description: 'Departure point on the main island.',
         type: 'ferry_terminal',
-        latitude: '48.8529680',
-        longitude: '2.3499020',
+        positionTop: '36.00',
+        positionLeft: '56.00',
       },
       {
         name: 'Theme Park Ferry Dock',
         description: 'Arrival dock on the theme-park island.',
         type: 'ferry_terminal',
-        latitude: '48.8737910',
-        longitude: '2.2950275',
+        positionTop: '15.00',
+        positionLeft: '85.00',
       },
       {
         name: 'Sunset Beach',
         description: 'Popular picnic and beach-event spot.',
         type: 'beach',
-        latitude: '48.8656330',
-        longitude: '2.3212357',
+        positionTop: '16.00',
+        positionLeft: '42.00',
       },
       {
         name: 'Thrill Coaster Plaza',
         description: 'Main attraction square in the theme park.',
         type: 'attraction',
-        latitude: '48.8467860',
-        longitude: '2.3431043',
+        positionTop: '50.00',
+        positionLeft: '30.00',
       },
     ])
     .returning()
@@ -223,7 +223,7 @@ export async function seedDemo(db: DemoDb): Promise<void> {
         hotelId: seaside.id,
         roomTypeId: deluxe.id,
         roomNumber: '102',
-        status: 'available',
+        status: 'maintenance',
       },
       {
         hotelId: seaside.id,
@@ -243,6 +243,8 @@ export async function seedDemo(db: DemoDb): Promise<void> {
       {
         bookingReference: ref('HB', 1),
         userId: alice.id,
+        hotelId: grand.id,
+        roomTypeId: standard.id,
         roomId: g101.id,
         checkIn: at(-10),
         checkOut: at(-7),
@@ -253,6 +255,8 @@ export async function seedDemo(db: DemoDb): Promise<void> {
       {
         bookingReference: ref('HB', 2),
         userId: bob.id,
+        hotelId: grand.id,
+        roomTypeId: deluxe.id,
         roomId: g201.id,
         checkIn: at(-3),
         checkOut: at(1),
@@ -263,6 +267,8 @@ export async function seedDemo(db: DemoDb): Promise<void> {
       {
         bookingReference: ref('HB', 3),
         userId: carol.id,
+        hotelId: seaside.id,
+        roomTypeId: suite.id,
         roomId: s201.id,
         checkIn: at(5),
         checkOut: at(9),
@@ -273,6 +279,8 @@ export async function seedDemo(db: DemoDb): Promise<void> {
       {
         bookingReference: ref('HB', 4),
         userId: alice.id,
+        hotelId: seaside.id,
+        roomTypeId: standard.id,
         roomId: s101.id,
         checkIn: at(14),
         checkOut: at(16),
@@ -283,12 +291,40 @@ export async function seedDemo(db: DemoDb): Promise<void> {
       {
         bookingReference: ref('HB', 5),
         userId: bob.id,
+        hotelId: grand.id,
+        roomTypeId: suite.id,
         roomId: g301.id,
         checkIn: at(-30),
         checkOut: at(-28),
         guests: 2,
         totalAmount: '700.00',
         status: 'cancelled',
+      },
+      // Room-type-first bookings awaiting staff room assignment — feeds the
+      // "unassigned upcoming" priority-action widget on the hotel dashboard.
+      {
+        bookingReference: ref('HB', 6),
+        userId: carol.id,
+        hotelId: grand.id,
+        roomTypeId: deluxe.id,
+        roomId: null,
+        checkIn: at(2),
+        checkOut: at(4),
+        guests: 2,
+        totalAmount: '400.00',
+        status: 'confirmed',
+      },
+      {
+        bookingReference: ref('HB', 7),
+        userId: bob.id,
+        hotelId: grand.id,
+        roomTypeId: standard.id,
+        roomId: null,
+        checkIn: at(20),
+        checkOut: at(22),
+        guests: 1,
+        totalAmount: '240.00',
+        status: 'pending',
       },
     ])
     .returning()
@@ -671,11 +707,13 @@ export async function seedDemo(db: DemoDb): Promise<void> {
     .run();
 
   // ── Polymorphic images ───────────────────────────────────────────────────
-  const [roomImg, eventImg] = db
+  const [roomImg, eventImg, grandImg, seasideImg] = db
     .insert(images)
     .values([
       { url: 'https://picsum.photos/seed/room101/600/400' },
       { url: 'https://picsum.photos/seed/coaster/600/400' },
+      { url: '/images/hotels/hotel-grand-island.jpg' },
+      { url: '/images/hotels/hotel-seaside-resort.jpg' },
     ])
     .returning()
     .all();
@@ -683,6 +721,8 @@ export async function seedDemo(db: DemoDb): Promise<void> {
     .values([
       { imageId: roomImg.id, imageableId: g101.id, imageableType: 'room' },
       { imageId: eventImg.id, imageableId: coaster.id, imageableType: 'event' },
+      { imageId: grandImg.id, imageableId: grand.id, imageableType: 'hotel' },
+      { imageId: seasideImg.id, imageableId: seaside.id, imageableType: 'hotel' },
     ])
     .run();
 

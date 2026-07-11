@@ -1,0 +1,230 @@
+For the Theme Park Island Online Booking System (TMS), the Visitor Website Pages are designed to guide the customer from initial discovery through to a confirmed hotel stay, which is the necessary prerequisite for all other island services.
+
+ 
+
+Using the **Tailwind CSS and Shadcn UI** configuration, these pages should utilize a **radius of 0.625rem** for components and the **Nunito Sans Variable** font. UI elements must also adhere to the **categorical domain color series** to provide visual consistency: **Hotel (Blue: #2a78d6)**, **Ferry (Green: #1baf7a)**, **Theme Park (Amber: #eda100)**, and **Events (Emerald: #008300)**.
+
+### 1. Landing Page / Homepage
+
+- **Purpose:** The first impression of the island ecosystem.
+- **Key Features:** 
+  - **Promotional Banners & Ads:** High-visibility sections highlighting island attractions and current offers.
+  - **Authentication Portal:** Clear access points for visitor registration and login.
+  - **Call-to-Action (CTA):** Primary buttons using the `--primary` color (oklch(0.514 0.222 16.935)) to drive users toward discovery.
+
+### 2. Discovery / Explore Page
+
+- **Purpose:** A unified search hub for all island services, including hotels, rides, ferry trips, and beach events.
+- **Key Features:** 
+  - **Unified Search Input:** A single bar processing queries, categories, and locations simultaneously to reduce cognitive load.
+  - **Smart Recovery Cues:** Highly visible trending tags and popular service categories located below the search container.
+  - **Categorized Filtering:** Use of categorical colors (e.g., amber tags for Theme Park rides, blue for hotels) to help users distinguish services at a glance.
+
+### 3. Interactive Island Map Page
+
+- **Purpose:** A visual tool showing the physical locations of all island amenities.
+- **Key Features:** 
+  - **Synchronized Map & List Views:** Panning the map or adjusting radius sliders (0-100km) automatically updates the coordinated list of services.
+  - **Location Markers:** Markers for hotels, ferry terminals, and park rides using domain-specific iconography.
+
+### 4. Hotel Listing & Room Detail Pages
+
+- **Purpose:** Allow visitors to browse availability and view specific room features.
+- **Key Features:** 
+  - **Dynamic Availability Badging:** Real-time counters (e.g., "Only 3 rooms left") displayed on room cards to establish urgency.
+  - **Card-Style Layouts:** Modern, touch-optimized cards containing room images, pricing, and ratings.
+  - **Integrated Add-on Selection:** Optional service cards (like late checkout or breakfast) that users can tap to update their total dynamically.
+
+### 5. Hotel Booking Page
+
+- **Purpose:** The transactional interface for finalizing a stay.
+- **Key Features:** 
+  - **Date & Preference Pickers:** Sophisticated picker elements for check-in/check-out dates and radio buttons for room preferences (e.g., bed type).
+  - **Progress Indicator:** A non-collapsible bar mapping out the steps (Customer -> Shipping -> Payment -> Confirm) to reduce orientation friction.
+  - **Static Boundary Validation:** Programmatic disabling of past dates or expired slots to prevent invalid requests.
+
+### 6. Hotel Booking Confirmation Page
+
+- **Purpose:** Confirming the guest's stay and triggering the next stage of the journey.
+- **Key Features:** 
+  - **Ferry Booking Trigger:** A critical post-purchase prompt that **guides the user directly to ferry booking**, now that a valid hotel stay exists.
+  - **Financial & Scheduling Summary:** A comprehensive breakdown of the chosen room, stay dates, total cost, and the exact email address where the receipt was sent.
+
+### 7. My Bookings / Visitor Portal
+
+- **Purpose:** A self-service workspace for customers to manage their itinerary.
+- **Key Features:** 
+  - **Unified Booking History:** A chronological feed of all past and pending reservations for hotels, ferries, and theme park activities.
+  - **Self-Service Modifications:** Interfaces allowing visitors to reschedule or cancel bookings based on established island policies.
+
+
+
+
+
+@import "tailwindcss" source("../");
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/nunito-sans";
+
+@custom-variant dark (&\:is(.dark \*));
+
+@layer base {
+\*,
+\::after,
+\::before,
+\::backdrop,
+\::file-selector-button {
+border-color: var(--color-gray-200, currentcolor);
+}
+
+- {
+  @apply border-border outline-ring/50;
+  }
+  body {
+  @apply bg-background text-foreground;
+  }
+  html {
+  @apply font-sans;
+  }
+  }
+
+@layer base {
+html {
+color-scheme: light dark;
+}
+
+- {
+  @apply border-gray-200 dark\:border-gray-800;
+  }
+
+html,
+body {
+@apply text-gray-900 bg-gray-50 dark\:bg-gray-950 dark\:text-gray-200;
+}
+
+.using-mouse \* {
+outline: none !important;
+}
+}
+
+@theme inline {
+\--font-heading: var(--font-sans);
+\--font-sans: "Nunito Sans Variable", sans-serif;
+\--color-sidebar-ring: var(--sidebar-ring);
+\--color-sidebar-border: var(--sidebar-border);
+\--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+\--color-sidebar-accent: var(--sidebar-accent);
+\--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+\--color-sidebar-primary: var(--sidebar-primary);
+\--color-sidebar-foreground: var(--sidebar-foreground);
+\--color-sidebar: var(--sidebar);
+\--color-chart-5: var(--chart-5);
+\--color-chart-4: var(--chart-4);
+\--color-chart-3: var(--chart-3);
+\--color-chart-2: var(--chart-2);
+\--color-chart-1: var(--chart-1);
+\--color-ring: var(--ring);
+\--color-input: var(--input);
+\--color-border: var(--border);
+\--color-destructive: var(--destructive);
+\--color-accent-foreground: var(--accent-foreground);
+\--color-accent: var(--accent);
+\--color-muted-foreground: var(--muted-foreground);
+\--color-muted: var(--muted);
+\--color-secondary-foreground: var(--secondary-foreground);
+\--color-secondary: var(--secondary);
+\--color-primary-foreground: var(--primary-foreground);
+\--color-primary: var(--primary);
+\--color-popover-foreground: var(--popover-foreground);
+\--color-popover: var(--popover);
+\--color-card-foreground: var(--card-foreground);
+\--color-card: var(--card);
+\--color-foreground: var(--foreground);
+\--color-background: var(--background);
+\--radius-sm: calc(var(--radius) \* 0.6);
+\--radius-md: calc(var(--radius) \* 0.8);
+\--radius-lg: var(--radius);
+\--radius-xl: calc(var(--radius) \* 1.4);
+\--radius-2xl: calc(var(--radius) \* 1.8);
+\--radius-3xl: calc(var(--radius) \* 2.2);
+\--radius-4xl: calc(var(--radius) \* 2.6);
+}
+
+\:root {
+\--background: oklch(1 0 0);
+\--foreground: oklch(0.141 0.005 285.823);
+\--card: oklch(1 0 0);
+\--card-foreground: oklch(0.141 0.005 285.823);
+\--popover: oklch(1 0 0);
+\--popover-foreground: oklch(0.141 0.005 285.823);
+\--primary: oklch(0.514 0.222 16.935);
+\--primary-foreground: oklch(0.969 0.015 12.422);
+\--secondary: oklch(0.967 0.001 286.375);
+\--secondary-foreground: oklch(0.21 0.006 285.885);
+\--muted: oklch(0.967 0.001 286.375);
+\--muted-foreground: oklch(0.552 0.016 285.938);
+\--accent: oklch(0.967 0.001 286.375);
+\--accent-foreground: oklch(0.21 0.006 285.885);
+\--destructive: oklch(0.577 0.245 27.325);
+\--border: oklch(0.92 0.004 286.32);
+\--input: oklch(0.92 0.004 286.32);
+\--ring: oklch(0.705 0.015 286.067);
+\--chart-1: oklch(0.81 0.117 11.638);
+\--chart-2: oklch(0.645 0.246 16.439);
+\--chart-3: oklch(0.586 0.253 17.585);
+\--chart-4: oklch(0.514 0.222 16.935);
+\--chart-5: oklch(0.455 0.188 13.697);
+/\* Categorical domain series — validated colorblind-safe (light surface). \*/
+\--series-hotel: #2a78d6;
+\--series-ferry: #1baf7a;
+\--series-park: #eda100;
+\--series-event: #008300;
+\--radius: 0.625rem;
+\--sidebar: oklch(0.985 0 0);
+\--sidebar-foreground: oklch(0.141 0.005 285.823);
+\--sidebar-primary: oklch(0.586 0.253 17.585);
+\--sidebar-primary-foreground: oklch(0.969 0.015 12.422);
+\--sidebar-accent: oklch(0.967 0.001 286.375);
+\--sidebar-accent-foreground: oklch(0.21 0.006 285.885);
+\--sidebar-border: oklch(0.92 0.004 286.32);
+\--sidebar-ring: oklch(0.705 0.015 286.067);
+}
+
+.dark {
+\--background: oklch(0.141 0.005 285.823);
+\--foreground: oklch(0.985 0 0);
+\--card: oklch(0.21 0.006 285.885);
+\--card-foreground: oklch(0.985 0 0);
+\--popover: oklch(0.21 0.006 285.885);
+\--popover-foreground: oklch(0.985 0 0);
+\--primary: oklch(0.455 0.188 13.697);
+\--primary-foreground: oklch(0.969 0.015 12.422);
+\--secondary: oklch(0.274 0.006 286.033);
+\--secondary-foreground: oklch(0.985 0 0);
+\--muted: oklch(0.274 0.006 286.033);
+\--muted-foreground: oklch(0.705 0.015 286.067);
+\--accent: oklch(0.274 0.006 286.033);
+\--accent-foreground: oklch(0.985 0 0);
+\--destructive: oklch(0.704 0.191 22.216);
+\--border: oklch(1 0 0 / 10%);
+\--input: oklch(1 0 0 / 15%);
+\--ring: oklch(0.552 0.016 285.938);
+\--chart-1: oklch(0.81 0.117 11.638);
+\--chart-2: oklch(0.645 0.246 16.439);
+\--chart-3: oklch(0.586 0.253 17.585);
+\--chart-4: oklch(0.514 0.222 16.935);
+\--chart-5: oklch(0.455 0.188 13.697);
+/\* Categorical domain series — validated colorblind-safe (dark surface). \*/
+\--series-hotel: #3987e5;
+\--series-ferry: #199e70;
+\--series-park: #c98500;
+\--series-event: #008300;
+\--sidebar: oklch(0.21 0.006 285.885);
+\--sidebar-foreground: oklch(0.985 0 0);
+\--sidebar-primary: oklch(0.645 0.246 16.439);
+\--sidebar-primary-foreground: oklch(0.969 0.015 12.422);
+\--sidebar-accent: oklch(0.274 0.006 286.033);
+\--sidebar-accent-foreground: oklch(0.985 0 0);
+\--sidebar-border: oklch(1 0 0 / 10%);
+\--sidebar-ring: oklch(0.552 0.016 285.938);
+}

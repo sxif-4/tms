@@ -31,13 +31,13 @@ export class UpdateMapLocationDto {
 
   @IsOptional()
   @IsNumber()
-  @Min(-90)
-  @Max(90)
-  latitude?: number;
+  @Min(0)
+  @Max(100)
+  positionTop?: number;
 
   @IsOptional()
   @IsNumber()
-  @Min(-180)
-  @Max(180)
-  longitude?: number;
+  @Min(0)
+  @Max(100)
+  positionLeft?: number;
 }
