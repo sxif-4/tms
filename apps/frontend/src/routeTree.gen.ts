@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ThemeParkIndexRouteImport } from './routes/theme-park/index'
@@ -49,6 +50,11 @@ const SignupRoute = SignupRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRouteRoute = DashboardRouteRouteImport.update({
@@ -212,6 +218,7 @@ const DashboardAdminAdsIndexRoute = DashboardAdminAdsIndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/about': typeof AboutRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/dashboard/admin': typeof DashboardAdminRouteRouteWithChildren
@@ -245,6 +252,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/about': typeof AboutRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/ferry': typeof FerryIndexRoute
@@ -277,6 +285,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/about': typeof AboutRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/dashboard/admin': typeof DashboardAdminRouteRouteWithChildren
@@ -312,6 +321,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/about'
     | '/login'
     | '/signup'
     | '/dashboard/admin'
@@ -345,6 +355,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/dashboard'
+    | '/about'
     | '/login'
     | '/signup'
     | '/ferry'
@@ -376,6 +387,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/about'
     | '/login'
     | '/signup'
     | '/dashboard/admin'
@@ -410,6 +422,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
+  AboutRoute: typeof AboutRoute
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
   FerryIndexRoute: typeof FerryIndexRoute
@@ -436,6 +449,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -697,6 +717,9 @@ interface DashboardRouteRouteChildren {
   DashboardHotelRouteRoute: typeof DashboardHotelRouteRouteWithChildren
   DashboardFerryIndexRoute: typeof DashboardFerryIndexRoute
   DashboardParkIndexRoute: typeof DashboardParkIndexRoute
+  DashboardFerryBookingsIndexRoute: typeof DashboardFerryBookingsIndexRoute
+  DashboardFerryRoutesIndexRoute: typeof DashboardFerryRoutesIndexRoute
+  DashboardFerrySchedulesIndexRoute: typeof DashboardFerrySchedulesIndexRoute
 }
 
 const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
@@ -704,6 +727,9 @@ const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardHotelRouteRoute: DashboardHotelRouteRouteWithChildren,
   DashboardFerryIndexRoute: DashboardFerryIndexRoute,
   DashboardParkIndexRoute: DashboardParkIndexRoute,
+  DashboardFerryBookingsIndexRoute: DashboardFerryBookingsIndexRoute,
+  DashboardFerryRoutesIndexRoute: DashboardFerryRoutesIndexRoute,
+  DashboardFerrySchedulesIndexRoute: DashboardFerrySchedulesIndexRoute,
 }
 
 const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
@@ -713,6 +739,7 @@ const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
+  AboutRoute: AboutRoute,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
   FerryIndexRoute: FerryIndexRoute,
