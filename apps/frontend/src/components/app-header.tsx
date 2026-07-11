@@ -1,9 +1,10 @@
+import { useLocation } from "@tanstack/react-router";
 import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import { DecorIcon } from "~/components/decor-icon";
 import { AppBreadcrumbs } from "~/components/app-breadcrumbs";
-import { getNavLinks } from "~/components/app-shared";
+import { getNavLinks, isNavPathActive } from "~/components/app-shared";
 import { CustomSidebarTrigger } from "~/components/custom-sidebar-trigger";
 import { ModeToggle } from "~/components/mode-toggle";
 import { NavUser } from "~/components/nav-user";
@@ -12,7 +13,10 @@ import { SendIcon, BellIcon } from "lucide-react";
 
 export function AppHeader() {
   const user = useCurrentUser();
-  const activeItem = getNavLinks(user?.role).find((item) => item.isActive);
+  const { pathname } = useLocation();
+  const activeItem = getNavLinks(user?.role).find((item) =>
+    isNavPathActive(pathname, item.path),
+  );
 
   return (
     <header

@@ -27,7 +27,6 @@ export type SidebarNavItem = {
   title: string;
   path?: string;
   icon?: ReactNode;
-  isActive?: boolean;
   subItems?: SidebarNavItem[];
 };
 
@@ -50,7 +49,6 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
           title: "Dashboard",
           path: "#/dashboard",
           icon: <LayoutGridIcon />,
-          isActive: true,
         },
         { title: "Hotels", path: "#/hotels", icon: <HotelIcon /> },
         { title: "Ferries", path: "#/ferries", icon: <ShipIcon /> },
@@ -78,7 +76,6 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
           title: "Dashboard",
           path: "#/dashboard",
           icon: <LayoutGridIcon />,
-          isActive: true,
         },
         { title: "Rooms", path: "#/rooms", icon: <BedDoubleIcon /> },
         { title: "Bookings", path: "#/bookings", icon: <CalendarCheckIcon /> },
@@ -98,7 +95,6 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
           title: "Dashboard",
           path: "#/dashboard",
           icon: <LayoutGridIcon />,
-          isActive: true,
         },
         { title: "Routes", path: "#/routes", icon: <MapIcon /> },
         {
@@ -124,7 +120,6 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
           title: "Dashboard",
           path: "#/dashboard",
           icon: <LayoutGridIcon />,
-          isActive: true,
         },
         { title: "Events", path: "#/events", icon: <FerrisWheelIcon /> },
         { title: "Tickets", path: "#/tickets", icon: <TicketIcon /> },
@@ -148,7 +143,6 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
           title: "Dashboard",
           path: "/dashboard/admin/",
           icon: <LayoutGridIcon />,
-          isActive: true,
         },
         {
           title: "Analytics",
@@ -234,4 +228,17 @@ export function getNavLinks(role: Role | undefined): SidebarNavItem[] {
     ),
     ...footerNavLinks,
   ];
+}
+
+function withoutTrailingSlash(path: string): string {
+  return path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
+}
+
+/** Whether a nav item's `path` matches the current route. Placeholder (`#/...`) paths never match. */
+export function isNavPathActive(pathname: string, path?: string): boolean {
+  return (
+    !!path &&
+    !path.startsWith("#") &&
+    withoutTrailingSlash(pathname) === withoutTrailingSlash(path)
+  );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocation } from "@tanstack/react-router";
 import { cn } from "~/lib/utils";
 import { LogoIcon } from "~/components/logo";
 import {
@@ -11,7 +12,11 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "~/components/ui/sidebar";
-import { footerNavLinks, getNavGroups } from "~/components/app-shared";
+import {
+  footerNavLinks,
+  getNavGroups,
+  isNavPathActive,
+} from "~/components/app-shared";
 import { LatestChange } from "~/components/latest-change";
 import { NavGroup } from "~/components/nav-group";
 import { useCurrentUser } from "~/features/auth";
@@ -19,6 +24,7 @@ import { useCurrentUser } from "~/features/auth";
 export function AppSidebar() {
   const user = useCurrentUser();
   const navGroups = getNavGroups(user?.role);
+  const { pathname } = useLocation();
 
   return (
     <Sidebar
@@ -50,7 +56,7 @@ export function AppSidebar() {
               <SidebarMenuButton
                 asChild
                 className="text-muted-foreground"
-                isActive={item.isActive}
+                isActive={isNavPathActive(pathname, item.path)}
                 size="sm"
               >
                 <a href={item.path}>

@@ -50,25 +50,21 @@ export function AnalyticsPage() {
         <StatCard
           label="Total users"
           value={overview.totalUsers}
-          hint="Registered accounts"
           icon={UsersIcon}
         />
         <StatCard
           label="Active bookings"
           value={overview.activeBookings}
-          hint="Confirmed &amp; upcoming"
           icon={CalendarCheckIcon}
         />
         <StatCard
           label="Revenue"
           value={gbp(overview.revenue)}
-          hint="Completed payments"
           icon={PoundSterlingIcon}
         />
         <StatCard
           label="Tickets sold"
           value={overview.ticketsSold}
-          hint="Park &amp; event tickets"
           icon={TicketIcon}
         />
       </section>
