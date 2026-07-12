@@ -49,6 +49,7 @@ export * from './ferry-schedules.schema';
 export * from './ferry-bookings.schema';
 export * from './park-ticket-types.schema';
 export * from './park-tickets.schema';
+export * from './park-day-capacities.schema';
 export * from './events.schema';
 export * from './event-schedules.schema';
 export * from './event-bookings.schema';

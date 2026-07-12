@@ -3,7 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { type FerryBooking, type FerryRoute, type FerrySchedule } from '../../shared/database/schema';
+import {
+  type FerryBooking,
+  type FerryRoute,
+  type FerrySchedule,
+} from '../../shared/database/schema';
 import { CreateFerryBookingDto } from './dto/create-ferry-booking.dto';
 import { CreateFerryRouteDto } from './dto/create-ferry-route.dto';
 import { CreateFerryScheduleDto } from './dto/create-ferry-schedule.dto';
@@ -58,7 +62,8 @@ export class FerryService {
 
   async getScheduleById(id: number): Promise<FerrySchedule> {
     const schedule = await this.ferryRepo.findScheduleById(id);
-    if (!schedule) throw new NotFoundException(`Ferry schedule #${id} not found`);
+    if (!schedule)
+      throw new NotFoundException(`Ferry schedule #${id} not found`);
     return schedule;
   }
 
@@ -93,7 +98,8 @@ export class FerryService {
       basePrice: dto.basePrice != null ? money(dto.basePrice) : undefined,
       status: dto.status,
     });
-    if (!updated) throw new NotFoundException(`Ferry schedule #${id} not found`);
+    if (!updated)
+      throw new NotFoundException(`Ferry schedule #${id} not found`);
     return updated;
   }
 
@@ -165,14 +171,18 @@ export class FerryService {
     });
   }
 
-  async updateBooking(id: number, dto: Partial<CreateFerryBookingDto>): Promise<FerryBooking> {
+  async updateBooking(
+    id: number,
+    dto: Partial<CreateFerryBookingDto>,
+  ): Promise<FerryBooking> {
     const current = await this.getBookingById(id);
 
     const scheduleId = dto.scheduleId ?? current.scheduleId;
     const schedule = await this.getScheduleById(scheduleId);
 
     const hotelBookingId = dto.hotelBookingId ?? current.hotelBookingId;
-    const hotelBooking = await this.ferryRepo.findHotelBookingById(hotelBookingId);
+    const hotelBooking =
+      await this.ferryRepo.findHotelBookingById(hotelBookingId);
 
     if (!hotelBooking) {
       throw new NotFoundException(`Hotel booking #${hotelBookingId} not found`);
@@ -191,7 +201,8 @@ export class FerryService {
       );
     }
 
-    const existingBookings = await this.ferryRepo.findBookingsByScheduleId(scheduleId);
+    const existingBookings =
+      await this.ferryRepo.findBookingsByScheduleId(scheduleId);
     const currentBookingId = current.id;
     const bookedPassengers = existingBookings.reduce((sum, booking) => {
       if (booking.id === currentBookingId) return sum;

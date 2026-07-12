@@ -10,7 +10,11 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { type FerryBooking, type FerryRoute, type FerrySchedule } from '../../shared/database/schema';
+import {
+  type FerryBooking,
+  type FerryRoute,
+  type FerrySchedule,
+} from '../../shared/database/schema';
 import { CreateFerryBookingDto } from './dto/create-ferry-booking.dto';
 import { CreateFerryRouteDto } from './dto/create-ferry-route.dto';
 import { CreateFerryScheduleDto } from './dto/create-ferry-schedule.dto';
@@ -57,7 +61,9 @@ export class FerryController {
   }
 
   @Get('schedules/:id')
-  getScheduleById(@Param('id', ParseIntPipe) id: number): Promise<FerrySchedule> {
+  getScheduleById(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<FerrySchedule> {
     return this.ferryService.getScheduleById(id);
   }
 

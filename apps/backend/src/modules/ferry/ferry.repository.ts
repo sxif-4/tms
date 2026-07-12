@@ -41,7 +41,10 @@ export class FerryRepository {
     );
   }
 
-  updateRoute(id: number, data: Partial<NewFerryRoute>): Promise<FerryRoute | undefined> {
+  updateRoute(
+    id: number,
+    data: Partial<NewFerryRoute>,
+  ): Promise<FerryRoute | undefined> {
     return Promise.resolve(
       this.db
         .update(ferryRoutes)
@@ -104,7 +107,11 @@ export class FerryRepository {
 
   findHotelBookingById(id: number): Promise<HotelBooking | undefined> {
     return Promise.resolve(
-      this.db.select().from(hotelBookings).where(eq(hotelBookings.id, id)).get(),
+      this.db
+        .select()
+        .from(hotelBookings)
+        .where(eq(hotelBookings.id, id))
+        .get(),
     );
   }
 

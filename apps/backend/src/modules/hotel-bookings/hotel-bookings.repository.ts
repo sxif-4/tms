@@ -78,10 +78,14 @@ export class HotelBookingsRepository {
     filters: { hotelId?: number; status?: string } = {},
   ): Promise<HotelBookingRow[]> {
     const conditions: SQL[] = [];
-    if (hotelIds !== 'all') conditions.push(inArray(hotelBookings.hotelId, hotelIds));
-    if (filters.hotelId) conditions.push(eq(hotelBookings.hotelId, filters.hotelId));
+    if (hotelIds !== 'all')
+      conditions.push(inArray(hotelBookings.hotelId, hotelIds));
+    if (filters.hotelId)
+      conditions.push(eq(hotelBookings.hotelId, filters.hotelId));
     if (filters.status)
-      conditions.push(eq(hotelBookings.status, filters.status as HotelBooking['status']));
+      conditions.push(
+        eq(hotelBookings.status, filters.status as HotelBooking['status']),
+      );
 
     const rows = (
       conditions.length
@@ -103,12 +107,16 @@ export class HotelBookingsRepository {
 
   findRowById(id: number): Promise<HotelBookingRow | undefined> {
     const row = this.joinedQuery().where(eq(hotelBookings.id, id)).get();
-    return Promise.resolve(row as HotelBookingRow | undefined);
+    return Promise.resolve(row);
   }
 
   findRawById(id: number): Promise<HotelBooking | undefined> {
     return Promise.resolve(
-      this.db.select().from(hotelBookings).where(eq(hotelBookings.id, id)).get(),
+      this.db
+        .select()
+        .from(hotelBookings)
+        .where(eq(hotelBookings.id, id))
+        .get(),
     );
   }
 
@@ -168,7 +176,8 @@ export class HotelBookingsRepository {
       lt(hotelBookings.checkIn, new Date(checkOutSec * 1000)),
       gt(hotelBookings.checkOut, new Date(checkInSec * 1000)),
     ];
-    if (excludeBookingId) conditions.push(ne(hotelBookings.id, excludeBookingId));
+    if (excludeBookingId)
+      conditions.push(ne(hotelBookings.id, excludeBookingId));
     const rows = this.db
       .select({ id: hotelBookings.id })
       .from(hotelBookings)
@@ -212,7 +221,8 @@ export class HotelBookingsRepository {
       lt(hotelBookings.checkIn, new Date(checkOutSec * 1000)),
       gt(hotelBookings.checkOut, new Date(checkInSec * 1000)),
     ];
-    if (excludeBookingId) conditions.push(ne(hotelBookings.id, excludeBookingId));
+    if (excludeBookingId)
+      conditions.push(ne(hotelBookings.id, excludeBookingId));
     const row = this.db
       .select({ id: hotelBookings.id })
       .from(hotelBookings)

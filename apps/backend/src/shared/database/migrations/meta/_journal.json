@@ -8,6 +8,13 @@
       "when": 1783269380114,
       "tag": "0000_yummy_mandrill",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1783871132295,
+      "tag": "0001_worried_earthquake",
+      "breakpoints": true
     }
   ]
 }

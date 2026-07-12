@@ -75,7 +75,9 @@ export class HotelBookingsService {
     if (checkIn.getTime() < Date.now() - DAY_MS) {
       throw new BadRequestException('checkIn cannot be in the past');
     }
-    const nights = Math.round((checkOut.getTime() - checkIn.getTime()) / DAY_MS);
+    const nights = Math.round(
+      (checkOut.getTime() - checkIn.getTime()) / DAY_MS,
+    );
     if (dto.guests > roomType.maxOccupancy) {
       throw new BadRequestException(
         `${roomType.name} sleeps up to ${roomType.maxOccupancy} guests`,
@@ -97,7 +99,9 @@ export class HotelBookingsService {
       );
     }
 
-    const totalAmount = (Number(roomType.basePricePerNight) * nights).toFixed(2);
+    const totalAmount = (Number(roomType.basePricePerNight) * nights).toFixed(
+      2,
+    );
 
     const booking = await this.bookingsRepo.create({
       bookingReference: ref(),
@@ -138,7 +142,8 @@ export class HotelBookingsService {
     dto: AssignRoomDto,
   ): Promise<HotelBookingRow> {
     const booking = await this.bookingsRepo.findRawById(bookingId);
-    if (!booking) throw new NotFoundException(`Booking #${bookingId} not found`);
+    if (!booking)
+      throw new NotFoundException(`Booking #${bookingId} not found`);
     await this.hotelAccess.assertHotelAccess(user, booking.hotelId);
 
     const room = await this.roomsRepo.findById(dto.roomId);
@@ -184,7 +189,8 @@ export class HotelBookingsService {
     dto: UpdateBookingStatusDto,
   ): Promise<HotelBookingRow> {
     const booking = await this.bookingsRepo.findRawById(bookingId);
-    if (!booking) throw new NotFoundException(`Booking #${bookingId} not found`);
+    if (!booking)
+      throw new NotFoundException(`Booking #${bookingId} not found`);
     await this.hotelAccess.assertHotelAccess(user, booking.hotelId);
 
     await this.bookingsRepo.updateStatus(bookingId, dto.status);

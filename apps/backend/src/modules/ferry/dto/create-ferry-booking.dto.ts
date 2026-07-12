@@ -1,6 +1,23 @@
-import { IsDateString, IsIn, IsInt, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, Max, MaxLength, Min } from 'class-validator';
+import {
+  IsDateString,
+  IsIn,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+} from 'class-validator';
 
-export const FERRY_BOOKING_STATUSES = ['pending', 'confirmed', 'cancelled', 'validated'] as const;
+export const FERRY_BOOKING_STATUSES = [
+  'pending',
+  'confirmed',
+  'cancelled',
+  'validated',
+] as const;
 export type FerryBookingStatus = (typeof FERRY_BOOKING_STATUSES)[number];
 
 export class CreateFerryBookingDto {
