@@ -55,7 +55,9 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
   });
   const [paymentMethod, setPaymentMethod] = useState("");
   const [showAuth, setShowAuth] = useState(false);
-  const [calendarMonth, setCalendarMonth] = useState(() => startOfMonth(new Date()));
+  const [calendarMonth, setCalendarMonth] = useState(() =>
+    startOfMonth(new Date()),
+  );
 
   const checkIn = dateRange?.from ? dateRange.from.toISOString() : "";
   const checkOut = dateRange?.to ? dateRange.to.toISOString() : "";
@@ -76,7 +78,9 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
     hotelAvailabilityQueryOptions(hotelId, checkIn, checkOut),
   );
 
-  const selectedAvailability = availability.find((a) => a.roomTypeId === roomTypeId);
+  const selectedAvailability = availability.find(
+    (a) => a.roomTypeId === roomTypeId,
+  );
   const nights = selectedAvailability?.nights ?? 0;
 
   const createBooking = useMutation({
@@ -100,11 +104,25 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
 
   const canProceed = useMemo(() => {
     if (step === 0)
-      return Boolean(checkIn && checkOut && roomTypeId && selectedAvailability && selectedAvailability.availableRooms > 0);
+      return Boolean(
+        checkIn &&
+        checkOut &&
+        roomTypeId &&
+        selectedAvailability &&
+        selectedAvailability.availableRooms > 0,
+      );
     if (step === 1) return contactValid;
     if (step === 2) return paymentMethod.length > 0;
     return false;
-  }, [step, checkIn, checkOut, roomTypeId, selectedAvailability, contactValid, paymentMethod]);
+  }, [
+    step,
+    checkIn,
+    checkOut,
+    roomTypeId,
+    selectedAvailability,
+    contactValid,
+    paymentMethod,
+  ]);
 
   const submitBooking = () => {
     if (!roomTypeId || !checkIn || !checkOut) return;
@@ -125,17 +143,20 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
     submitBooking();
   };
 
-  const roomOptions = availability.length > 0 ? availability : hotel.roomTypes.map((rt) => ({
-    roomTypeId: rt.id,
-    name: rt.name,
-    description: rt.description,
-    basePricePerNight: rt.basePricePerNight,
-    maxOccupancy: rt.maxOccupancy,
-    totalRooms: rt.totalRooms,
-    availableRooms: rt.totalRooms,
-    nights: 0,
-    totalPrice: 0,
-  }));
+  const roomOptions =
+    availability.length > 0
+      ? availability
+      : hotel.roomTypes.map((rt) => ({
+          roomTypeId: rt.id,
+          name: rt.name,
+          description: rt.description,
+          basePricePerNight: rt.basePricePerNight,
+          maxOccupancy: rt.maxOccupancy,
+          totalRooms: rt.totalRooms,
+          availableRooms: rt.totalRooms,
+          nights: 0,
+          totalPrice: 0,
+        }));
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -172,7 +193,9 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
             >
               {label}
             </span>
-            {i < STEPS.length - 1 && <div className="mx-2 h-px flex-1 bg-border" />}
+            {i < STEPS.length - 1 && (
+              <div className="mx-2 h-px flex-1 bg-border" />
+            )}
           </div>
         ))}
       </div>
@@ -184,7 +207,8 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
               <div className="glass-data rounded-xl border p-5">
                 <h2 className="font-semibold">Select your dates</h2>
                 <p className="mb-4 text-sm text-muted-foreground">
-                  The bar under each date shows availability for your selected room type.
+                  The bar under each date shows availability for your selected
+                  room type.
                 </p>
                 <AvailabilityCalendar
                   data={calendarDays}
@@ -274,13 +298,18 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
                 <h2 className="font-semibold">Payment details</h2>
                 <Field>
                   <FieldLabel>Payment method</FieldLabel>
-                  <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <Select
+                    value={paymentMethod}
+                    onValueChange={setPaymentMethod}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a payment method" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="card">Credit / debit card</SelectItem>
-                      <SelectItem value="bank_transfer">Bank transfer</SelectItem>
+                      <SelectItem value="bank_transfer">
+                        Bank transfer
+                      </SelectItem>
                       <SelectItem value="cash">Pay at hotel</SelectItem>
                     </SelectContent>
                   </Select>
@@ -313,7 +342,10 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
               Back
             </Button>
             {step < STEPS.length - 1 ? (
-              <Button onClick={() => setStep((s) => s + 1)} disabled={!canProceed}>
+              <Button
+                onClick={() => setStep((s) => s + 1)}
+                disabled={!canProceed}
+              >
                 Continue
                 <ArrowRight className="size-4" />
               </Button>
@@ -333,7 +365,9 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
           <BookingSummaryPanel
             summary={{
               hotelName: hotel.name,
-              roomTypeName: selectedAvailability?.name ?? hotel.roomTypes.find((r) => r.id === roomTypeId)?.name,
+              roomTypeName:
+                selectedAvailability?.name ??
+                hotel.roomTypes.find((r) => r.id === roomTypeId)?.name,
               checkIn: checkIn || undefined,
               checkOut: checkOut || undefined,
               guests,
@@ -344,7 +378,10 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
               total: selectedAvailability?.totalPrice,
             }}
           />
-          <Progress value={((step + 1) / STEPS.length) * 100} className="mt-4 h-1.5" />
+          <Progress
+            value={((step + 1) / STEPS.length) * 100}
+            className="mt-4 h-1.5"
+          />
           <p className="mt-2 text-center text-xs text-muted-foreground">
             Step {step + 1} of {STEPS.length}
           </p>

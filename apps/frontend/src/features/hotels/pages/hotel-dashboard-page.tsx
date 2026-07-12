@@ -82,7 +82,11 @@ function HotelDashboardContent({
             An overview of occupancy, bookings, and revenue.
           </p>
         </div>
-        <HotelSwitcher hotels={hotels} value={hotelId} onChange={onHotelChange} />
+        <HotelSwitcher
+          hotels={hotels}
+          value={hotelId}
+          onChange={onHotelChange}
+        />
       </div>
 
       {data.kpis.totalRooms === 0 ? (
@@ -130,7 +134,9 @@ function HotelDashboardContent({
           <Card className="p-4">
             <CardHeader className="p-0">
               <CardTitle>Revenue over time</CardTitle>
-              <CardDescription>Bookings by check-in date, last 30 days</CardDescription>
+              <CardDescription>
+                Bookings by check-in date, last 30 days
+              </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <RevenueTrendChart data={data.revenueTrend} />
@@ -175,7 +181,9 @@ function DaySheetCard({
       </CardHeader>
       <CardContent>
         {rows.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nothing scheduled today.</p>
+          <p className="text-sm text-muted-foreground">
+            Nothing scheduled today.
+          </p>
         ) : (
           <Table>
             <TableHeader>

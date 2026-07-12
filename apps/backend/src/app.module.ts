@@ -24,6 +24,10 @@ import { HotelBookingsModule } from './modules/hotel-bookings/hotel-bookings.mod
 import { HotelDashboardModule } from './modules/hotel-dashboard/hotel-dashboard.module';
 import { HotelReportsModule } from './modules/hotel-reports/hotel-reports.module';
 import { PublicHotelsModule } from './modules/public-hotels/public-hotels.module';
+import { ParkTicketTypesModule } from './modules/park-ticket-types/park-ticket-types.module';
+import { EventsModule } from './modules/events/events.module';
+import { EventSchedulesModule } from './modules/event-schedules/event-schedules.module';
+import { ParkDaysModule } from './modules/park-days/park-days.module';
 
 @Module({
   imports: [
@@ -54,6 +58,10 @@ import { PublicHotelsModule } from './modules/public-hotels/public-hotels.module
     HotelDashboardModule,
     HotelReportsModule,
     PublicHotelsModule,
+    ParkTicketTypesModule,
+    EventsModule,
+    EventSchedulesModule,
+    ParkDaysModule,
   ],
   controllers: [HealthController],
   providers: [
