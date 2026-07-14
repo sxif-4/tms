@@ -33,6 +33,9 @@ import { Route as DashboardHotelRoomsIndexRouteImport } from './routes/dashboard
 import { Route as DashboardHotelReportsIndexRouteImport } from './routes/dashboard/hotel/reports/index'
 import { Route as DashboardHotelPromotionsIndexRouteImport } from './routes/dashboard/hotel/promotions/index'
 import { Route as DashboardHotelBookingsIndexRouteImport } from './routes/dashboard/hotel/bookings/index'
+import { Route as DashboardFerrySchedulesIndexRouteImport } from './routes/dashboard/ferry/schedules/index'
+import { Route as DashboardFerryRoutesIndexRouteImport } from './routes/dashboard/ferry/routes/index'
+import { Route as DashboardFerryBookingsIndexRouteImport } from './routes/dashboard/ferry/bookings/index'
 import { Route as DashboardAdminUsersIndexRouteImport } from './routes/dashboard/admin/users/index'
 import { Route as DashboardAdminSettingsIndexRouteImport } from './routes/dashboard/admin/settings/index'
 import { Route as DashboardAdminRolesIndexRouteImport } from './routes/dashboard/admin/roles/index'
@@ -168,6 +171,24 @@ const DashboardHotelBookingsIndexRoute =
     path: '/bookings/',
     getParentRoute: () => DashboardHotelRouteRoute,
   } as any)
+const DashboardFerrySchedulesIndexRoute =
+  DashboardFerrySchedulesIndexRouteImport.update({
+    id: '/ferry/schedules/',
+    path: '/ferry/schedules/',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardFerryRoutesIndexRoute =
+  DashboardFerryRoutesIndexRouteImport.update({
+    id: '/ferry/routes/',
+    path: '/ferry/routes/',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardFerryBookingsIndexRoute =
+  DashboardFerryBookingsIndexRouteImport.update({
+    id: '/ferry/bookings/',
+    path: '/ferry/bookings/',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
 const DashboardAdminUsersIndexRoute =
   DashboardAdminUsersIndexRouteImport.update({
     id: '/users/',
@@ -243,6 +264,9 @@ export interface FileRoutesByFullPath {
   '/dashboard/admin/roles/': typeof DashboardAdminRolesIndexRoute
   '/dashboard/admin/settings/': typeof DashboardAdminSettingsIndexRoute
   '/dashboard/admin/users/': typeof DashboardAdminUsersIndexRoute
+  '/dashboard/ferry/bookings/': typeof DashboardFerryBookingsIndexRoute
+  '/dashboard/ferry/routes/': typeof DashboardFerryRoutesIndexRoute
+  '/dashboard/ferry/schedules/': typeof DashboardFerrySchedulesIndexRoute
   '/dashboard/hotel/bookings/': typeof DashboardHotelBookingsIndexRoute
   '/dashboard/hotel/promotions/': typeof DashboardHotelPromotionsIndexRoute
   '/dashboard/hotel/reports/': typeof DashboardHotelReportsIndexRoute
@@ -275,6 +299,9 @@ export interface FileRoutesByTo {
   '/dashboard/admin/roles': typeof DashboardAdminRolesIndexRoute
   '/dashboard/admin/settings': typeof DashboardAdminSettingsIndexRoute
   '/dashboard/admin/users': typeof DashboardAdminUsersIndexRoute
+  '/dashboard/ferry/bookings': typeof DashboardFerryBookingsIndexRoute
+  '/dashboard/ferry/routes': typeof DashboardFerryRoutesIndexRoute
+  '/dashboard/ferry/schedules': typeof DashboardFerrySchedulesIndexRoute
   '/dashboard/hotel/bookings': typeof DashboardHotelBookingsIndexRoute
   '/dashboard/hotel/promotions': typeof DashboardHotelPromotionsIndexRoute
   '/dashboard/hotel/reports': typeof DashboardHotelReportsIndexRoute
@@ -310,6 +337,9 @@ export interface FileRoutesById {
   '/dashboard/admin/roles/': typeof DashboardAdminRolesIndexRoute
   '/dashboard/admin/settings/': typeof DashboardAdminSettingsIndexRoute
   '/dashboard/admin/users/': typeof DashboardAdminUsersIndexRoute
+  '/dashboard/ferry/bookings/': typeof DashboardFerryBookingsIndexRoute
+  '/dashboard/ferry/routes/': typeof DashboardFerryRoutesIndexRoute
+  '/dashboard/ferry/schedules/': typeof DashboardFerrySchedulesIndexRoute
   '/dashboard/hotel/bookings/': typeof DashboardHotelBookingsIndexRoute
   '/dashboard/hotel/promotions/': typeof DashboardHotelPromotionsIndexRoute
   '/dashboard/hotel/reports/': typeof DashboardHotelReportsIndexRoute
@@ -346,6 +376,9 @@ export interface FileRouteTypes {
     | '/dashboard/admin/roles/'
     | '/dashboard/admin/settings/'
     | '/dashboard/admin/users/'
+    | '/dashboard/ferry/bookings/'
+    | '/dashboard/ferry/routes/'
+    | '/dashboard/ferry/schedules/'
     | '/dashboard/hotel/bookings/'
     | '/dashboard/hotel/promotions/'
     | '/dashboard/hotel/reports/'
@@ -378,6 +411,9 @@ export interface FileRouteTypes {
     | '/dashboard/admin/roles'
     | '/dashboard/admin/settings'
     | '/dashboard/admin/users'
+    | '/dashboard/ferry/bookings'
+    | '/dashboard/ferry/routes'
+    | '/dashboard/ferry/schedules'
     | '/dashboard/hotel/bookings'
     | '/dashboard/hotel/promotions'
     | '/dashboard/hotel/reports'
@@ -412,6 +448,9 @@ export interface FileRouteTypes {
     | '/dashboard/admin/roles/'
     | '/dashboard/admin/settings/'
     | '/dashboard/admin/users/'
+    | '/dashboard/ferry/bookings/'
+    | '/dashboard/ferry/routes/'
+    | '/dashboard/ferry/schedules/'
     | '/dashboard/hotel/bookings/'
     | '/dashboard/hotel/promotions/'
     | '/dashboard/hotel/reports/'
@@ -604,6 +643,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/hotel/bookings/'
       preLoaderRoute: typeof DashboardHotelBookingsIndexRouteImport
       parentRoute: typeof DashboardHotelRouteRoute
+    }
+    '/dashboard/ferry/schedules/': {
+      id: '/dashboard/ferry/schedules/'
+      path: '/ferry/schedules'
+      fullPath: '/dashboard/ferry/schedules/'
+      preLoaderRoute: typeof DashboardFerrySchedulesIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/ferry/routes/': {
+      id: '/dashboard/ferry/routes/'
+      path: '/ferry/routes'
+      fullPath: '/dashboard/ferry/routes/'
+      preLoaderRoute: typeof DashboardFerryRoutesIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/ferry/bookings/': {
+      id: '/dashboard/ferry/bookings/'
+      path: '/ferry/bookings'
+      fullPath: '/dashboard/ferry/bookings/'
+      preLoaderRoute: typeof DashboardFerryBookingsIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
     }
     '/dashboard/admin/users/': {
       id: '/dashboard/admin/users/'

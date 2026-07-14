@@ -51,11 +51,13 @@ export interface DayAvailabilityRow {
 export class PublicHotelsRepository {
   constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
 
-  listSummaries(filters: {
-    minPrice?: number;
-    maxPrice?: number;
-    guests?: number;
-  } = {}): Promise<PublicHotelSummary[]> {
+  listSummaries(
+    filters: {
+      minPrice?: number;
+      maxPrice?: number;
+      guests?: number;
+    } = {},
+  ): Promise<PublicHotelSummary[]> {
     const guestsFilter: SQL = filters.guests
       ? sql`AND EXISTS (
           SELECT 1 FROM rooms r2 JOIN room_types rt2 ON rt2.id = r2.room_type_id
@@ -84,9 +86,7 @@ export class PublicHotelsRepository {
   }
 
   async detail(hotelId: number): Promise<PublicHotelDetail | undefined> {
-    const hotel = this.db.get<
-      PublicHotelSummary & { maxRooms: number }
-    >(sql`
+    const hotel = this.db.get<PublicHotelSummary & { maxRooms: number }>(sql`
       SELECT h.id, h.name, h.description, h.max_rooms AS maxRooms,
         ml.position_top AS positionTop, ml.position_left AS positionLeft,
         (SELECT MIN(CAST(rt.base_price_per_night AS REAL))
@@ -99,10 +99,12 @@ export class PublicHotelsRepository {
     if (!hotel) return undefined;
 
     const images = this.db
-      .all<{ url: string }>(sql`
+      .all<{ url: string }>(
+        sql`
         SELECT i.url FROM imageables im JOIN images i ON i.id = im.image_id
         WHERE im.imageable_type = 'hotel' AND im.imageable_id = ${hotelId}
-      `)
+      `,
+      )
       .map((r) => r.url);
 
     const roomTypes = this.db.all<PublicRoomType>(sql`

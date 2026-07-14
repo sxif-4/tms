@@ -9,6 +9,7 @@ import {
   ferryRoutes,
   ferrySchedules,
   hotelBookings,
+  hotels,
   type FerryBooking,
   type FerryRoute,
   type FerrySchedule,
@@ -17,6 +18,17 @@ import {
   type NewFerryRoute,
   type NewFerrySchedule,
 } from '../../shared/database/schema';
+
+/** A hotel booking as displayed in the ferry booking form's "hotel booking" picker. */
+export interface HotelBookingOptionRow {
+  id: number;
+  bookingReference: string;
+  hotelId: number;
+  hotelName: string;
+  checkIn: Date;
+  checkOut: Date;
+  status: HotelBooking['status'];
+}
 
 /** Sole owner of Drizzle queries for the ferry domain. */
 @Injectable()
@@ -41,7 +53,10 @@ export class FerryRepository {
     );
   }
 
-  updateRoute(id: number, data: Partial<NewFerryRoute>): Promise<FerryRoute | undefined> {
+  updateRoute(
+    id: number,
+    data: Partial<NewFerryRoute>,
+  ): Promise<FerryRoute | undefined> {
     return Promise.resolve(
       this.db
         .update(ferryRoutes)
@@ -104,8 +119,31 @@ export class FerryRepository {
 
   findHotelBookingById(id: number): Promise<HotelBooking | undefined> {
     return Promise.resolve(
-      this.db.select().from(hotelBookings).where(eq(hotelBookings.id, id)).get(),
+      this.db
+        .select()
+        .from(hotelBookings)
+        .where(eq(hotelBookings.id, id))
+        .get(),
     );
+  }
+
+  findHotelBookingsByUserId(userId: number): Promise<HotelBookingOptionRow[]> {
+    const rows = this.db
+      .select({
+        id: hotelBookings.id,
+        bookingReference: hotelBookings.bookingReference,
+        hotelId: hotelBookings.hotelId,
+        hotelName: hotels.name,
+        checkIn: hotelBookings.checkIn,
+        checkOut: hotelBookings.checkOut,
+        status: hotelBookings.status,
+      })
+      .from(hotelBookings)
+      .innerJoin(hotels, eq(hotelBookings.hotelId, hotels.id))
+      .where(eq(hotelBookings.userId, userId))
+      .orderBy(desc(hotelBookings.checkIn))
+      .all();
+    return Promise.resolve(rows);
   }
 
   findBookingsByScheduleId(scheduleId: number): Promise<FerryBooking[]> {

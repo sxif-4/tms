@@ -15,9 +15,7 @@ import type { AuthenticatedUser } from '../../shared/interfaces/authenticated-us
 import { AssignRoomDto } from './dto/assign-room.dto';
 import { CreateHotelBookingDto } from './dto/create-hotel-booking.dto';
 import { UpdateBookingStatusDto } from './dto/update-booking-status.dto';
-import {
-  HotelBookingsService,
-} from './hotel-bookings.service';
+import { HotelBookingsService } from './hotel-bookings.service';
 import { type HotelBookingRow } from './hotel-bookings.repository';
 
 /**

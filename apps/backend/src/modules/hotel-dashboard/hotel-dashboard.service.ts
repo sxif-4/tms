@@ -66,7 +66,8 @@ export class HotelDashboardService {
 
     const occupancyRate =
       roomStats.totalRooms > 0
-        ? Math.round((roomStats.occupiedRooms / roomStats.totalRooms) * 1000) / 10
+        ? Math.round((roomStats.occupiedRooms / roomStats.totalRooms) * 1000) /
+          10
         : 0;
 
     return {

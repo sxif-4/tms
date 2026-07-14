@@ -174,7 +174,10 @@ export class PromotionsService {
     });
   }
 
-  async listUsages(id: number, user: AuthenticatedUser): Promise<PromotionUsage[]> {
+  async listUsages(
+    id: number,
+    user: AuthenticatedUser,
+  ): Promise<PromotionUsage[]> {
     await this.findById(id, user); // 404/403 as appropriate
     return this.promoRepo.listUsages(id);
   }

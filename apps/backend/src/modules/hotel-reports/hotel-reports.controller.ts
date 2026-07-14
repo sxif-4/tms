@@ -3,9 +3,7 @@ import { CurrentUser } from '../../shared/decorators/current-user.decorator';
 import { Roles } from '../../shared/decorators/roles.decorator';
 import { Role } from '../../shared/enums/role.enum';
 import type { AuthenticatedUser } from '../../shared/interfaces/authenticated-user.interface';
-import {
-  HotelReportsService,
-} from './hotel-reports.service';
+import { HotelReportsService } from './hotel-reports.service';
 import type { OccupancyPoint, RevenuePoint } from './hotel-reports.repository';
 
 /** Aggregate-only revenue/occupancy trends for one hotel — never guest identifiers. */

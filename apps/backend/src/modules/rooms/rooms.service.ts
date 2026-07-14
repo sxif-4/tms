@@ -20,10 +20,7 @@ export class RoomsService {
     private readonly audit: AuditService,
   ) {}
 
-  async listByHotel(
-    user: AuthenticatedUser,
-    hotelId: number,
-  ): Promise<Room[]> {
+  async listByHotel(user: AuthenticatedUser, hotelId: number): Promise<Room[]> {
     await this.hotelAccess.assertHotelAccess(user, hotelId);
     return this.roomsRepo.findAllByHotel(hotelId);
   }

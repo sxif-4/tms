@@ -5,7 +5,11 @@ import type { AuthenticatedUser } from '../../shared/interfaces/authenticated-us
 import { CreatePromotionDto } from './dto/create-promotion.dto';
 import { PromotionsService } from './promotions.service';
 
-const admin: AuthenticatedUser = { id: 1, email: 'admin@example.com', role: Role.Admin };
+const admin: AuthenticatedUser = {
+  id: 1,
+  email: 'admin@example.com',
+  role: Role.Admin,
+};
 
 const baseDto = (
   over: Partial<CreatePromotionDto> = {},

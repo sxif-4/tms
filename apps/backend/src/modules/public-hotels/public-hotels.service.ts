@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   PublicHotelsRepository,
   type DayAvailabilityRow,
@@ -28,7 +32,10 @@ export interface DayAvailability {
 
 const DAY_MS = 86_400_000;
 
-function levelFor(availableRooms: number, totalRooms: number): DayAvailability['level'] {
+function levelFor(
+  availableRooms: number,
+  totalRooms: number,
+): DayAvailability['level'] {
   if (totalRooms === 0 || availableRooms <= 0) return 'none';
   const ratio = availableRooms / totalRooms;
   if (ratio < 0.25) return 'low';
@@ -65,7 +72,9 @@ export class PublicHotelsService {
     if (checkInDate >= checkOutDate) {
       throw new BadRequestException('checkIn must be before checkOut');
     }
-    const nights = Math.round((checkOutDate.getTime() - checkInDate.getTime()) / DAY_MS);
+    const nights = Math.round(
+      (checkOutDate.getTime() - checkInDate.getTime()) / DAY_MS,
+    );
 
     const rows = await this.hotelsRepo.availability(
       hotelId,
@@ -94,12 +103,13 @@ export class PublicHotelsService {
     await this.detail(hotelId); // 404 if missing
     const fromSec = Math.floor(new Date(from).getTime() / 1000);
     const toSec = Math.floor(new Date(to).getTime() / 1000);
-    const rows: DayAvailabilityRow[] = await this.hotelsRepo.availabilityCalendar(
-      hotelId,
-      roomTypeId,
-      fromSec,
-      toSec,
-    );
+    const rows: DayAvailabilityRow[] =
+      await this.hotelsRepo.availabilityCalendar(
+        hotelId,
+        roomTypeId,
+        fromSec,
+        toSec,
+      );
     return rows.map((r) => {
       const availableRooms = Math.max(r.totalRooms - r.booked, 0);
       return {

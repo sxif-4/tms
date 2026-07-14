@@ -1,4 +1,7 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowRightIcon, CompassIcon, MapPinIcon, ShipWheelIcon } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import {
@@ -8,33 +11,51 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
-
-const routes = [
-  {
-    name: "Picnic Bay Express",
-    stops: "Main Pier → Picnic Bay",
-    capacity: "60 seats",
-    frequency: "Every 30 min",
-    status: "High demand",
-  },
-  {
-    name: "Theme Park Loop",
-    stops: "Main Pier → Theme Park Dock",
-    capacity: "40 seats",
-    frequency: "Every 45 min",
-    status: "Steady",
-  },
-  {
-    name: "Sunset Cove Route",
-    stops: "Main Pier → Sunset Cove",
-    capacity: "48 seats",
-    frequency: "Twice daily",
-    status: "Quiet",
-  },
-];
+import { Label } from "~/components/ui/label";
+import { ferryRoutesQueryOptions } from "~/features/ferry/queries";
+import { createFerryRouteServerFn } from "~/features/ferry/server";
 
 export function FerryRoutesPage() {
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [origin, setOrigin] = useState("");
+  const [destination, setDestination] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const { data: routes = [], isLoading, isError, error } = useQuery(
+    ferryRoutesQueryOptions,
+  );
+
+  const mutation = useMutation({
+    mutationFn: () =>
+      createFerryRouteServerFn({
+        data: { name: name.trim(), origin: origin.trim(), destination: destination.trim() },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ferryRoutesQueryOptions.queryKey });
+      toast.success("Ferry route created");
+      setOpen(false);
+      setName("");
+      setOrigin("");
+      setDestination("");
+      setFormError(null);
+    },
+    onError: (err) =>
+      setFormError(err instanceof Error ? err.message : "Failed to create ferry route"),
+  });
+
+  const canSubmit = name.trim() !== "" && origin.trim() !== "" && destination.trim() !== "";
+
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-muted/30 p-6">
@@ -43,7 +64,7 @@ export function FerryRoutesPage() {
             <CompassIcon className="size-3.5" />
             Route management
           </Badge>
-          <Badge variant="outline">3 active services</Badge>
+          <Badge variant="outline">{routes.length} active services</Badge>
         </div>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
@@ -52,7 +73,7 @@ export function FerryRoutesPage() {
               Monitor island routes, service frequency, and passenger capacity from one place.
             </p>
           </div>
-          <Button className="w-fit">Add new route</Button>
+          <Button className="w-fit" onClick={() => setOpen(true)}>Add new route</Button>
         </div>
       </header>
 
@@ -63,34 +84,48 @@ export function FerryRoutesPage() {
             <CardDescription>Live service map for the island ferry network.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {routes.map((route) => (
-              <div key={route.name} className="rounded-xl border border-border/60 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-medium">{route.name}</p>
-                    <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                      <MapPinIcon className="size-4" />
-                      {route.stops}
-                    </div>
-                  </div>
-                  <Badge variant="outline">{route.status}</Badge>
-                </div>
-                <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                  <span>{route.capacity}</span>
-                  <span>•</span>
-                  <span>{route.frequency}</span>
-                </div>
-                <div className="mt-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <ShipWheelIcon className="size-4" />
-                    Vessel ready
-                  </div>
-                  <Button variant="ghost" size="sm" className="h-7 px-2">
-                    <ArrowRightIcon className="size-4" />
-                  </Button>
-                </div>
+            {isLoading ? (
+              <div className="rounded-xl border border-dashed border-border/70 p-4 text-sm text-muted-foreground">
+                Loading ferry routes…
               </div>
-            ))}
+            ) : isError ? (
+              <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+                {error instanceof Error ? error.message : "Failed to load ferry routes."}
+              </div>
+            ) : routes.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border/70 p-4 text-sm text-muted-foreground">
+                No ferry routes are available yet.
+              </div>
+            ) : (
+              routes.map((route) => (
+                <div key={route.id} className="rounded-xl border border-border/60 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-medium">{route.name}</p>
+                      <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPinIcon className="size-4" />
+                        {route.origin} → {route.destination}
+                      </div>
+                    </div>
+                    <Badge variant="outline">Active</Badge>
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                    <span>Origin: {route.origin}</span>
+                    <span>•</span>
+                    <span>Destination: {route.destination}</span>
+                  </div>
+                  <div className="mt-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <ShipWheelIcon className="size-4" />
+                      Vessel ready
+                    </div>
+                    <Button variant="ghost" size="sm" className="h-7 px-2">
+                      <ArrowRightIcon className="size-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
 
@@ -110,6 +145,42 @@ export function FerryRoutesPage() {
           </CardContent>
         </Card>
       </section>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add ferry route</DialogTitle>
+            <DialogDescription>Create a new route for the island ferry network.</DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-2">
+            <div className="grid gap-2">
+              <Label htmlFor="route-name">Route name</Label>
+              <Input id="route-name" value={name} onChange={(event) => setName(event.target.value)} />
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="route-origin">Origin</Label>
+                <Input id="route-origin" value={origin} onChange={(event) => setOrigin(event.target.value)} />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="route-destination">Destination</Label>
+                <Input id="route-destination" value={destination} onChange={(event) => setDestination(event.target.value)} />
+              </div>
+            </div>
+            {formError ? <p className="text-sm text-destructive">{formError}</p> : null}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)} disabled={mutation.isPending}>
+              Cancel
+            </Button>
+            <Button onClick={() => mutation.mutate()} disabled={mutation.isPending || !canSubmit}>
+              {mutation.isPending ? "Creating…" : "Add route"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

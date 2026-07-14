@@ -24,6 +24,7 @@ import { HotelBookingsModule } from './modules/hotel-bookings/hotel-bookings.mod
 import { HotelDashboardModule } from './modules/hotel-dashboard/hotel-dashboard.module';
 import { HotelReportsModule } from './modules/hotel-reports/hotel-reports.module';
 import { PublicHotelsModule } from './modules/public-hotels/public-hotels.module';
+import { FerryModule } from './modules/ferry/ferry.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { PublicHotelsModule } from './modules/public-hotels/public-hotels.module
     HotelDashboardModule,
     HotelReportsModule,
     PublicHotelsModule,
+    FerryModule,
   ],
   controllers: [HealthController],
   providers: [

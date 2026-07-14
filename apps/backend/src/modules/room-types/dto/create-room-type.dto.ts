@@ -20,7 +20,9 @@ export class CreateRoomTypeDto {
   @IsNotEmpty()
   description!: string;
 
-  @Matches(DECIMAL, { message: 'basePricePerNight must be a decimal like 120.00' })
+  @Matches(DECIMAL, {
+    message: 'basePricePerNight must be a decimal like 120.00',
+  })
   basePricePerNight!: string;
 
   @IsInt()

@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator';
 import { Roles } from '../../shared/decorators/roles.decorator';
@@ -32,6 +33,14 @@ export class UsersController {
   @Get()
   async findAll(): Promise<UserResponseDto[]> {
     const users = await this.usersService.listAll();
+    return users.map((u) => new UserResponseDto(u));
+  }
+
+  /** Name/email search for staff-facing pickers (e.g. the ferry booking form). Must stay above `:id` — Nest matches routes in declaration order per method. */
+  @Get('search')
+  @Roles(Role.Admin, Role.FerryStaff)
+  async search(@Query('q') q?: string): Promise<UserResponseDto[]> {
+    const users = await this.usersService.search(q);
     return users.map((u) => new UserResponseDto(u));
   }
 

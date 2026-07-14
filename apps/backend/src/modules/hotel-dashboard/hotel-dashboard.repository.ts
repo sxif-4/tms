@@ -157,7 +157,10 @@ export class HotelDashboardRepository {
     return Promise.resolve({ total: totalRow?.count ?? 0, items });
   }
 
-  daySheet(hotelId: number, column: 'check_in' | 'check_out'): Promise<DaySheetRow[]> {
+  daySheet(
+    hotelId: number,
+    column: 'check_in' | 'check_out',
+  ): Promise<DaySheetRow[]> {
     return Promise.resolve(
       this.db.all<DaySheetRow>(sql`
         SELECT hb.id, hb.booking_reference AS bookingReference, u.name AS guestName,

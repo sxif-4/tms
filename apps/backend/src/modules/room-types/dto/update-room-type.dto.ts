@@ -25,7 +25,9 @@ export class UpdateRoomTypeDto {
   description?: string;
 
   @IsOptional()
-  @Matches(DECIMAL, { message: 'basePricePerNight must be a decimal like 120.00' })
+  @Matches(DECIMAL, {
+    message: 'basePricePerNight must be a decimal like 120.00',
+  })
   basePricePerNight?: string;
 
   @IsOptional()

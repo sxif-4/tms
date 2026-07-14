@@ -722,7 +722,11 @@ export async function seedDemo(db: DemoDb): Promise<void> {
       { imageId: roomImg.id, imageableId: g101.id, imageableType: 'room' },
       { imageId: eventImg.id, imageableId: coaster.id, imageableType: 'event' },
       { imageId: grandImg.id, imageableId: grand.id, imageableType: 'hotel' },
-      { imageId: seasideImg.id, imageableId: seaside.id, imageableType: 'hotel' },
+      {
+        imageId: seasideImg.id,
+        imageableId: seaside.id,
+        imageableType: 'hotel',
+      },
     ])
     .run();
 

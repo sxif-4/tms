@@ -13,13 +13,13 @@ export function HomePage() {
   return (
     <div>
       <section className="relative">
-        <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 ">
           <img
-            src="/images/hero/hero-island.jpg"
+            src="images/hero/hero-island.jpg"
             alt="Aerial view of the island at golden hour"
             className="size-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/30 to-background" />
+          <div className="absolute inset-0 dark:bg-gradient-to-b from-background/20 via-background/30 to-background" />
         </div>
         <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8 lg:py-40">
           <div className="glass-marketing-strong max-w-2xl rounded-2xl p-8 sm:p-10">

@@ -1,7 +1,20 @@
-import { IsDateString, IsIn, IsInt, IsNumber, IsPositive, IsString, MaxLength, Min } from 'class-validator';
+import {
+  IsDateString,
+  IsIn,
+  IsInt,
+  IsNumber,
+  IsPositive,
+  IsString,
+  MaxLength,
+  Min,
+} from 'class-validator';
 
 export const FERRY_DIRECTIONS = ['to_theme_park', 'to_island'] as const;
-export const FERRY_SCHEDULE_STATUSES = ['scheduled', 'departed', 'cancelled'] as const;
+export const FERRY_SCHEDULE_STATUSES = [
+  'scheduled',
+  'departed',
+  'cancelled',
+] as const;
 export type FerryDirection = (typeof FERRY_DIRECTIONS)[number];
 export type FerryScheduleStatus = (typeof FERRY_SCHEDULE_STATUSES)[number];
 

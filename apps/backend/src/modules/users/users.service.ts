@@ -67,6 +67,10 @@ export class UsersService {
     return this.usersRepo.findAllWithRole();
   }
 
+  search(query?: string): Promise<UserWithRole[]> {
+    return this.usersRepo.search(query, 20);
+  }
+
   async createVisitor(input: CreateVisitorInput): Promise<UserWithRole> {
     if (await this.usersRepo.emailExists(input.email)) {
       throw new ConflictException('Email already registered');
