@@ -28,6 +28,8 @@ import { ParkTicketTypesModule } from './modules/park-ticket-types/park-ticket-t
 import { EventsModule } from './modules/events/events.module';
 import { EventSchedulesModule } from './modules/event-schedules/event-schedules.module';
 import { ParkDaysModule } from './modules/park-days/park-days.module';
+import { ParkTicketsModule } from './modules/park-tickets/park-tickets.module';
+import { EventBookingsModule } from './modules/event-bookings/event-bookings.module';
 
 @Module({
   imports: [
@@ -62,6 +64,8 @@ import { ParkDaysModule } from './modules/park-days/park-days.module';
     EventsModule,
     EventSchedulesModule,
     ParkDaysModule,
+    ParkTicketsModule,
+    EventBookingsModule,
   ],
   controllers: [HealthController],
   providers: [

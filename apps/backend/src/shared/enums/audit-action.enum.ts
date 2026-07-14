@@ -38,4 +38,11 @@ export enum AuditAction {
   EventScheduleDeleted = 'event_schedule.deleted',
   ParkDayCapacityUpdated = 'park_day_capacity.updated',
   ParkDayCapacityCleared = 'park_day_capacity.cleared',
+  // `sold` and `validated` are the audit trail for money and physical access.
+  ParkTicketSold = 'park_ticket.sold',
+  ParkTicketValidated = 'park_ticket.validated',
+  ParkTicketCancelled = 'park_ticket.cancelled',
+  EventBookingCreated = 'event_booking.created',
+  EventBookingUpdated = 'event_booking.updated',
+  EventBookingCancelled = 'event_booking.cancelled',
 }
