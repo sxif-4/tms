@@ -33,7 +33,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { ferryRoutesQueryOptions, ferrySchedulesQueryOptions } from "~/features/ferry/queries";
+import {
+  ferryBookingsQueryOptions,
+  ferryRoutesQueryOptions,
+  ferrySchedulesQueryOptions,
+} from "~/features/ferry/queries";
 import { createFerryScheduleServerFn } from "~/features/ferry/server";
 import type { FerrySchedule } from "~/features/ferry/types";
 
@@ -78,11 +82,20 @@ export function FerrySchedulesPage() {
     ferrySchedulesQueryOptions,
   );
   const { data: routes = [] } = useQuery(ferryRoutesQueryOptions);
+  const { data: bookings = [] } = useQuery(ferryBookingsQueryOptions);
 
   const routeNames = useMemo(
     () => Object.fromEntries(routes.map((route) => [route.id, route.name])),
     [routes],
   );
+
+  const passengersByScheduleId = useMemo(() => {
+    const totals: Record<number, number> = {};
+    for (const booking of bookings) {
+      totals[booking.scheduleId] = (totals[booking.scheduleId] ?? 0) + booking.passengerCount;
+    }
+    return totals;
+  }, [bookings]);
 
   const filteredSchedules = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -191,7 +204,7 @@ export function FerrySchedulesPage() {
                   <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <UsersIcon className="size-4" />
-                      {item.capacity} seats
+                      {passengersByScheduleId[item.id] ?? 0} / {item.capacity} passengers
                     </span>
                     <span>•</span>
                     <span className="flex items-center gap-1">
