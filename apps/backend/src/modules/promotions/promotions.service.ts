@@ -11,12 +11,16 @@ import { Role } from '../../shared/enums/role.enum';
 import { HotelAccessService } from '../../shared/hotel-access/hotel-access.service';
 import { type PromotionUsage } from '../../shared/database/schema';
 import type { AuthenticatedUser } from '../../shared/interfaces/authenticated-user.interface';
+import { EventsRepository } from '../events/events.repository';
 import { RoomTypesRepository } from '../room-types/room-types.repository';
 import {
   CreatePromotionDto,
   type DiscountType,
 } from './dto/create-promotion.dto';
-import type { PromotionTargetDto } from './dto/promotion-target.dto';
+import type {
+  PromotionTargetDto,
+  PromotionTargetType,
+} from './dto/promotion-target.dto';
 import { UpdatePromotionDto } from './dto/update-promotion.dto';
 import {
   PromotionsRepository,
@@ -28,24 +32,39 @@ export class PromotionsService {
   constructor(
     private readonly promoRepo: PromotionsRepository,
     private readonly roomTypesRepo: RoomTypesRepository,
+    private readonly eventsRepo: EventsRepository,
     private readonly hotelAccess: HotelAccessService,
     private readonly audit: AuditService,
   ) {}
 
   /**
-   * Admins see every promotion. Hotel staff only see (and may only manage)
-   * promotions scoped entirely to room types used by their assigned hotels —
-   * platform-wide or other-domain promotions stay admin-only.
+   * Admins see every promotion. Staff see only what they own: hotel staff, the
+   * promotions scoped to room types at their assigned hotels; park staff, the
+   * event-targeted ones. Platform-wide promotions stay admin-only.
+   *
+   * `targetType` narrows the list further — the park promotions page asks for
+   * `event` so it doesn't have to filter client-side.
    */
-  async listAll(user: AuthenticatedUser): Promise<PromotionWithTargets[]> {
+  async listAll(
+    user: AuthenticatedUser,
+    targetType?: PromotionTargetType,
+  ): Promise<PromotionWithTargets[]> {
     const all = await this.promoRepo.findAllWithTargets();
-    if (user.role === Role.Admin) return all;
 
-    const results: PromotionWithTargets[] = [];
+    const visible: PromotionWithTargets[] = [];
     for (const promo of all) {
-      if (await this.isWithinStaffScope(user, promo)) results.push(promo);
+      if (
+        user.role === Role.Admin ||
+        (await this.isWithinStaffScope(user, promo))
+      ) {
+        visible.push(promo);
+      }
     }
-    return results;
+
+    if (!targetType) return visible;
+    return visible.filter((promo) =>
+      promo.targets.some((t) => t.targetType === targetType),
+    );
   }
 
   async findById(
@@ -57,7 +76,9 @@ export class PromotionsService {
     if (user && user.role !== Role.Admin) {
       if (!(await this.isWithinStaffScope(user, promo))) {
         throw new ForbiddenException(
-          'This promotion is outside your hotel assignment',
+          user.role === Role.ParkStaff
+            ? 'Park staff may only manage event promotions'
+            : 'This promotion is outside your hotel assignment',
         );
       }
     }
@@ -182,11 +203,26 @@ export class PromotionsService {
     return this.promoRepo.listUsages(id);
   }
 
-  /** True if every room_type target belongs to a hotel the staff member manages, and there's at least one. */
+  /**
+   * Which promotions a staff member may see and manage.
+   *
+   * Park staff own the event-targeted ones: a promotion is in scope if it
+   * targets at least one event. There is only one theme park, so unlike hotels
+   * there is nothing to scope *within* — every event is theirs.
+   *
+   * A promotion may span domains (the seeded "Summer Splash" discounts a room
+   * type *and* an event). This mirrors the hotel rule below, which likewise
+   * judges a promotion only by its own domain's targets and ignores the rest —
+   * so such a promotion is visible to both teams, not hidden from both.
+   */
   private async isWithinStaffScope(
     user: AuthenticatedUser,
     promo: PromotionWithTargets,
   ): Promise<boolean> {
+    if (user.role === Role.ParkStaff) {
+      return promo.targets.some((t) => t.targetType === 'event');
+    }
+
     const roomTypeTargets = promo.targets.filter(
       (t) => t.targetType === 'room_type',
     );
@@ -212,6 +248,25 @@ export class PromotionsService {
     user: AuthenticatedUser,
     targets: PromotionTargetDto[] | undefined,
   ): Promise<void> {
+    if (user.role === Role.ParkStaff) {
+      if (!targets?.length) {
+        throw new ForbiddenException(
+          'Park staff must scope promotions to at least one event',
+        );
+      }
+      for (const target of targets) {
+        if (target.targetType !== 'event') {
+          throw new ForbiddenException(
+            'Park staff may only scope promotions to events',
+          );
+        }
+        if (!(await this.eventsRepo.findById(target.targetId))) {
+          throw new NotFoundException(`Event #${target.targetId} not found`);
+        }
+      }
+      return;
+    }
+
     if (!targets?.length) {
       throw new ForbiddenException(
         'Hotel staff must scope promotions to at least one of their room types',

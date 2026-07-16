@@ -30,6 +30,9 @@ import { EventSchedulesModule } from './modules/event-schedules/event-schedules.
 import { ParkDaysModule } from './modules/park-days/park-days.module';
 import { ParkTicketsModule } from './modules/park-tickets/park-tickets.module';
 import { EventBookingsModule } from './modules/event-bookings/event-bookings.module';
+import { ParkDashboardModule } from './modules/park-dashboard/park-dashboard.module';
+import { ParkReportsModule } from './modules/park-reports/park-reports.module';
+import { PublicParkModule } from './modules/public-park/public-park.module';
 
 @Module({
   imports: [
@@ -66,6 +69,9 @@ import { EventBookingsModule } from './modules/event-bookings/event-bookings.mod
     ParkDaysModule,
     ParkTicketsModule,
     EventBookingsModule,
+    ParkDashboardModule,
+    ParkReportsModule,
+    PublicParkModule,
   ],
   controllers: [HealthController],
   providers: [

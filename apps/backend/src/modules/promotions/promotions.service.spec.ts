@@ -34,6 +34,7 @@ describe('PromotionsService', () => {
     countUsages: jest.Mock;
   };
   let roomTypesRepo: { hotelIdsUsingRoomType: jest.Mock };
+  let eventsRepo: { findById: jest.Mock };
   let hotelAccess: { scopedHotelIds: jest.Mock };
   let audit: { record: jest.Mock };
 
@@ -47,11 +48,13 @@ describe('PromotionsService', () => {
       countUsages: jest.fn(),
     };
     roomTypesRepo = { hotelIdsUsingRoomType: jest.fn() };
+    eventsRepo = { findById: jest.fn() };
     hotelAccess = { scopedHotelIds: jest.fn() };
     audit = { record: jest.fn().mockResolvedValue(undefined) };
     service = new PromotionsService(
       repo as never,
       roomTypesRepo as never,
+      eventsRepo as never,
       hotelAccess as never,
       audit as never,
     );
