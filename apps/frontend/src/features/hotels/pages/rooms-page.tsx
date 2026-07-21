@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { AmenityIcon } from "~/lib/amenity-icon";
 import { EmptyState } from "../components/empty-state";
 import { HotelSwitcher } from "../components/hotel-switcher";
 import { RoomDialog } from "../components/room-dialog";
@@ -149,6 +150,7 @@ function RoomsPageContent({
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
+                  <TableHead>Amenities</TableHead>
                   <TableHead>Price / night</TableHead>
                   <TableHead>Max occupancy</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -158,6 +160,23 @@ function RoomsPageContent({
                 {roomTypes.map((rt) => (
                   <TableRow key={rt.id}>
                     <TableCell className="font-medium">{rt.name}</TableCell>
+                    <TableCell>
+                      {rt.amenities && rt.amenities.length > 0 ? (
+                        <ul className="flex flex-wrap gap-1">
+                          {rt.amenities.map((a) => (
+                            <li
+                              key={a.id}
+                              className="inline-flex items-center gap-1 rounded-md border bg-muted/50 px-1.5 py-0.5 text-xs text-muted-foreground"
+                            >
+                              <AmenityIcon name={a.icon} />
+                              {a.name}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
                     <TableCell className="tabular-nums">
                       {gbp(Number(rt.basePricePerNight))}
                     </TableCell>

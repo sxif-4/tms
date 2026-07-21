@@ -21,6 +21,7 @@ import {
 } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
+import { AmenityIcon } from "~/lib/amenity-icon";
 import { roomTypesQueryOptions } from "../queries";
 import { createRoomTypeServerFn, updateRoomTypeServerFn } from "../server";
 import type { RoomType } from "../types";
@@ -142,6 +143,25 @@ export function RoomTypeDialog({
                 <FieldError>{errors.maxOccupancy?.message}</FieldError>
               </Field>
             </div>
+            {isEdit && roomType.amenities && roomType.amenities.length > 0 && (
+              <Field>
+                <FieldLabel>Amenities</FieldLabel>
+                <ul className="flex flex-wrap gap-1.5">
+                  {roomType.amenities.map((a) => (
+                    <li
+                      key={a.id}
+                      className="inline-flex items-center gap-1 rounded-md border bg-muted/50 px-2 py-0.5 text-xs text-muted-foreground"
+                    >
+                      <AmenityIcon name={a.icon} />
+                      {a.name}
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-xs text-muted-foreground">
+                  Amenities are managed via seed data and cannot be edited here.
+                </p>
+              </Field>
+            )}
           </FieldGroup>
           <DialogFooter>
             <Button

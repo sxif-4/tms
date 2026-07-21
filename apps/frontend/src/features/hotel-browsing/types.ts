@@ -6,6 +6,15 @@ export interface HotelSummary {
   positionLeft: string | null;
   minPrice: number | null;
   image: string | null;
+  /** Total hotel gallery images; used for browse-card photo-count badge. */
+  imageCount?: number;
+}
+
+export interface Amenity {
+  id: number;
+  name: string;
+  icon: string | null;
+  category: string;
 }
 
 export interface RoomType {
@@ -15,6 +24,9 @@ export interface RoomType {
   basePricePerNight: string;
   maxOccupancy: number;
   totalRooms: number;
+  image?: string | null;
+  images?: string[];
+  amenities?: Amenity[];
 }
 
 export interface HotelDetail extends HotelSummary {
@@ -33,6 +45,9 @@ export interface RoomTypeAvailability {
   availableRooms: number;
   nights: number;
   totalPrice: number;
+  image?: string | null;
+  images?: string[];
+  amenities?: Amenity[];
 }
 
 export type AvailabilityLevel = "none" | "low" | "medium" | "high";

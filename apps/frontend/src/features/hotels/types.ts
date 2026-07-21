@@ -17,6 +17,13 @@ export interface Hotel {
   updatedAt: string;
 }
 
+export interface RoomTypeAmenity {
+  id: number;
+  name: string;
+  icon: string | null;
+  category: string;
+}
+
 /** Global room-type catalog, shared across all hotels. */
 export interface RoomType {
   id: number;
@@ -27,6 +34,11 @@ export interface RoomType {
   maxOccupancy: number;
   createdAt: string;
   updatedAt: string;
+  /** Seeded amenities linked via room_type_amenities (read-only in staff UI). */
+  amenities?: RoomTypeAmenity[];
+  /** First linked room_type imageable URL, if any. */
+  image?: string | null;
+  images?: string[];
 }
 
 export interface Room {

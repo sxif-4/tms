@@ -121,3 +121,15 @@ export const getMyHotelBookingsServerFn = createServerFn({
     throw new Error(await errorMessage(res, "Failed to load your bookings"));
   return (await res.json()) as HotelBooking[];
 });
+
+/** Requires auth — visitor self-cancel with 48h policy enforced on the API. */
+export const cancelHotelBookingServerFn = createServerFn({ method: "POST" })
+  .validator((input: unknown) => idSchema.parse(input))
+  .handler(async ({ data }): Promise<HotelBooking> => {
+    const res = await apiFetch(`/hotel-bookings/${data.id}/cancel`, {
+      method: "POST",
+    });
+    if (!res.ok)
+      throw new Error(await errorMessage(res, "Failed to cancel booking"));
+    return (await res.json()) as HotelBooking;
+  });

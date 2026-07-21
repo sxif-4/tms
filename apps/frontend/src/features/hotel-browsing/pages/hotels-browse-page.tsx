@@ -9,6 +9,8 @@ import { Slider } from "~/components/ui/slider";
 import { HotelCard } from "../components/hotel-card";
 import type { HotelSearch } from "../constants";
 import { publicHotelsQueryOptions } from "../queries";
+import { useState, useEffect } from "react";
+
 
 const DEFAULT_MAX = 500;
 
@@ -27,6 +29,10 @@ export function HotelsBrowsePage({
   const { data: hotels } = useSuspenseQuery(publicHotelsQueryOptions(filters));
 
   const maxPrice = search.maxPrice ?? DEFAULT_MAX;
+  const [draftMax, setDraftMax] = useState(maxPrice);
+  useEffect(() => {
+    setDraftMax(maxPrice);
+  }, [maxPrice]);
   const hasFilters =
     search.minPrice != null ||
     search.maxPrice != null ||
@@ -77,15 +83,18 @@ export function HotelsBrowsePage({
             <div className="space-y-6">
               <div>
                 <Label className="mb-3 block text-sm font-medium">
-                  Max price: £{maxPrice}/night
+                  Max price: £{draftMax}/night
                 </Label>
                 <Slider
-                  value={[maxPrice]}
+                  value={[draftMax]}
                   min={50}
                   max={DEFAULT_MAX}
                   step={10}
-                  onValueChange={(v) =>
-                    onSearchChange({ maxPrice: v[0] === DEFAULT_MAX ? undefined : v[0] })
+                  onValueChange={(v) => setDraftMax(v[0])}
+                  onValueCommit={(v) => 
+                    onSearchChange({
+                      maxPrice: v[0] === DEFAULT_MAX ? undefined : v[0],
+                    })
                   }
                 />
               </div>

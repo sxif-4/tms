@@ -13,6 +13,14 @@ export interface PublicHotelSummary {
   positionLeft: string | null;
   minPrice: number | null;
   image: string | null;
+  imageCount: number;
+}
+
+export interface PublicAmenity {
+  id: number;
+  name: string;
+  icon: string | null;
+  category: string;
 }
 
 export interface PublicRoomType {
@@ -22,6 +30,9 @@ export interface PublicRoomType {
   basePricePerNight: string;
   maxOccupancy: number;
   totalRooms: number;
+  image: string | null;
+  images: string[];
+  amenities: PublicAmenity[];
 }
 
 export interface PublicHotelDetail extends PublicHotelSummary {
@@ -38,6 +49,9 @@ export interface RoomTypeAvailabilityRow {
   maxOccupancy: number;
   totalRooms: number;
   overlapping: number;
+  image: string | null;
+  images: string[];
+  amenities: PublicAmenity[];
 }
 
 export interface DayAvailabilityRow {
@@ -50,6 +64,57 @@ export interface DayAvailabilityRow {
 @Injectable()
 export class PublicHotelsRepository {
   constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
+
+  /** Amenities for room types that have rooms at this hotel. */
+  private amenitiesByRoomType(
+    hotelId: number,
+  ): Map<number, PublicAmenity[]> {
+    const amenityRows = this.db.all<PublicAmenity & { roomTypeId: number }>(sql`
+      SELECT rta.room_type_id AS roomTypeId, a.id, a.name, a.icon, a.category
+      FROM room_type_amenities rta
+      JOIN amenities a ON a.id = rta.amenity_id
+      WHERE rta.room_type_id IN (
+        SELECT DISTINCT r.room_type_id FROM rooms r
+        WHERE r.hotel_id = ${hotelId} AND r.status != 'out_of_service'
+      )
+      ORDER BY a.category, a.name
+    `);
+
+    const amenitiesByType = new Map<number, PublicAmenity[]>();
+    for (const row of amenityRows) {
+      const list = amenitiesByType.get(row.roomTypeId) ?? [];
+      list.push({
+        id: row.id,
+        name: row.name,
+        icon: row.icon,
+        category: row.category,
+      });
+      amenitiesByType.set(row.roomTypeId, list);
+    }
+    return amenitiesByType;
+  }
+
+  /** All image URLs per room type (imageable_type = room_type). */
+  private imagesByRoomType(roomTypeIds: number[]): Map<number, string[]> {
+    const map = new Map<number, string[]>();
+    if (roomTypeIds.length === 0) return map;
+    const rows = this.db.all<{ roomTypeId: number; url: string }>(sql`
+      SELECT im.imageable_id AS roomTypeId, i.url
+      FROM imageables im
+      JOIN images i ON i.id = im.image_id
+      WHERE im.imageable_type = 'room_type'
+        AND im.imageable_id IN (${sql.join(
+          roomTypeIds.map((id) => sql`${id}`),
+          sql`, `,
+        )})
+    `);
+    for (const row of rows) {
+      const list = map.get(row.roomTypeId) ?? [];
+      list.push(row.url);
+      map.set(row.roomTypeId, list);
+    }
+    return map;
+  }
 
   listSummaries(
     filters: {
@@ -73,7 +138,9 @@ export class PublicHotelsRepository {
              FROM rooms r JOIN room_types rt ON rt.id = r.room_type_id
              WHERE r.hotel_id = h.id AND r.status != 'out_of_service') AS minPrice,
           (SELECT i.url FROM imageables im JOIN images i ON i.id = im.image_id
-             WHERE im.imageable_type = 'hotel' AND im.imageable_id = h.id LIMIT 1) AS image
+             WHERE im.imageable_type = 'hotel' AND im.imageable_id = h.id LIMIT 1) AS image,
+          (SELECT COUNT(*) FROM imageables im
+             WHERE im.imageable_type = 'hotel' AND im.imageable_id = h.id) AS imageCount
         FROM hotels h LEFT JOIN map_locations ml ON ml.id = h.map_location_id
         WHERE 1 = 1 ${guestsFilter}
       )
@@ -107,7 +174,9 @@ export class PublicHotelsRepository {
       )
       .map((r) => r.url);
 
-    const roomTypes = this.db.all<PublicRoomType>(sql`
+    const roomTypeRows = this.db.all<
+      Omit<PublicRoomType, 'amenities' | 'image' | 'images'>
+    >(sql`
       SELECT rt.id, rt.name, rt.description,
         rt.base_price_per_night AS basePricePerNight, rt.max_occupancy AS maxOccupancy,
         COUNT(r.id) AS totalRooms
@@ -117,7 +186,26 @@ export class PublicHotelsRepository {
       ORDER BY CAST(rt.base_price_per_night AS REAL)
     `);
 
-    return { ...hotel, image: images[0] ?? null, images, roomTypes };
+    const amenitiesByType = this.amenitiesByRoomType(hotelId);
+    const imagesByType = this.imagesByRoomType(roomTypeRows.map((rt) => rt.id));
+
+    const roomTypes: PublicRoomType[] = roomTypeRows.map((rt) => {
+      const imgs = imagesByType.get(rt.id) ?? [];
+      return {
+        ...rt,
+        image: imgs[0] ?? null,
+        images: imgs,
+        amenities: amenitiesByType.get(rt.id) ?? [],
+      };
+    });
+
+    return {
+      ...hotel,
+      image: images[0] ?? null,
+      imageCount: images.length,
+      images,
+      roomTypes,
+    };
   }
 
   availability(
@@ -125,7 +213,9 @@ export class PublicHotelsRepository {
     checkInSec: number,
     checkOutSec: number,
   ): Promise<RoomTypeAvailabilityRow[]> {
-    const rows = this.db.all<RoomTypeAvailabilityRow>(sql`
+    const rows = this.db.all<
+      Omit<RoomTypeAvailabilityRow, 'amenities' | 'image' | 'images'>
+    >(sql`
       SELECT rt.id AS roomTypeId, rt.name, rt.description,
         rt.base_price_per_night AS basePricePerNight, rt.max_occupancy AS maxOccupancy,
         (SELECT COUNT(*) FROM rooms r
@@ -142,7 +232,19 @@ export class PublicHotelsRepository {
       )
       ORDER BY CAST(rt.base_price_per_night AS REAL)
     `);
-    return Promise.resolve(rows);
+    const amenitiesByType = this.amenitiesByRoomType(hotelId);
+    const imagesByType = this.imagesByRoomType(rows.map((r) => r.roomTypeId));
+    return Promise.resolve(
+      rows.map((r) => {
+        const imgs = imagesByType.get(r.roomTypeId) ?? [];
+        return {
+          ...r,
+          image: imgs[0] ?? null,
+          images: imgs,
+          amenities: amenitiesByType.get(r.roomTypeId) ?? [],
+        };
+      }),
+    );
   }
 
   availabilityCalendar(
