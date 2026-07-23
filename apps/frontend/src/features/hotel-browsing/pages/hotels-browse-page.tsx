@@ -9,6 +9,8 @@ import { Slider } from "~/components/ui/slider";
 import { HotelCard } from "../components/hotel-card";
 import type { HotelSearch } from "../constants";
 import { publicHotelsQueryOptions } from "../queries";
+import { useState, useEffect } from "react";
+
 
 const DEFAULT_MAX = 500;
 
@@ -20,17 +22,24 @@ export function HotelsBrowsePage({
   onSearchChange: (next: Partial<HotelSearch>) => void;
 }) {
   const filters = {
-    minPrice: search.minPrice,
-    maxPrice: search.maxPrice,
+    //minPrice: search.minPrice,
+    //maxPrice: search.maxPrice,
     guests: search.guests,
   };
   const { data: hotels } = useSuspenseQuery(publicHotelsQueryOptions(filters));
 
   const maxPrice = search.maxPrice ?? DEFAULT_MAX;
+  const [draftMax, setDraftMax] = useState(maxPrice);
+  useEffect(() => {
+    setDraftMax(maxPrice);
+  }, [maxPrice]);
   const hasFilters =
     search.minPrice != null ||
     search.maxPrice != null ||
     search.guests != null;
+  
+  const visibleHotels = hotels.filter(
+    (hotel) => hotel.minPrice == null || hotel.minPrice <= draftMax)
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -38,7 +47,7 @@ export function HotelsBrowsePage({
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Island hotels</h1>
           <p className="mt-2 text-muted-foreground">
-            {hotels.length} {hotels.length === 1 ? "stay" : "stays"} available
+            {visibleHotels.length} {visibleHotels.length === 1 ? "stay" : "stays"} available
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
@@ -77,15 +86,18 @@ export function HotelsBrowsePage({
             <div className="space-y-6">
               <div>
                 <Label className="mb-3 block text-sm font-medium">
-                  Max price: £{maxPrice}/night
+                  Max price: £{draftMax}/night
                 </Label>
                 <Slider
-                  value={[maxPrice]}
+                  value={[draftMax]}
                   min={50}
                   max={DEFAULT_MAX}
                   step={10}
-                  onValueChange={(v) =>
-                    onSearchChange({ maxPrice: v[0] === DEFAULT_MAX ? undefined : v[0] })
+                  onValueChange={(v) => setDraftMax(v[0])}
+                  onValueCommit={(v) => 
+                    onSearchChange({
+                      maxPrice: v[0] === DEFAULT_MAX ? undefined : v[0],
+                    })
                   }
                 />
               </div>
@@ -116,7 +128,7 @@ export function HotelsBrowsePage({
         </aside>
 
         <div>
-          {hotels.length === 0 ? (
+          {visibleHotels.length === 0 ? (
             <div className="glass-data rounded-xl border p-12 text-center">
               <p className="text-lg font-medium">No hotels match your filters.</p>
               <Button
@@ -135,7 +147,7 @@ export function HotelsBrowsePage({
             </div>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-              {hotels.map((hotel) => (
+              {visibleHotels.map((hotel) => (
                 <HotelCard key={hotel.id} hotel={hotel} />
               ))}
             </div>

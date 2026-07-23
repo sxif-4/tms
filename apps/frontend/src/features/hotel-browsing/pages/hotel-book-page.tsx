@@ -145,21 +145,57 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
 
   const roomOptions =
     availability.length > 0
-      ? availability
-      : hotel.roomTypes.map((rt) => ({
-          roomTypeId: rt.id,
-          name: rt.name,
-          description: rt.description,
-          basePricePerNight: rt.basePricePerNight,
-          maxOccupancy: rt.maxOccupancy,
-          totalRooms: rt.totalRooms,
-          availableRooms: rt.totalRooms,
-          nights: 0,
-          totalPrice: 0,
-        }));
+      ? availability.map((row) => {
+          const fromHotel = hotel.roomTypes.find(
+            (rt) => rt.id === row.roomTypeId,
+          );
+          const images =
+            row.images && row.images.length > 0
+              ? row.images
+              : (fromHotel?.images ??
+                (fromHotel?.image || row.image
+                  ? [row.image ?? fromHotel?.image!].filter(Boolean)
+                  : []));
+          return {
+            ...row,
+            image: images[0] ?? row.image ?? fromHotel?.image ?? null,
+            images,
+            amenities: row.amenities ?? fromHotel?.amenities ?? [],
+          };
+        })
+      : hotel.roomTypes.map((rt) => {
+          const images =
+            rt.images && rt.images.length > 0
+              ? rt.images
+              : rt.image
+                ? [rt.image]
+                : [];
+          return {
+            roomTypeId: rt.id,
+            name: rt.name,
+            description: rt.description,
+            basePricePerNight: rt.basePricePerNight,
+            maxOccupancy: rt.maxOccupancy,
+            totalRooms: rt.totalRooms,
+            availableRooms: rt.totalRooms,
+            nights: 0,
+            totalPrice: 0,
+            image: images[0] ?? null,
+            images,
+            amenities: rt.amenities ?? [],
+          };
+        });
+
+  const summaryTotal = selectedAvailability?.totalPrice;
+  const mobilePriceLabel =
+    summaryTotal != null && nights > 0
+      ? `£${summaryTotal.toFixed(0)} total`
+      : selectedAvailability
+        ? `£${Number(selectedAvailability.basePricePerNight).toFixed(0)}/night`
+        : "Select dates";
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-10 pb-28 sm:px-6 lg:px-8 lg:pb-10">
       <Button asChild variant="ghost" size="sm" className="mb-4">
         <Link to="/hotels/$hotelId" params={{ hotelId: String(hotelId) }}>
           <ArrowLeft className="size-4" />
@@ -361,7 +397,7 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
           </div>
         </div>
 
-        <aside className="lg:sticky lg:top-20 lg:self-start">
+        <aside className="hidden lg:sticky lg:top-20 lg:block lg:self-start">
           <BookingSummaryPanel
             summary={{
               hotelName: hotel.name,
@@ -386,6 +422,39 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
             Step {step + 1} of {STEPS.length}
           </p>
         </aside>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-3 backdrop-blur supports-backdrop-filter:bg-background/80 lg:hidden">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold tabular-nums">
+              {mobilePriceLabel}
+            </p>
+            <p className="truncate text-xs text-muted-foreground">
+              {nights > 0
+                ? `${nights} night${nights === 1 ? "" : "s"} · Step ${step + 1}/${STEPS.length}`
+                : `Step ${step + 1} of ${STEPS.length}`}
+            </p>
+          </div>
+          {step < STEPS.length - 1 ? (
+            <Button
+              size="sm"
+              onClick={() => setStep((s) => s + 1)}
+              disabled={!canProceed}
+            >
+              Continue
+              <ArrowRight className="size-4" />
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              onClick={handlePaymentContinue}
+              disabled={!canProceed || createBooking.isPending}
+            >
+              {createBooking.isPending ? "Confirming…" : "Confirm"}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

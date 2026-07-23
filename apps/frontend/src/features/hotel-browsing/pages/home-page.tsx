@@ -1,38 +1,62 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
-import { ArrowRight, Hotel, Map, Palmtree, Sparkles } from "lucide-react";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { Link, useNavigate } from "@tanstack/react-router";
+import {
+  ArrowRight,
+  Hotel,
+  Map,
+  Palmtree,
+  Ship,
+  Users,
+} from "lucide-react";
+import { useState } from "react";
 import { Button } from "~/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+import { meQueryOptions } from "~/features/auth/queries";
 import { activeAdvertisementsQueryOptions } from "~/features/advertisements/queries";
 import { HotelCard } from "~/features/hotel-browsing/components/hotel-card";
 import { publicHotelsQueryOptions } from "~/features/hotel-browsing/queries";
+import { cn } from "~/lib/utils";
 
 export function HomePage() {
-  const { data: ads } = useSuspenseQuery(activeAdvertisementsQueryOptions("homepage"));
+  const navigate = useNavigate();
+  const { data: ads } = useSuspenseQuery(
+    activeAdvertisementsQueryOptions("homepage"),
+  );
   const { data: hotels } = useSuspenseQuery(publicHotelsQueryOptions());
+  const { data: user } = useQuery(meQueryOptions);
+  const [guests, setGuests] = useState<string>("2");
 
   return (
     <div>
-      <section className="relative">
+      <section className="relative isolate min-h-[78vh] overflow-hidden sm:min-h-[85vh]">
         <div className="absolute inset-0 -z-10">
           <img
             src="/images/hero/hero-island.jpg"
             alt="Aerial view of the island at golden hour"
-            className="size-full object-cover"
+            className="hero-ken-burns size-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/30 to-background" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/35" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/20 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
         </div>
-        <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8 lg:py-40">
-          <div className="glass-marketing-strong max-w-2xl rounded-2xl p-8 sm:p-10">
-            <p className="mb-4 inline-flex items-center gap-1.5 rounded-full border bg-background/60 px-3 py-1 text-sm">
-              <Sparkles className="size-3.5" />
-              Now booking for 2026
+
+        <div className="mx-auto flex min-h-[78vh] max-w-7xl flex-col justify-end px-4 pb-16 pt-28 sm:min-h-[85vh] sm:px-6 sm:pb-20 lg:px-8 lg:pb-24">
+          <div className="animate-fade-in max-w-2xl drop-shadow-md">
+            <p className="text-sm font-semibold tracking-[0.2em] text-white/90 uppercase">
+              Island Booking
             </p>
-            <h1 className="text-4xl font-extrabold tracking-tight text-balance sm:text-5xl">
-              Welcome to the island
+            <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-balance text-white sm:text-5xl lg:text-6xl">
+              Your lagoon escape starts here
             </h1>
-            <p className="mt-4 text-lg text-muted-foreground text-balance">
-              Overwater villas, rainforest lodges, and cliffside suites — book
-              your perfect getaway today.
+            <p className="mt-4 max-w-xl text-lg text-pretty text-white/85">
+              Book overwater villas, beach retreats, and cliffside suites across
+              the atoll.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg">
@@ -41,16 +65,85 @@ export function HomePage() {
                   <ArrowRight className="size-4" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline">
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="border-white/40 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+              >
                 <Link to="/map">View island map</Link>
               </Button>
+              {user && (
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="border-white/40 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                >
+                  <Link to="/my-bookings">My bookings</Link>
+                </Button>
+              )}
             </div>
           </div>
         </div>
       </section>
 
+      <section className="border-b bg-background">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 sm:flex-row sm:items-end sm:px-6 lg:px-8">
+          <div className="flex-1">
+            <h2 className="text-lg font-semibold tracking-tight">
+              Find a stay
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Choose guests, then browse hotels that fit.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="w-40 space-y-1.5">
+              <label
+                htmlFor="home-guests"
+                className="text-xs font-medium text-muted-foreground"
+              >
+                Guests
+              </label>
+              <Select value={guests} onValueChange={setGuests}>
+                <SelectTrigger id="home-guests" className="w-full">
+                  <Users className="size-3.5 text-muted-foreground" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5, 6].map((n) => (
+                    <SelectItem key={n} value={String(n)}>
+                      {n}+ guests
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              size="lg"
+              onClick={() =>
+                void navigate({
+                  to: "/hotels",
+                  search: { guests: Number(guests) },
+                })
+              }
+            >
+              Find stays
+              <ArrowRight className="size-4" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {ads.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+          <div className="mb-6">
+            <h2 className="text-3xl font-semibold tracking-tight">Offers</h2>
+            <p className="mt-2 text-muted-foreground">
+              Current promotions for your next island stay.
+            </p>
+          </div>
           <div className="flex gap-4 overflow-x-auto pb-4 [scrollbar-width:thin]">
             {ads.map((ad) => (
               <Link
@@ -65,10 +158,10 @@ export function HomePage() {
                     className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
                   <div className="absolute inset-x-0 bottom-0 p-4">
-                    <p className="font-semibold">{ad.title}</p>
-                    <span className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-primary">
+                    <p className="font-semibold text-white">{ad.title}</p>
+                    <span className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-white/90">
                       View offer
                       <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />
                     </span>
@@ -82,7 +175,7 @@ export function HomePage() {
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="mb-8 text-center">
-          <h2 className="text-3xl font-semibold tracking-tight">What to do here</h2>
+        <h2 className="text-3xl font-semibold tracking-tight">What to do here</h2>
         </div>
         <div className="grid gap-6 md:grid-cols-3">
           {[
@@ -106,13 +199,16 @@ export function HomePage() {
             </Link>
           ))}
         </div>
+       
       </section>
 
       {hotels.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <section className="mx-auto max-w-7xl px-4 py-12 pb-20 sm:px-6 lg:px-8">
           <div className="mb-8 flex items-end justify-between">
             <div>
-              <h2 className="text-3xl font-semibold tracking-tight">Featured stays</h2>
+              <h2 className="text-3xl font-semibold tracking-tight">
+                Featured stays
+              </h2>
               <p className="mt-2 text-muted-foreground">
                 Hand-picked properties across the island.
               </p>

@@ -6,6 +6,7 @@ import {
 import {
   PublicHotelsRepository,
   type DayAvailabilityRow,
+  type PublicAmenity,
   type PublicHotelDetail,
   type PublicHotelSummary,
 } from './public-hotels.repository';
@@ -20,6 +21,9 @@ export interface RoomTypeAvailability {
   availableRooms: number;
   nights: number;
   totalPrice: number;
+  image: string | null;
+  images: string[];
+  amenities: PublicAmenity[];
 }
 
 export interface DayAvailability {
@@ -91,6 +95,9 @@ export class PublicHotelsService {
       availableRooms: Math.max(r.totalRooms - r.overlapping, 0),
       nights,
       totalPrice: Math.round(Number(r.basePricePerNight) * nights * 100) / 100,
+      image: r.image,
+      images: r.images,
+      amenities: r.amenities,
     }));
   }
 

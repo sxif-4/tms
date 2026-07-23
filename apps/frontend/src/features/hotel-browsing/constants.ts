@@ -52,10 +52,15 @@ export const AVAILABILITY_TIER_LABEL: Record<AvailabilityLevel, string> = {
 
 /** Deterministic fallback images for hotels the API returns with `image: null`. */
 export const HOTEL_FALLBACK_IMAGES = [
-  "/images/hotels/hotel-grand-island.jpg",
-  "/images/hotels/hotel-seaside-resort.jpg",
-  "/images/hotels/hotel-jungle-lodge.jpg",
-  "/images/hotels/hotel-cliffside.jpg",
+  "https://images.unsplash.com/photo-1578922746465-3a80a228f223?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1468413253725-0d5181091126?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1506929562872-bb421503ef21?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
+  "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1200&q=80",
 ];
 
 export function hotelImage(hotel: Pick<HotelSummary, "id" | "image">): string {

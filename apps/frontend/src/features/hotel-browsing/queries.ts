@@ -1,5 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import {
+  cancelHotelBookingServerFn,
   createHotelBookingServerFn,
   getAvailabilityCalendarServerFn,
   getHotelAvailabilityServerFn,
@@ -65,4 +66,9 @@ export const createHotelBookingMutationOptions = () =>
       checkOut: string;
       guests: number;
     }) => createHotelBookingServerFn({ data: input }),
+  });
+
+export const cancelHotelBookingMutationOptions = () =>
+  mutationOptions({
+    mutationFn: (id: number) => cancelHotelBookingServerFn({ data: { id } }),
   });

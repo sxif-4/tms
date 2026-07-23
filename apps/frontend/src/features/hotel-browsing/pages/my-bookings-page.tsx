@@ -1,6 +1,13 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, BedDouble, CalendarDays, Users } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { ConfirmDialog } from "~/components/confirm-dialog";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -10,7 +17,10 @@ import {
   BOOKING_STATUS_VARIANTS,
   gbp,
 } from "../constants";
-import { myHotelBookingsQueryOptions } from "../queries";
+import {
+  cancelHotelBookingMutationOptions,
+  myHotelBookingsQueryOptions,
+} from "../queries";
 import type { HotelBooking, HotelBookingStatus } from "../types";
 
 function formatDate(value: string) {
@@ -21,14 +31,34 @@ function formatDate(value: string) {
   });
 }
 
-function visitorTab(status: HotelBookingStatus): "upcoming" | "completed" | "cancelled" {
+function visitorTab(
+  status: HotelBookingStatus,
+): "upcoming" | "completed" | "cancelled" {
   if (status === "cancelled") return "cancelled";
   if (status === "completed") return "completed";
   return "upcoming";
 }
 
-function BookingCard({ booking }: { booking: HotelBooking }) {
+/** Matches backend: pending/confirmed and at least 48h before check-in. */
+function canVisitorCancel(booking: HotelBooking): boolean {
+  if (booking.status !== "pending" && booking.status !== "confirmed") {
+    return false;
+  }
+  const hoursUntilCheckIn =
+    (new Date(booking.checkIn).getTime() - Date.now()) / (60 * 60 * 1000);
+  return hoursUntilCheckIn >= 48;
+}
+
+function BookingCard({
+  booking,
+  onCancel,
+}: {
+  booking: HotelBooking;
+  onCancel?: (booking: HotelBooking) => void;
+}) {
   const badgeVariant = BOOKING_STATUS_VARIANTS[booking.status];
+  const showCancel = onCancel && canVisitorCancel(booking);
+
   return (
     <Card className="overflow-hidden p-0">
       <CardContent className="p-5">
@@ -46,7 +76,9 @@ function BookingCard({ booking }: { booking: HotelBooking }) {
             </p>
           </div>
           <div className="text-right">
-            <p className="text-lg font-semibold">{gbp(Number(booking.totalAmount))}</p>
+            <p className="text-lg font-semibold">
+              {gbp(Number(booking.totalAmount))}
+            </p>
           </div>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
@@ -72,16 +104,31 @@ function BookingCard({ booking }: { booking: HotelBooking }) {
             <p className="mt-0.5 font-medium">{booking.guests}</p>
           </div>
         </div>
-        <div className="mt-4 flex items-center justify-between border-t pt-4">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t pt-4">
           <span className="font-mono text-xs text-muted-foreground">
             Ref: {booking.bookingReference}
           </span>
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/hotels/$hotelId" params={{ hotelId: String(booking.hotelId) }}>
-              View hotel
-              <ArrowRight className="size-3.5" />
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            {showCancel && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => onCancel(booking)}
+              >
+                Cancel booking
+              </Button>
+            )}
+            <Button asChild variant="ghost" size="sm">
+              <Link
+                to="/hotels/$hotelId"
+                params={{ hotelId: String(booking.hotelId) }}
+              >
+                View hotel
+                <ArrowRight className="size-3.5" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -103,7 +150,22 @@ function EmptyState() {
 }
 
 export function MyBookingsPage() {
+  const queryClient = useQueryClient();
   const { data: bookings } = useSuspenseQuery(myHotelBookingsQueryOptions);
+  const [cancelling, setCancelling] = useState<HotelBooking | null>(null);
+
+  const cancelMutation = useMutation({
+    ...cancelHotelBookingMutationOptions(),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: myHotelBookingsQueryOptions.queryKey,
+      });
+      toast.success("Booking cancelled");
+      setCancelling(null);
+    },
+    onError: (err) =>
+      toast.error(err instanceof Error ? err.message : "Failed to cancel"),
+  });
 
   const upcoming = bookings.filter((b) => visitorTab(b.status) === "upcoming");
   const completed = bookings.filter((b) => visitorTab(b.status) === "completed");
@@ -141,7 +203,13 @@ export function MyBookingsPage() {
           {upcoming.length === 0 ? (
             <EmptyState />
           ) : (
-            upcoming.map((b) => <BookingCard key={b.id} booking={b} />)
+            upcoming.map((b) => (
+              <BookingCard
+                key={b.id}
+                booking={b}
+                onCancel={setCancelling}
+              />
+            ))
           )}
         </TabsContent>
         <TabsContent value="completed" className="mt-6 space-y-4">
@@ -159,6 +227,21 @@ export function MyBookingsPage() {
           )}
         </TabsContent>
       </Tabs>
+
+      <ConfirmDialog
+        open={cancelling != null}
+        onOpenChange={(open) => {
+          if (!open) setCancelling(null);
+        }}
+        title="Cancel this booking?"
+        description="Free cancellation is available up to 48 hours before check-in. This cannot be undone."
+        confirmLabel="Cancel booking"
+        destructive
+        pending={cancelMutation.isPending}
+        onConfirm={() => {
+          if (cancelling) cancelMutation.mutate(cancelling.id);
+        }}
+      />
     </div>
   );
 }

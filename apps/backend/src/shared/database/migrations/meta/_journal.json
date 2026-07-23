@@ -15,6 +15,13 @@
       "when": 1783871132295,
       "tag": "0001_worried_earthquake",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1784217722620,
+      "tag": "0002_magical_iron_lad",
+      "breakpoints": true
     }
   ]
 }
