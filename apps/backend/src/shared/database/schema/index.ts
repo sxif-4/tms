@@ -10,6 +10,8 @@ import { userAssignments } from './user-assignments.schema';
 import { hotels } from './hotels.schema';
 import { roomTypes } from './room-types.schema';
 import { rooms } from './rooms.schema';
+import { amenities } from './amenities.schema';
+import { roomTypeAmenities } from './room-type-amenities.schema';
 import { hotelBookings } from './hotel-bookings.schema';
 
 // Ferry domain
@@ -43,12 +45,15 @@ export * from './user-assignments.schema';
 export * from './hotels.schema';
 export * from './room-types.schema';
 export * from './rooms.schema';
+export * from './amenities.schema';
+export * from './room-type-amenities.schema';
 export * from './hotel-bookings.schema';
 export * from './ferry-routes.schema';
 export * from './ferry-schedules.schema';
 export * from './ferry-bookings.schema';
 export * from './park-ticket-types.schema';
 export * from './park-tickets.schema';
+export * from './park-day-capacities.schema';
 export * from './events.schema';
 export * from './event-schedules.schema';
 export * from './event-bookings.schema';
@@ -105,7 +110,26 @@ export const hotelsRelations = relations(hotels, ({ one, many }) => ({
 
 export const roomTypesRelations = relations(roomTypes, ({ many }) => ({
   rooms: many(rooms),
+  roomTypeAmenities: many(roomTypeAmenities),
 }));
+
+export const amenitiesRelations = relations(amenities, ({ many }) => ({
+  roomTypeAmenities: many(roomTypeAmenities),
+}));
+
+export const roomTypeAmenitiesRelations = relations(
+  roomTypeAmenities,
+  ({ one }) => ({
+    roomType: one(roomTypes, {
+      fields: [roomTypeAmenities.roomTypeId],
+      references: [roomTypes.id],
+    }),
+    amenity: one(amenities, {
+      fields: [roomTypeAmenities.amenityId],
+      references: [amenities.id],
+    }),
+  }),
+);
 
 export const roomsRelations = relations(rooms, ({ one, many }) => ({
   hotel: one(hotels, { fields: [rooms.hotelId], references: [hotels.id] }),

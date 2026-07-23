@@ -66,6 +66,16 @@ export class HotelBookingsController {
     return this.bookingsService.create(currentUser, dto);
   }
 
+  /** Visitor self-cancel — ownership + 48h policy enforced in the service. */
+  @Post(':id/cancel')
+  @Roles()
+  cancel(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<HotelBookingRow> {
+    return this.bookingsService.cancelOwn(currentUser, id);
+  }
+
   @Patch(':id/assign-room')
   assignRoom(
     @Param('id', ParseIntPipe) id: number,

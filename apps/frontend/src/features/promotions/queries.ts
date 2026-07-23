@@ -1,12 +1,18 @@
 import { queryOptions } from "@tanstack/react-query";
 import { getPromotionUsagesServerFn, getPromotionsServerFn } from "./server";
+import type { PromotionTargetType } from "./types";
 
-/** Shared query for the promotion list (with targets). Admin-only. */
-export const promotionsQueryOptions = queryOptions({
-  queryKey: ["promotions"] as const,
-  queryFn: () => getPromotionsServerFn(),
-  staleTime: 30 * 1000,
-});
+/**
+ * Promotions the caller may manage (with targets). Pass `targetType` to narrow
+ * to one domain — the park page passes `event`. The key keeps `"promotions"`
+ * as its prefix so invalidating that prefix refreshes every variant.
+ */
+export const promotionsQueryOptions = (targetType?: PromotionTargetType) =>
+  queryOptions({
+    queryKey: ["promotions", targetType ?? "all"] as const,
+    queryFn: () => getPromotionsServerFn({ data: { targetType } }),
+    staleTime: 30 * 1000,
+  });
 
 /** Per-promotion usage list. */
 export const promotionUsagesQueryOptions = (id: number) =>

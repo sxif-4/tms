@@ -4,6 +4,6 @@ import { promotionsQueryOptions } from "~/features/promotions/queries";
 
 export const Route = createFileRoute("/dashboard/admin/promotions/")({
   loader: ({ context }) =>
-    context.queryClient.ensureQueryData(promotionsQueryOptions),
+    context.queryClient.ensureQueryData(promotionsQueryOptions()),
   component: PromotionsPage,
 });

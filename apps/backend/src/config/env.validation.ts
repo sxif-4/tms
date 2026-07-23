@@ -10,6 +10,9 @@ export const validationSchema = Joi.object({
 
   CORS_ORIGIN: Joi.string().uri().default('http://localhost:3000'),
 
+  // Ticket cap applied to days with no park_day_capacities override row.
+  PARK_DEFAULT_DAILY_CAPACITY: Joi.number().integer().min(1).default(2000),
+
   JWT_SECRET: Joi.string().min(32).required(),
   JWT_ACCESS_EXPIRES: Joi.string().default('15m'),
   JWT_REFRESH_EXPIRES: Joi.string().default('7d'),

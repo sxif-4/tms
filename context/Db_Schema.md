@@ -189,6 +189,31 @@ Room-type-first: guests/staff pick a **room type** + dates at booking time; a sp
 | created_at       | timestamp     | -                         | Record creation time                           |
 | updated_at       | timestamp     | -                         | Record update time                             |
 
+### park_day_capacities
+
+Per-day override of how many park tickets may be sold. **A missing row means "default
+capacity" (`PARK_DEFAULT_DAILY_CAPACITY`, default 2000), not "closed"** — staff insert a row
+only to cap a specific day, raise it for a festival, or shut the park. This keeps ops from
+having to seed all 365 days.
+
+| Column     | Type      | Constraints   | Description                              |
+| ---------- | --------- | ------------- | ---------------------------------------- |
+| id         | bigint    | PK, increment | Primary key                              |
+| date       | date      | UNIQUE        | The visit day being capped (UTC midnight) |
+| capacity   | int       | -             | Max tickets sellable that day            |
+| is_closed  | boolean   | default false | Park shut that day                       |
+| note       | text      | nullable      | e.g. "Private event", "Maintenance"      |
+| created_at | timestamp | -             | Record creation time                     |
+| updated_at | timestamp | -             | Record update time                       |
+
+Capacity maths is application-enforced (like every other rule here):
+
+```
+sold(date)      = SUM(park_tickets.quantity) WHERE visit_date = date AND status != 'cancelled'
+capacity(date)  = park_day_capacities.capacity  -- if a row exists, else PARK_DEFAULT_DAILY_CAPACITY
+remaining(date) = capacity(date) - sold(date)
+```
+
 ### events
 
 | Column        | Type          | Constraints   | Description             |

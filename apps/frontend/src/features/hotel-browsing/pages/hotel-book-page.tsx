@@ -55,7 +55,9 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
   });
   const [paymentMethod, setPaymentMethod] = useState("");
   const [showAuth, setShowAuth] = useState(false);
-  const [calendarMonth, setCalendarMonth] = useState(() => startOfMonth(new Date()));
+  const [calendarMonth, setCalendarMonth] = useState(() =>
+    startOfMonth(new Date()),
+  );
 
   const checkIn = dateRange?.from ? dateRange.from.toISOString() : "";
   const checkOut = dateRange?.to ? dateRange.to.toISOString() : "";
@@ -76,7 +78,9 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
     hotelAvailabilityQueryOptions(hotelId, checkIn, checkOut),
   );
 
-  const selectedAvailability = availability.find((a) => a.roomTypeId === roomTypeId);
+  const selectedAvailability = availability.find(
+    (a) => a.roomTypeId === roomTypeId,
+  );
   const nights = selectedAvailability?.nights ?? 0;
 
   const createBooking = useMutation({
@@ -100,11 +104,25 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
 
   const canProceed = useMemo(() => {
     if (step === 0)
-      return Boolean(checkIn && checkOut && roomTypeId && selectedAvailability && selectedAvailability.availableRooms > 0);
+      return Boolean(
+        checkIn &&
+        checkOut &&
+        roomTypeId &&
+        selectedAvailability &&
+        selectedAvailability.availableRooms > 0,
+      );
     if (step === 1) return contactValid;
     if (step === 2) return paymentMethod.length > 0;
     return false;
-  }, [step, checkIn, checkOut, roomTypeId, selectedAvailability, contactValid, paymentMethod]);
+  }, [
+    step,
+    checkIn,
+    checkOut,
+    roomTypeId,
+    selectedAvailability,
+    contactValid,
+    paymentMethod,
+  ]);
 
   const submitBooking = () => {
     if (!roomTypeId || !checkIn || !checkOut) return;
@@ -125,20 +143,59 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
     submitBooking();
   };
 
-  const roomOptions = availability.length > 0 ? availability : hotel.roomTypes.map((rt) => ({
-    roomTypeId: rt.id,
-    name: rt.name,
-    description: rt.description,
-    basePricePerNight: rt.basePricePerNight,
-    maxOccupancy: rt.maxOccupancy,
-    totalRooms: rt.totalRooms,
-    availableRooms: rt.totalRooms,
-    nights: 0,
-    totalPrice: 0,
-  }));
+  const roomOptions =
+    availability.length > 0
+      ? availability.map((row) => {
+          const fromHotel = hotel.roomTypes.find(
+            (rt) => rt.id === row.roomTypeId,
+          );
+          const images =
+            row.images && row.images.length > 0
+              ? row.images
+              : (fromHotel?.images ??
+                (fromHotel?.image || row.image
+                  ? [row.image ?? fromHotel?.image!].filter(Boolean)
+                  : []));
+          return {
+            ...row,
+            image: images[0] ?? row.image ?? fromHotel?.image ?? null,
+            images,
+            amenities: row.amenities ?? fromHotel?.amenities ?? [],
+          };
+        })
+      : hotel.roomTypes.map((rt) => {
+          const images =
+            rt.images && rt.images.length > 0
+              ? rt.images
+              : rt.image
+                ? [rt.image]
+                : [];
+          return {
+            roomTypeId: rt.id,
+            name: rt.name,
+            description: rt.description,
+            basePricePerNight: rt.basePricePerNight,
+            maxOccupancy: rt.maxOccupancy,
+            totalRooms: rt.totalRooms,
+            availableRooms: rt.totalRooms,
+            nights: 0,
+            totalPrice: 0,
+            image: images[0] ?? null,
+            images,
+            amenities: rt.amenities ?? [],
+          };
+        });
+
+  const summaryTotal = selectedAvailability?.totalPrice;
+  const mobilePriceLabel =
+    summaryTotal != null && nights > 0
+      ? `£${summaryTotal.toFixed(0)} total`
+      : selectedAvailability
+        ? `£${Number(selectedAvailability.basePricePerNight).toFixed(0)}/night`
+        : "Select dates";
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-10 pb-28 sm:px-6 lg:px-8 lg:pb-10">
       <Button asChild variant="ghost" size="sm" className="mb-4">
         <Link to="/hotels/$hotelId" params={{ hotelId: String(hotelId) }}>
           <ArrowLeft className="size-4" />
@@ -172,7 +229,9 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
             >
               {label}
             </span>
-            {i < STEPS.length - 1 && <div className="mx-2 h-px flex-1 bg-border" />}
+            {i < STEPS.length - 1 && (
+              <div className="mx-2 h-px flex-1 bg-border" />
+            )}
           </div>
         ))}
       </div>
@@ -184,7 +243,8 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
               <div className="glass-data rounded-xl border p-5">
                 <h2 className="font-semibold">Select your dates</h2>
                 <p className="mb-4 text-sm text-muted-foreground">
-                  The bar under each date shows availability for your selected room type.
+                  The bar under each date shows availability for your selected
+                  room type.
                 </p>
                 <AvailabilityCalendar
                   data={calendarDays}
@@ -274,13 +334,18 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
                 <h2 className="font-semibold">Payment details</h2>
                 <Field>
                   <FieldLabel>Payment method</FieldLabel>
-                  <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <Select
+                    value={paymentMethod}
+                    onValueChange={setPaymentMethod}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a payment method" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="card">Credit / debit card</SelectItem>
-                      <SelectItem value="bank_transfer">Bank transfer</SelectItem>
+                      <SelectItem value="bank_transfer">
+                        Bank transfer
+                      </SelectItem>
                       <SelectItem value="cash">Pay at hotel</SelectItem>
                     </SelectContent>
                   </Select>
@@ -313,7 +378,10 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
               Back
             </Button>
             {step < STEPS.length - 1 ? (
-              <Button onClick={() => setStep((s) => s + 1)} disabled={!canProceed}>
+              <Button
+                onClick={() => setStep((s) => s + 1)}
+                disabled={!canProceed}
+              >
                 Continue
                 <ArrowRight className="size-4" />
               </Button>
@@ -329,11 +397,13 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
           </div>
         </div>
 
-        <aside className="lg:sticky lg:top-20 lg:self-start">
+        <aside className="hidden lg:sticky lg:top-20 lg:block lg:self-start">
           <BookingSummaryPanel
             summary={{
               hotelName: hotel.name,
-              roomTypeName: selectedAvailability?.name ?? hotel.roomTypes.find((r) => r.id === roomTypeId)?.name,
+              roomTypeName:
+                selectedAvailability?.name ??
+                hotel.roomTypes.find((r) => r.id === roomTypeId)?.name,
               checkIn: checkIn || undefined,
               checkOut: checkOut || undefined,
               guests,
@@ -344,11 +414,47 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
               total: selectedAvailability?.totalPrice,
             }}
           />
-          <Progress value={((step + 1) / STEPS.length) * 100} className="mt-4 h-1.5" />
+          <Progress
+            value={((step + 1) / STEPS.length) * 100}
+            className="mt-4 h-1.5"
+          />
           <p className="mt-2 text-center text-xs text-muted-foreground">
             Step {step + 1} of {STEPS.length}
           </p>
         </aside>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-3 backdrop-blur supports-backdrop-filter:bg-background/80 lg:hidden">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold tabular-nums">
+              {mobilePriceLabel}
+            </p>
+            <p className="truncate text-xs text-muted-foreground">
+              {nights > 0
+                ? `${nights} night${nights === 1 ? "" : "s"} · Step ${step + 1}/${STEPS.length}`
+                : `Step ${step + 1} of ${STEPS.length}`}
+            </p>
+          </div>
+          {step < STEPS.length - 1 ? (
+            <Button
+              size="sm"
+              onClick={() => setStep((s) => s + 1)}
+              disabled={!canProceed}
+            >
+              Continue
+              <ArrowRight className="size-4" />
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              onClick={handlePaymentContinue}
+              disabled={!canProceed || createBooking.isPending}
+            >
+              {createBooking.isPending ? "Confirming…" : "Confirm"}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

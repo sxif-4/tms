@@ -7,11 +7,13 @@ import { AuditService } from '../../shared/audit/audit.service';
 import { AuditAction } from '../../shared/enums/audit-action.enum';
 import { Role } from '../../shared/enums/role.enum';
 import { HotelAccessService } from '../../shared/hotel-access/hotel-access.service';
-import { type RoomType } from '../../shared/database/schema';
 import type { AuthenticatedUser } from '../../shared/interfaces/authenticated-user.interface';
 import { CreateRoomTypeDto } from './dto/create-room-type.dto';
 import { UpdateRoomTypeDto } from './dto/update-room-type.dto';
-import { RoomTypesRepository } from './room-types.repository';
+import {
+  RoomTypesRepository,
+  type RoomTypeWithAmenities,
+} from './room-types.repository';
 
 /**
  * Room types are a global catalog (not owned by a single hotel), since the
@@ -27,11 +29,11 @@ export class RoomTypesService {
     private readonly audit: AuditService,
   ) {}
 
-  listAll(): Promise<RoomType[]> {
+  listAll(): Promise<RoomTypeWithAmenities[]> {
     return this.roomTypesRepo.findAll();
   }
 
-  async findById(id: number): Promise<RoomType> {
+  async findById(id: number): Promise<RoomTypeWithAmenities> {
     const roomType = await this.roomTypesRepo.findById(id);
     if (!roomType) throw new NotFoundException(`Room type #${id} not found`);
     return roomType;
@@ -58,7 +60,7 @@ export class RoomTypesService {
     id: number,
     dto: UpdateRoomTypeDto,
     user: AuthenticatedUser,
-  ): Promise<RoomType> {
+  ): Promise<RoomTypeWithAmenities> {
     await this.findById(id); // 404 if missing
     await this.assertScopedAccess(user, id);
 

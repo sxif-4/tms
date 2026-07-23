@@ -9,11 +9,26 @@ import { PromotionDialog } from "../components/promotion-dialog";
 import { PromotionUsagesDialog } from "../components/promotion-usages-dialog";
 import { promotionsQueryOptions } from "../queries";
 import { deletePromotionServerFn } from "../server";
-import type { Promotion } from "../types";
+import type { Promotion, PromotionTargetType } from "../types";
 
-export function PromotionsPage() {
+/**
+ * Shared by admin, hotel and park. `targetType` narrows the list to one
+ * domain's promotions; `title`/`description` let each page say what it owns.
+ * Without them it behaves exactly as before.
+ */
+export function PromotionsPage({
+  targetType,
+  title = "Promotions",
+  description = "Manage discount campaigns and view their redemptions.",
+}: {
+  targetType?: PromotionTargetType;
+  title?: string;
+  description?: string;
+} = {}) {
   const queryClient = useQueryClient();
-  const { data: promotions } = useSuspenseQuery(promotionsQueryOptions);
+  const { data: promotions } = useSuspenseQuery(
+    promotionsQueryOptions(targetType),
+  );
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Promotion | null>(null);
   const [deleting, setDeleting] = useState<Promotion | null>(null);
@@ -22,9 +37,8 @@ export function PromotionsPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deletePromotionServerFn({ data: { id } }),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: promotionsQueryOptions.queryKey,
-      });
+      // Prefix key — refreshes every filtered variant, not just this one.
+      queryClient.invalidateQueries({ queryKey: ["promotions"] });
       toast.success("Promotion deleted");
       setDeleting(null);
     },
@@ -45,10 +59,8 @@ export function PromotionsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="font-heading text-2xl font-semibold">Promotions</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage discount campaigns and view their redemptions.
-          </p>
+          <h1 className="font-heading text-2xl font-semibold">{title}</h1>
+          <p className="text-sm text-muted-foreground">{description}</p>
         </div>
         <Button onClick={openCreate}>
           <PlusIcon data-icon="inline-start" />

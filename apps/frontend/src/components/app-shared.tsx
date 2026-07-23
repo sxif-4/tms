@@ -14,6 +14,8 @@ import {
   FerrisWheelIcon,
   TicketIcon,
   CalendarCheckIcon,
+  CalendarClockIcon,
+  ScanLineIcon,
   TagIcon,
   PercentIcon,
   ReceiptIcon,
@@ -142,21 +144,51 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
       items: [
         {
           title: "Dashboard",
-          path: "#/dashboard",
+          path: "/dashboard/park/",
           icon: <LayoutGridIcon />,
         },
-        { title: "Events", path: "#/events", icon: <FerrisWheelIcon /> },
-        { title: "Tickets", path: "#/tickets", icon: <TicketIcon /> },
         {
-          title: "Event Bookings",
-          path: "#/event-bookings",
+          title: "Events",
+          path: "/dashboard/park/events",
+          icon: <FerrisWheelIcon />,
+        },
+        {
+          title: "Tickets",
+          path: "/dashboard/park/tickets",
+          icon: <TicketIcon />,
+        },
+        { title: "Gate", path: "/dashboard/park/gate", icon: <ScanLineIcon /> },
+        {
+          title: "Bookings",
+          path: "/dashboard/park/bookings",
           icon: <CalendarCheckIcon />,
         },
       ],
     },
     {
+      label: "Capacity",
+      items: [
+        {
+          title: "Availability",
+          path: "/dashboard/park/availability",
+          icon: <CalendarClockIcon />,
+        },
+      ],
+    },
+    {
       label: "Insights",
-      items: [{ title: "Reports", path: "#/reports", icon: <BarChart3Icon /> }],
+      items: [
+        {
+          title: "Reports",
+          path: "/dashboard/park/reports",
+          icon: <BarChart3Icon />,
+        },
+        {
+          title: "Promotions",
+          path: "/dashboard/park/promotions",
+          icon: <PercentIcon />,
+        },
+      ],
     },
   ],
   admin: [
@@ -180,7 +212,11 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
       items: [
         { title: "Hotels", path: "#/hotels", icon: <HotelIcon /> },
         { title: "Ferries", path: "#/ferries", icon: <ShipIcon /> },
-        { title: "Theme Park", path: "#/park", icon: <FerrisWheelIcon /> },
+        {
+          title: "Theme Park",
+          path: "/dashboard/park/",
+          icon: <FerrisWheelIcon />,
+        },
         { title: "Payments", path: "#/payments", icon: <ReceiptIcon /> },
         {
           title: "Advertisements",

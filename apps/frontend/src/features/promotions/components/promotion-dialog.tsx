@@ -27,7 +27,6 @@ import {
   TARGET_TYPES,
   TARGET_TYPE_LABELS,
 } from "../constants";
-import { promotionsQueryOptions } from "../queries";
 import { createPromotionServerFn, updatePromotionServerFn } from "../server";
 import type {
   DiscountType,
@@ -116,9 +115,8 @@ export function PromotionDialog({
         : createPromotionServerFn({ data: payload });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: promotionsQueryOptions.queryKey,
-      });
+      // Prefix key — refreshes every filtered variant of the list.
+      queryClient.invalidateQueries({ queryKey: ["promotions"] });
       toast.success(isEdit ? "Promotion updated" : "Promotion created");
       onOpenChange(false);
     },

@@ -12,11 +12,11 @@ import {
 } from '@nestjs/common';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator';
 import { Roles } from '../../shared/decorators/roles.decorator';
-import { type RoomType } from '../../shared/database/schema';
 import { Role } from '../../shared/enums/role.enum';
 import type { AuthenticatedUser } from '../../shared/interfaces/authenticated-user.interface';
 import { CreateRoomTypeDto } from './dto/create-room-type.dto';
 import { UpdateRoomTypeDto } from './dto/update-room-type.dto';
+import type { RoomTypeWithAmenities } from './room-types.repository';
 import { RoomTypesService } from './room-types.service';
 
 /** Global room-type catalog, manageable by any hotel staff (scoped guards on write). */
@@ -26,12 +26,14 @@ export class RoomTypesController {
   constructor(private readonly roomTypesService: RoomTypesService) {}
 
   @Get()
-  findAll(): Promise<RoomType[]> {
+  findAll(): Promise<RoomTypeWithAmenities[]> {
     return this.roomTypesService.listAll();
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number): Promise<RoomType> {
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<RoomTypeWithAmenities> {
     return this.roomTypesService.findById(id);
   }
 
@@ -39,7 +41,7 @@ export class RoomTypesController {
   create(
     @Body() dto: CreateRoomTypeDto,
     @CurrentUser() currentUser: AuthenticatedUser,
-  ): Promise<RoomType> {
+  ): Promise<RoomTypeWithAmenities> {
     return this.roomTypesService.create(dto, currentUser.id);
   }
 
@@ -48,7 +50,7 @@ export class RoomTypesController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateRoomTypeDto,
     @CurrentUser() currentUser: AuthenticatedUser,
-  ): Promise<RoomType> {
+  ): Promise<RoomTypeWithAmenities> {
     return this.roomTypesService.update(id, dto, currentUser);
   }
 
