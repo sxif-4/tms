@@ -19,6 +19,7 @@ import { Route as MyBookingsIndexRouteImport } from './routes/my-bookings/index'
 import { Route as MapIndexRouteImport } from './routes/map/index'
 import { Route as HotelsIndexRouteImport } from './routes/hotels/index'
 import { Route as FerryIndexRouteImport } from './routes/ferry/index'
+import { Route as DashboardParkRouteRouteImport } from './routes/dashboard/park/route'
 import { Route as DashboardHotelRouteRouteImport } from './routes/dashboard/hotel/route'
 import { Route as DashboardAdminRouteRouteImport } from './routes/dashboard/admin/route'
 import { Route as HotelsHotelIdIndexRouteImport } from './routes/hotels/$hotelId/index'
@@ -28,6 +29,13 @@ import { Route as DashboardFerryIndexRouteImport } from './routes/dashboard/ferr
 import { Route as DashboardAdminIndexRouteImport } from './routes/dashboard/admin/index'
 import { Route as HotelsHotelIdConfirmationRouteImport } from './routes/hotels/$hotelId/confirmation'
 import { Route as HotelsHotelIdBookRouteImport } from './routes/hotels/$hotelId/book'
+import { Route as DashboardParkTicketsIndexRouteImport } from './routes/dashboard/park/tickets/index'
+import { Route as DashboardParkReportsIndexRouteImport } from './routes/dashboard/park/reports/index'
+import { Route as DashboardParkPromotionsIndexRouteImport } from './routes/dashboard/park/promotions/index'
+import { Route as DashboardParkGateIndexRouteImport } from './routes/dashboard/park/gate/index'
+import { Route as DashboardParkEventsIndexRouteImport } from './routes/dashboard/park/events/index'
+import { Route as DashboardParkBookingsIndexRouteImport } from './routes/dashboard/park/bookings/index'
+import { Route as DashboardParkAvailabilityIndexRouteImport } from './routes/dashboard/park/availability/index'
 import { Route as DashboardHotelSettingsIndexRouteImport } from './routes/dashboard/hotel/settings/index'
 import { Route as DashboardHotelRoomsIndexRouteImport } from './routes/dashboard/hotel/rooms/index'
 import { Route as DashboardHotelReportsIndexRouteImport } from './routes/dashboard/hotel/reports/index'
@@ -95,6 +103,11 @@ const FerryIndexRoute = FerryIndexRouteImport.update({
   path: '/ferry/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardParkRouteRoute = DashboardParkRouteRouteImport.update({
+  id: '/park',
+  path: '/park',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 const DashboardHotelRouteRoute = DashboardHotelRouteRouteImport.update({
   id: '/hotel',
   path: '/hotel',
@@ -111,9 +124,9 @@ const HotelsHotelIdIndexRoute = HotelsHotelIdIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardParkIndexRoute = DashboardParkIndexRouteImport.update({
-  id: '/park/',
-  path: '/park/',
-  getParentRoute: () => DashboardRouteRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardParkRouteRoute,
 } as any)
 const DashboardHotelIndexRoute = DashboardHotelIndexRouteImport.update({
   id: '/',
@@ -141,6 +154,47 @@ const HotelsHotelIdBookRoute = HotelsHotelIdBookRouteImport.update({
   path: '/hotels/$hotelId/book',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardParkTicketsIndexRoute =
+  DashboardParkTicketsIndexRouteImport.update({
+    id: '/tickets/',
+    path: '/tickets/',
+    getParentRoute: () => DashboardParkRouteRoute,
+  } as any)
+const DashboardParkReportsIndexRoute =
+  DashboardParkReportsIndexRouteImport.update({
+    id: '/reports/',
+    path: '/reports/',
+    getParentRoute: () => DashboardParkRouteRoute,
+  } as any)
+const DashboardParkPromotionsIndexRoute =
+  DashboardParkPromotionsIndexRouteImport.update({
+    id: '/promotions/',
+    path: '/promotions/',
+    getParentRoute: () => DashboardParkRouteRoute,
+  } as any)
+const DashboardParkGateIndexRoute = DashboardParkGateIndexRouteImport.update({
+  id: '/gate/',
+  path: '/gate/',
+  getParentRoute: () => DashboardParkRouteRoute,
+} as any)
+const DashboardParkEventsIndexRoute =
+  DashboardParkEventsIndexRouteImport.update({
+    id: '/events/',
+    path: '/events/',
+    getParentRoute: () => DashboardParkRouteRoute,
+  } as any)
+const DashboardParkBookingsIndexRoute =
+  DashboardParkBookingsIndexRouteImport.update({
+    id: '/bookings/',
+    path: '/bookings/',
+    getParentRoute: () => DashboardParkRouteRoute,
+  } as any)
+const DashboardParkAvailabilityIndexRoute =
+  DashboardParkAvailabilityIndexRouteImport.update({
+    id: '/availability/',
+    path: '/availability/',
+    getParentRoute: () => DashboardParkRouteRoute,
+  } as any)
 const DashboardHotelSettingsIndexRoute =
   DashboardHotelSettingsIndexRouteImport.update({
     id: '/settings/',
@@ -244,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/dashboard/admin': typeof DashboardAdminRouteRouteWithChildren
   '/dashboard/hotel': typeof DashboardHotelRouteRouteWithChildren
+  '/dashboard/park': typeof DashboardParkRouteRouteWithChildren
   '/ferry/': typeof FerryIndexRoute
   '/hotels/': typeof HotelsIndexRoute
   '/map/': typeof MapIndexRoute
@@ -272,6 +327,13 @@ export interface FileRoutesByFullPath {
   '/dashboard/hotel/reports/': typeof DashboardHotelReportsIndexRoute
   '/dashboard/hotel/rooms/': typeof DashboardHotelRoomsIndexRoute
   '/dashboard/hotel/settings/': typeof DashboardHotelSettingsIndexRoute
+  '/dashboard/park/availability/': typeof DashboardParkAvailabilityIndexRoute
+  '/dashboard/park/bookings/': typeof DashboardParkBookingsIndexRoute
+  '/dashboard/park/events/': typeof DashboardParkEventsIndexRoute
+  '/dashboard/park/gate/': typeof DashboardParkGateIndexRoute
+  '/dashboard/park/promotions/': typeof DashboardParkPromotionsIndexRoute
+  '/dashboard/park/reports/': typeof DashboardParkReportsIndexRoute
+  '/dashboard/park/tickets/': typeof DashboardParkTicketsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -307,6 +369,13 @@ export interface FileRoutesByTo {
   '/dashboard/hotel/reports': typeof DashboardHotelReportsIndexRoute
   '/dashboard/hotel/rooms': typeof DashboardHotelRoomsIndexRoute
   '/dashboard/hotel/settings': typeof DashboardHotelSettingsIndexRoute
+  '/dashboard/park/availability': typeof DashboardParkAvailabilityIndexRoute
+  '/dashboard/park/bookings': typeof DashboardParkBookingsIndexRoute
+  '/dashboard/park/events': typeof DashboardParkEventsIndexRoute
+  '/dashboard/park/gate': typeof DashboardParkGateIndexRoute
+  '/dashboard/park/promotions': typeof DashboardParkPromotionsIndexRoute
+  '/dashboard/park/reports': typeof DashboardParkReportsIndexRoute
+  '/dashboard/park/tickets': typeof DashboardParkTicketsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -317,6 +386,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/dashboard/admin': typeof DashboardAdminRouteRouteWithChildren
   '/dashboard/hotel': typeof DashboardHotelRouteRouteWithChildren
+  '/dashboard/park': typeof DashboardParkRouteRouteWithChildren
   '/ferry/': typeof FerryIndexRoute
   '/hotels/': typeof HotelsIndexRoute
   '/map/': typeof MapIndexRoute
@@ -345,6 +415,13 @@ export interface FileRoutesById {
   '/dashboard/hotel/reports/': typeof DashboardHotelReportsIndexRoute
   '/dashboard/hotel/rooms/': typeof DashboardHotelRoomsIndexRoute
   '/dashboard/hotel/settings/': typeof DashboardHotelSettingsIndexRoute
+  '/dashboard/park/availability/': typeof DashboardParkAvailabilityIndexRoute
+  '/dashboard/park/bookings/': typeof DashboardParkBookingsIndexRoute
+  '/dashboard/park/events/': typeof DashboardParkEventsIndexRoute
+  '/dashboard/park/gate/': typeof DashboardParkGateIndexRoute
+  '/dashboard/park/promotions/': typeof DashboardParkPromotionsIndexRoute
+  '/dashboard/park/reports/': typeof DashboardParkReportsIndexRoute
+  '/dashboard/park/tickets/': typeof DashboardParkTicketsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -356,6 +433,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/dashboard/admin'
     | '/dashboard/hotel'
+    | '/dashboard/park'
     | '/ferry/'
     | '/hotels/'
     | '/map/'
@@ -384,6 +462,13 @@ export interface FileRouteTypes {
     | '/dashboard/hotel/reports/'
     | '/dashboard/hotel/rooms/'
     | '/dashboard/hotel/settings/'
+    | '/dashboard/park/availability/'
+    | '/dashboard/park/bookings/'
+    | '/dashboard/park/events/'
+    | '/dashboard/park/gate/'
+    | '/dashboard/park/promotions/'
+    | '/dashboard/park/reports/'
+    | '/dashboard/park/tickets/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -419,6 +504,13 @@ export interface FileRouteTypes {
     | '/dashboard/hotel/reports'
     | '/dashboard/hotel/rooms'
     | '/dashboard/hotel/settings'
+    | '/dashboard/park/availability'
+    | '/dashboard/park/bookings'
+    | '/dashboard/park/events'
+    | '/dashboard/park/gate'
+    | '/dashboard/park/promotions'
+    | '/dashboard/park/reports'
+    | '/dashboard/park/tickets'
   id:
     | '__root__'
     | '/'
@@ -428,6 +520,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/dashboard/admin'
     | '/dashboard/hotel'
+    | '/dashboard/park'
     | '/ferry/'
     | '/hotels/'
     | '/map/'
@@ -456,6 +549,13 @@ export interface FileRouteTypes {
     | '/dashboard/hotel/reports/'
     | '/dashboard/hotel/rooms/'
     | '/dashboard/hotel/settings/'
+    | '/dashboard/park/availability/'
+    | '/dashboard/park/bookings/'
+    | '/dashboard/park/events/'
+    | '/dashboard/park/gate/'
+    | '/dashboard/park/promotions/'
+    | '/dashboard/park/reports/'
+    | '/dashboard/park/tickets/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -546,6 +646,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FerryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/park': {
+      id: '/dashboard/park'
+      path: '/park'
+      fullPath: '/dashboard/park'
+      preLoaderRoute: typeof DashboardParkRouteRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
     '/dashboard/hotel': {
       id: '/dashboard/hotel'
       path: '/hotel'
@@ -569,10 +676,10 @@ declare module '@tanstack/react-router' {
     }
     '/dashboard/park/': {
       id: '/dashboard/park/'
-      path: '/park'
+      path: '/'
       fullPath: '/dashboard/park/'
       preLoaderRoute: typeof DashboardParkIndexRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardParkRouteRoute
     }
     '/dashboard/hotel/': {
       id: '/dashboard/hotel/'
@@ -608,6 +715,55 @@ declare module '@tanstack/react-router' {
       fullPath: '/hotels/$hotelId/book'
       preLoaderRoute: typeof HotelsHotelIdBookRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/park/tickets/': {
+      id: '/dashboard/park/tickets/'
+      path: '/tickets'
+      fullPath: '/dashboard/park/tickets/'
+      preLoaderRoute: typeof DashboardParkTicketsIndexRouteImport
+      parentRoute: typeof DashboardParkRouteRoute
+    }
+    '/dashboard/park/reports/': {
+      id: '/dashboard/park/reports/'
+      path: '/reports'
+      fullPath: '/dashboard/park/reports/'
+      preLoaderRoute: typeof DashboardParkReportsIndexRouteImport
+      parentRoute: typeof DashboardParkRouteRoute
+    }
+    '/dashboard/park/promotions/': {
+      id: '/dashboard/park/promotions/'
+      path: '/promotions'
+      fullPath: '/dashboard/park/promotions/'
+      preLoaderRoute: typeof DashboardParkPromotionsIndexRouteImport
+      parentRoute: typeof DashboardParkRouteRoute
+    }
+    '/dashboard/park/gate/': {
+      id: '/dashboard/park/gate/'
+      path: '/gate'
+      fullPath: '/dashboard/park/gate/'
+      preLoaderRoute: typeof DashboardParkGateIndexRouteImport
+      parentRoute: typeof DashboardParkRouteRoute
+    }
+    '/dashboard/park/events/': {
+      id: '/dashboard/park/events/'
+      path: '/events'
+      fullPath: '/dashboard/park/events/'
+      preLoaderRoute: typeof DashboardParkEventsIndexRouteImport
+      parentRoute: typeof DashboardParkRouteRoute
+    }
+    '/dashboard/park/bookings/': {
+      id: '/dashboard/park/bookings/'
+      path: '/bookings'
+      fullPath: '/dashboard/park/bookings/'
+      preLoaderRoute: typeof DashboardParkBookingsIndexRouteImport
+      parentRoute: typeof DashboardParkRouteRoute
+    }
+    '/dashboard/park/availability/': {
+      id: '/dashboard/park/availability/'
+      path: '/availability'
+      fullPath: '/dashboard/park/availability/'
+      preLoaderRoute: typeof DashboardParkAvailabilityIndexRouteImport
+      parentRoute: typeof DashboardParkRouteRoute
     }
     '/dashboard/hotel/settings/': {
       id: '/dashboard/hotel/settings/'
@@ -772,11 +928,36 @@ const DashboardHotelRouteRouteChildren: DashboardHotelRouteRouteChildren = {
 const DashboardHotelRouteRouteWithChildren =
   DashboardHotelRouteRoute._addFileChildren(DashboardHotelRouteRouteChildren)
 
+interface DashboardParkRouteRouteChildren {
+  DashboardParkIndexRoute: typeof DashboardParkIndexRoute
+  DashboardParkAvailabilityIndexRoute: typeof DashboardParkAvailabilityIndexRoute
+  DashboardParkBookingsIndexRoute: typeof DashboardParkBookingsIndexRoute
+  DashboardParkEventsIndexRoute: typeof DashboardParkEventsIndexRoute
+  DashboardParkGateIndexRoute: typeof DashboardParkGateIndexRoute
+  DashboardParkPromotionsIndexRoute: typeof DashboardParkPromotionsIndexRoute
+  DashboardParkReportsIndexRoute: typeof DashboardParkReportsIndexRoute
+  DashboardParkTicketsIndexRoute: typeof DashboardParkTicketsIndexRoute
+}
+
+const DashboardParkRouteRouteChildren: DashboardParkRouteRouteChildren = {
+  DashboardParkIndexRoute: DashboardParkIndexRoute,
+  DashboardParkAvailabilityIndexRoute: DashboardParkAvailabilityIndexRoute,
+  DashboardParkBookingsIndexRoute: DashboardParkBookingsIndexRoute,
+  DashboardParkEventsIndexRoute: DashboardParkEventsIndexRoute,
+  DashboardParkGateIndexRoute: DashboardParkGateIndexRoute,
+  DashboardParkPromotionsIndexRoute: DashboardParkPromotionsIndexRoute,
+  DashboardParkReportsIndexRoute: DashboardParkReportsIndexRoute,
+  DashboardParkTicketsIndexRoute: DashboardParkTicketsIndexRoute,
+}
+
+const DashboardParkRouteRouteWithChildren =
+  DashboardParkRouteRoute._addFileChildren(DashboardParkRouteRouteChildren)
+
 interface DashboardRouteRouteChildren {
   DashboardAdminRouteRoute: typeof DashboardAdminRouteRouteWithChildren
   DashboardHotelRouteRoute: typeof DashboardHotelRouteRouteWithChildren
+  DashboardParkRouteRoute: typeof DashboardParkRouteRouteWithChildren
   DashboardFerryIndexRoute: typeof DashboardFerryIndexRoute
-  DashboardParkIndexRoute: typeof DashboardParkIndexRoute
   DashboardFerryBookingsIndexRoute: typeof DashboardFerryBookingsIndexRoute
   DashboardFerryRoutesIndexRoute: typeof DashboardFerryRoutesIndexRoute
   DashboardFerrySchedulesIndexRoute: typeof DashboardFerrySchedulesIndexRoute
@@ -785,8 +966,8 @@ interface DashboardRouteRouteChildren {
 const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardAdminRouteRoute: DashboardAdminRouteRouteWithChildren,
   DashboardHotelRouteRoute: DashboardHotelRouteRouteWithChildren,
+  DashboardParkRouteRoute: DashboardParkRouteRouteWithChildren,
   DashboardFerryIndexRoute: DashboardFerryIndexRoute,
-  DashboardParkIndexRoute: DashboardParkIndexRoute,
   DashboardFerryBookingsIndexRoute: DashboardFerryBookingsIndexRoute,
   DashboardFerryRoutesIndexRoute: DashboardFerryRoutesIndexRoute,
   DashboardFerrySchedulesIndexRoute: DashboardFerrySchedulesIndexRoute,

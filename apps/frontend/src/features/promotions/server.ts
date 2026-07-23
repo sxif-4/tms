@@ -26,14 +26,25 @@ const inputSchema = z.object({
 });
 
 /** Lists all promotions with their targets (admin-only on the API). */
-export const getPromotionsServerFn = createServerFn({ method: "GET" }).handler(
-  async (): Promise<Promotion[]> => {
-    const res = await apiFetch("/promotions");
+/**
+ * Promotions the caller may manage. `targetType` narrows the list to one
+ * domain — the park page asks for `event` so it only shows event promos.
+ */
+export const getPromotionsServerFn = createServerFn({ method: "GET" })
+  .validator((input: unknown) =>
+    z
+      .object({
+        targetType: z.enum(["room_type", "event", "ferry_route"]).optional(),
+      })
+      .parse(input ?? {}),
+  )
+  .handler(async ({ data }): Promise<Promotion[]> => {
+    const query = data.targetType ? `?targetType=${data.targetType}` : "";
+    const res = await apiFetch(`/promotions${query}`);
     if (!res.ok)
       throw new Error(await errorMessage(res, "Failed to load promotions"));
     return (await res.json()) as Promotion[];
-  },
-);
+  });
 
 export const createPromotionServerFn = createServerFn({ method: "POST" })
   .validator((input: unknown) => inputSchema.parse(input))

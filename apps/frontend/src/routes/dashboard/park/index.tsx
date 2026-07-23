@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ParkDashboardPage } from "~/features/park/pages/park-dashboard-page";
+import { parkDashboardQueryOptions } from "~/features/park/queries";
 
 export const Route = createFileRoute("/dashboard/park/")({
-  component: RouteComponent,
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(parkDashboardQueryOptions),
+  component: ParkDashboardPage,
 });
-
-function RouteComponent() {
-  return <div>Hello "/dashboard/park/"!</div>;
-}
