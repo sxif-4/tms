@@ -353,17 +353,8 @@ export async function seedDemo(db: DemoDb): Promise<void> {
     .returning()
     .all();
 
-  const [
-    velara,
-    maafushi,
-    coral,
-    reef,
-    thulha,
-    bandos,
-    kura,
-    embudu,
-    fulha,
-  ] = hotelRows;
+  const [velara, maafushi, coral, reef, thulha, bandos, kura, embudu, fulha] =
+    hotelRows;
 
   // ── Room types ───────────────────────────────────────────────────────────
   const [garden, beach, overwater, suite] = db
@@ -407,13 +398,21 @@ export async function seedDemo(db: DemoDb): Promise<void> {
     { name: 'Air conditioning', icon: 'wind', category: 'comfort' as const },
     { name: 'Mini bar', icon: 'wine', category: 'dining' as const },
     { name: 'Private pool', icon: 'waves', category: 'outdoor' as const },
-    { name: 'Outdoor shower', icon: 'shower-head', category: 'bathroom' as const },
+    {
+      name: 'Outdoor shower',
+      icon: 'shower-head',
+      category: 'bathroom' as const,
+    },
     { name: 'Ocean view', icon: 'eye', category: 'view' as const },
     { name: 'Lagoon view', icon: 'eye', category: 'view' as const },
     { name: 'Garden view', icon: 'tree-palm', category: 'view' as const },
     { name: 'King bed', icon: 'bed-double', category: 'comfort' as const },
     { name: 'Daybed', icon: 'sofa', category: 'outdoor' as const },
-    { name: 'Butler service', icon: 'concierge-bell', category: 'comfort' as const },
+    {
+      name: 'Butler service',
+      icon: 'concierge-bell',
+      category: 'comfort' as const,
+    },
     { name: 'Snorkel gear', icon: 'fish', category: 'outdoor' as const },
     { name: 'Rain shower', icon: 'shower-head', category: 'bathroom' as const },
     { name: 'Bathtub', icon: 'bath', category: 'bathroom' as const },
@@ -432,7 +431,11 @@ export async function seedDemo(db: DemoDb): Promise<void> {
     },
   ];
 
-  const amenityRows = db.insert(amenities).values(amenityDefs).returning().all();
+  const amenityRows = db
+    .insert(amenities)
+    .values(amenityDefs)
+    .returning()
+    .all();
   const byName = Object.fromEntries(amenityRows.map((a) => [a.name, a]));
 
   const amenityIds = (...names: string[]) =>
@@ -508,11 +511,7 @@ export async function seedDemo(db: DemoDb): Promise<void> {
     .run();
 
   // ── Rooms (~3–4 per hotel) ───────────────────────────────────────────────
-  type RoomStatus =
-    | 'available'
-    | 'occupied'
-    | 'maintenance'
-    | 'out_of_service';
+  type RoomStatus = 'available' | 'occupied' | 'maintenance' | 'out_of_service';
 
   const roomSpecs: {
     hotelId: number;
@@ -521,47 +520,212 @@ export async function seedDemo(db: DemoDb): Promise<void> {
     status: RoomStatus;
   }[] = [
     // Velara — flagship (keep free rooms for assign-room)
-    { hotelId: velara.id, roomTypeId: garden.id, roomNumber: 'V-101', status: 'available' },
-    { hotelId: velara.id, roomTypeId: garden.id, roomNumber: 'V-102', status: 'available' },
-    { hotelId: velara.id, roomTypeId: beach.id, roomNumber: 'V-201', status: 'occupied' },
-    { hotelId: velara.id, roomTypeId: overwater.id, roomNumber: 'V-301', status: 'available' },
-    { hotelId: velara.id, roomTypeId: suite.id, roomNumber: 'V-401', status: 'available' },
+    {
+      hotelId: velara.id,
+      roomTypeId: garden.id,
+      roomNumber: 'V-101',
+      status: 'available',
+    },
+    {
+      hotelId: velara.id,
+      roomTypeId: garden.id,
+      roomNumber: 'V-102',
+      status: 'available',
+    },
+    {
+      hotelId: velara.id,
+      roomTypeId: beach.id,
+      roomNumber: 'V-201',
+      status: 'occupied',
+    },
+    {
+      hotelId: velara.id,
+      roomTypeId: overwater.id,
+      roomNumber: 'V-301',
+      status: 'available',
+    },
+    {
+      hotelId: velara.id,
+      roomTypeId: suite.id,
+      roomNumber: 'V-401',
+      status: 'available',
+    },
     // Maafushi
-    { hotelId: maafushi.id, roomTypeId: garden.id, roomNumber: 'M-101', status: 'available' },
-    { hotelId: maafushi.id, roomTypeId: beach.id, roomNumber: 'M-201', status: 'available' },
-    { hotelId: maafushi.id, roomTypeId: beach.id, roomNumber: 'M-202', status: 'maintenance' },
-    { hotelId: maafushi.id, roomTypeId: overwater.id, roomNumber: 'M-301', status: 'available' },
+    {
+      hotelId: maafushi.id,
+      roomTypeId: garden.id,
+      roomNumber: 'M-101',
+      status: 'available',
+    },
+    {
+      hotelId: maafushi.id,
+      roomTypeId: beach.id,
+      roomNumber: 'M-201',
+      status: 'available',
+    },
+    {
+      hotelId: maafushi.id,
+      roomTypeId: beach.id,
+      roomNumber: 'M-202',
+      status: 'maintenance',
+    },
+    {
+      hotelId: maafushi.id,
+      roomTypeId: overwater.id,
+      roomNumber: 'M-301',
+      status: 'available',
+    },
     // Coral
-    { hotelId: coral.id, roomTypeId: garden.id, roomNumber: 'C-101', status: 'available' },
-    { hotelId: coral.id, roomTypeId: garden.id, roomNumber: 'C-102', status: 'occupied' },
-    { hotelId: coral.id, roomTypeId: beach.id, roomNumber: 'C-201', status: 'available' },
-    { hotelId: coral.id, roomTypeId: overwater.id, roomNumber: 'C-301', status: 'available' },
+    {
+      hotelId: coral.id,
+      roomTypeId: garden.id,
+      roomNumber: 'C-101',
+      status: 'available',
+    },
+    {
+      hotelId: coral.id,
+      roomTypeId: garden.id,
+      roomNumber: 'C-102',
+      status: 'occupied',
+    },
+    {
+      hotelId: coral.id,
+      roomTypeId: beach.id,
+      roomNumber: 'C-201',
+      status: 'available',
+    },
+    {
+      hotelId: coral.id,
+      roomTypeId: overwater.id,
+      roomNumber: 'C-301',
+      status: 'available',
+    },
     // Reef
-    { hotelId: reef.id, roomTypeId: beach.id, roomNumber: 'R-101', status: 'available' },
-    { hotelId: reef.id, roomTypeId: overwater.id, roomNumber: 'R-201', status: 'available' },
-    { hotelId: reef.id, roomTypeId: suite.id, roomNumber: 'R-301', status: 'occupied' },
+    {
+      hotelId: reef.id,
+      roomTypeId: beach.id,
+      roomNumber: 'R-101',
+      status: 'available',
+    },
+    {
+      hotelId: reef.id,
+      roomTypeId: overwater.id,
+      roomNumber: 'R-201',
+      status: 'available',
+    },
+    {
+      hotelId: reef.id,
+      roomTypeId: suite.id,
+      roomNumber: 'R-301',
+      status: 'occupied',
+    },
     // Thulhagiri
-    { hotelId: thulha.id, roomTypeId: garden.id, roomNumber: 'T-101', status: 'available' },
-    { hotelId: thulha.id, roomTypeId: beach.id, roomNumber: 'T-201', status: 'available' },
-    { hotelId: thulha.id, roomTypeId: overwater.id, roomNumber: 'T-301', status: 'maintenance' },
-    { hotelId: thulha.id, roomTypeId: suite.id, roomNumber: 'T-401', status: 'available' },
+    {
+      hotelId: thulha.id,
+      roomTypeId: garden.id,
+      roomNumber: 'T-101',
+      status: 'available',
+    },
+    {
+      hotelId: thulha.id,
+      roomTypeId: beach.id,
+      roomNumber: 'T-201',
+      status: 'available',
+    },
+    {
+      hotelId: thulha.id,
+      roomTypeId: overwater.id,
+      roomNumber: 'T-301',
+      status: 'maintenance',
+    },
+    {
+      hotelId: thulha.id,
+      roomTypeId: suite.id,
+      roomNumber: 'T-401',
+      status: 'available',
+    },
     // Bandos
-    { hotelId: bandos.id, roomTypeId: garden.id, roomNumber: 'B-101', status: 'available' },
-    { hotelId: bandos.id, roomTypeId: beach.id, roomNumber: 'B-201', status: 'occupied' },
-    { hotelId: bandos.id, roomTypeId: beach.id, roomNumber: 'B-202', status: 'available' },
-    { hotelId: bandos.id, roomTypeId: overwater.id, roomNumber: 'B-301', status: 'available' },
+    {
+      hotelId: bandos.id,
+      roomTypeId: garden.id,
+      roomNumber: 'B-101',
+      status: 'available',
+    },
+    {
+      hotelId: bandos.id,
+      roomTypeId: beach.id,
+      roomNumber: 'B-201',
+      status: 'occupied',
+    },
+    {
+      hotelId: bandos.id,
+      roomTypeId: beach.id,
+      roomNumber: 'B-202',
+      status: 'available',
+    },
+    {
+      hotelId: bandos.id,
+      roomTypeId: overwater.id,
+      roomNumber: 'B-301',
+      status: 'available',
+    },
     // Kuramathi
-    { hotelId: kura.id, roomTypeId: garden.id, roomNumber: 'K-101', status: 'available' },
-    { hotelId: kura.id, roomTypeId: beach.id, roomNumber: 'K-201', status: 'available' },
-    { hotelId: kura.id, roomTypeId: overwater.id, roomNumber: 'K-301', status: 'available' },
+    {
+      hotelId: kura.id,
+      roomTypeId: garden.id,
+      roomNumber: 'K-101',
+      status: 'available',
+    },
+    {
+      hotelId: kura.id,
+      roomTypeId: beach.id,
+      roomNumber: 'K-201',
+      status: 'available',
+    },
+    {
+      hotelId: kura.id,
+      roomTypeId: overwater.id,
+      roomNumber: 'K-301',
+      status: 'available',
+    },
     // Embudu
-    { hotelId: embudu.id, roomTypeId: garden.id, roomNumber: 'E-101', status: 'available' },
-    { hotelId: embudu.id, roomTypeId: beach.id, roomNumber: 'E-201', status: 'occupied' },
-    { hotelId: embudu.id, roomTypeId: overwater.id, roomNumber: 'E-301', status: 'available' },
+    {
+      hotelId: embudu.id,
+      roomTypeId: garden.id,
+      roomNumber: 'E-101',
+      status: 'available',
+    },
+    {
+      hotelId: embudu.id,
+      roomTypeId: beach.id,
+      roomNumber: 'E-201',
+      status: 'occupied',
+    },
+    {
+      hotelId: embudu.id,
+      roomTypeId: overwater.id,
+      roomNumber: 'E-301',
+      status: 'available',
+    },
     // Fulhadhoo
-    { hotelId: fulha.id, roomTypeId: beach.id, roomNumber: 'F-101', status: 'available' },
-    { hotelId: fulha.id, roomTypeId: overwater.id, roomNumber: 'F-201', status: 'available' },
-    { hotelId: fulha.id, roomTypeId: suite.id, roomNumber: 'F-301', status: 'available' },
+    {
+      hotelId: fulha.id,
+      roomTypeId: beach.id,
+      roomNumber: 'F-101',
+      status: 'available',
+    },
+    {
+      hotelId: fulha.id,
+      roomTypeId: overwater.id,
+      roomNumber: 'F-201',
+      status: 'available',
+    },
+    {
+      hotelId: fulha.id,
+      roomTypeId: suite.id,
+      roomNumber: 'F-301',
+      status: 'available',
+    },
   ];
 
   const roomRows = db.insert(rooms).values(roomSpecs).returning().all();
@@ -1198,13 +1362,20 @@ export async function seedDemo(db: DemoDb): Promise<void> {
 
   db.insert(imageables)
     .values([
-      { imageId: roomImg.id, imageableId: g101.id, imageableType: 'room' },
-      { imageId: eventImg.id, imageableId: coaster.id, imageableType: 'event' },
-      { imageId: grandImg.id, imageableId: grand.id, imageableType: 'hotel' },
-      {
-        imageId: seasideImg.id,
-        imageableId: seaside.id,
+      ...hotelImageableRows.map((r) => ({
+        imageId: insertedImages[r.imageIndex].id,
+        imageableId: r.imageableId,
         imageableType: 'hotel',
+      })),
+      ...roomTypeImageUrls.map((r, i) => ({
+        imageId: insertedImages[roomTypeImageStart + i].id,
+        imageableId: r.roomTypeId,
+        imageableType: 'room_type',
+      })),
+      {
+        imageId: snorkelImg.id,
+        imageableId: snorkel.id,
+        imageableType: 'event',
       },
     ])
     .run();

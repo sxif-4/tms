@@ -1,5 +1,10 @@
 import { sql } from 'drizzle-orm';
-import { integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import {
+  integer,
+  sqliteTable,
+  text,
+  uniqueIndex,
+} from 'drizzle-orm/sqlite-core';
 
 /** Catalog of resort amenities (Wi‑Fi, private pool, etc.). */
 export const amenities = sqliteTable(

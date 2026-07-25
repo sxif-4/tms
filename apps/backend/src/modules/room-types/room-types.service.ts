@@ -39,7 +39,10 @@ export class RoomTypesService {
     return roomType;
   }
 
-  async create(dto: CreateRoomTypeDto, actorId: number): Promise<RoomType> {
+  async create(
+    dto: CreateRoomTypeDto,
+    actorId: number,
+  ): Promise<RoomTypeWithAmenities> {
     const roomType = await this.roomTypesRepo.create({
       name: dto.name,
       description: dto.description,
