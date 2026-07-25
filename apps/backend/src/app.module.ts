@@ -25,6 +25,15 @@ import { HotelDashboardModule } from './modules/hotel-dashboard/hotel-dashboard.
 import { HotelReportsModule } from './modules/hotel-reports/hotel-reports.module';
 import { PublicHotelsModule } from './modules/public-hotels/public-hotels.module';
 import { FerryModule } from './modules/ferry/ferry.module';
+import { EventsModule } from './modules/events/events.module';
+import { EventSchedulesModule } from './modules/event-schedules/event-schedules.module';
+import { EventBookingsModule } from './modules/event-bookings/event-bookings.module';
+import { ParkTicketTypesModule } from './modules/park-ticket-types/park-ticket-types.module';
+import { ParkTicketsModule } from './modules/park-tickets/park-tickets.module';
+import { ParkDaysModule } from './modules/park-days/park-days.module';
+import { ParkDashboardModule } from './modules/park-dashboard/park-dashboard.module';
+import { ParkReportsModule } from './modules/park-reports/park-reports.module';
+import { PublicParkModule } from './modules/public-park/public-park.module';
 
 @Module({
   imports: [
@@ -56,6 +65,15 @@ import { FerryModule } from './modules/ferry/ferry.module';
     HotelReportsModule,
     PublicHotelsModule,
     FerryModule,
+    EventsModule,
+    EventSchedulesModule,
+    EventBookingsModule,
+    ParkTicketTypesModule,
+    ParkTicketsModule,
+    ParkDaysModule,
+    ParkDashboardModule,
+    ParkReportsModule,
+    PublicParkModule,
   ],
   controllers: [HealthController],
   providers: [
