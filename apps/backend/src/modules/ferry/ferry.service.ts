@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import {
   type FerryBooking,
   type FerryRoute,
@@ -13,9 +14,13 @@ import { CreateFerryRouteDto } from './dto/create-ferry-route.dto';
 import { CreateFerryScheduleDto } from './dto/create-ferry-schedule.dto';
 import { UpdateFerryRouteDto } from './dto/update-ferry-route.dto';
 import { UpdateFerryScheduleDto } from './dto/update-ferry-schedule.dto';
-import { FerryRepository } from './ferry.repository';
+import {
+  FerryRepository,
+  type HotelBookingOptionRow,
+} from './ferry.repository';
 
 const money = (value: number | string) => Number(value).toFixed(2);
+const ref = () => `FB-${randomUUID().slice(0, 8).toUpperCase()}`;
 
 @Injectable()
 export class FerryService {
@@ -108,6 +113,14 @@ export class FerryService {
     await this.ferryRepo.deleteSchedule(id);
   }
 
+  /** Hotel bookings a staff member can pick from when creating a ferry booking for this user — cancelled ones are excluded since they can never satisfy the valid-stay rule. */
+  async listHotelBookingsForUser(
+    userId: number,
+  ): Promise<HotelBookingOptionRow[]> {
+    const bookings = await this.ferryRepo.findHotelBookingsByUserId(userId);
+    return bookings.filter((booking) => booking.status !== 'cancelled');
+  }
+
   listBookings(): Promise<FerryBooking[]> {
     return this.ferryRepo.findAllBookings();
   }
@@ -159,7 +172,7 @@ export class FerryService {
     const totalAmount = money(Number(schedule.basePrice) * dto.passengerCount);
 
     return this.ferryRepo.createBooking({
-      bookingReference: dto.bookingReference,
+      bookingReference: ref(),
       userId: dto.userId,
       scheduleId: dto.scheduleId,
       hotelBookingId: dto.hotelBookingId,
@@ -218,7 +231,6 @@ export class FerryService {
     const totalAmount = money(Number(schedule.basePrice) * passengerCount);
 
     const updated = await this.ferryRepo.updateBooking(id, {
-      bookingReference: dto.bookingReference,
       userId: dto.userId,
       scheduleId: dto.scheduleId,
       hotelBookingId: dto.hotelBookingId,

@@ -1198,20 +1198,13 @@ export async function seedDemo(db: DemoDb): Promise<void> {
 
   db.insert(imageables)
     .values([
-      ...hotelImageableRows.map((row) => ({
-        imageId: insertedImages[row.imageIndex].id,
-        imageableId: row.imageableId,
-        imageableType: 'hotel' as const,
-      })),
-      ...roomTypeImageUrls.map((r, i) => ({
-        imageId: insertedImages[roomTypeImageStart + i].id,
-        imageableId: r.roomTypeId,
-        imageableType: 'room_type' as const,
-      })),
+      { imageId: roomImg.id, imageableId: g101.id, imageableType: 'room' },
+      { imageId: eventImg.id, imageableId: coaster.id, imageableType: 'event' },
+      { imageId: grandImg.id, imageableId: grand.id, imageableType: 'hotel' },
       {
-        imageId: snorkelImg.id,
-        imageableId: snorkel.id,
-        imageableType: 'event' as const,
+        imageId: seasideImg.id,
+        imageableId: seaside.id,
+        imageableType: 'hotel',
       },
     ])
     .run();

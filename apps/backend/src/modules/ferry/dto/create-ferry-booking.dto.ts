@@ -2,13 +2,9 @@ import {
   IsDateString,
   IsIn,
   IsInt,
-  IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsPositive,
-  IsString,
   Max,
-  MaxLength,
   Min,
 } from 'class-validator';
 
@@ -20,12 +16,8 @@ export const FERRY_BOOKING_STATUSES = [
 ] as const;
 export type FerryBookingStatus = (typeof FERRY_BOOKING_STATUSES)[number];
 
+/** bookingReference and totalAmount are always server-generated/computed — never client input. */
 export class CreateFerryBookingDto {
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(20)
-  bookingReference!: string;
-
   @IsInt()
   @IsPositive()
   userId!: number;
@@ -42,10 +34,6 @@ export class CreateFerryBookingDto {
   @Min(1)
   @Max(255)
   passengerCount!: number;
-
-  @IsNumber()
-  @Min(0)
-  totalAmount!: number;
 
   @IsOptional()
   @IsInt()

@@ -65,57 +65,6 @@ export interface DayAvailabilityRow {
 export class PublicHotelsRepository {
   constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
 
-  /** Amenities for room types that have rooms at this hotel. */
-  private amenitiesByRoomType(
-    hotelId: number,
-  ): Map<number, PublicAmenity[]> {
-    const amenityRows = this.db.all<PublicAmenity & { roomTypeId: number }>(sql`
-      SELECT rta.room_type_id AS roomTypeId, a.id, a.name, a.icon, a.category
-      FROM room_type_amenities rta
-      JOIN amenities a ON a.id = rta.amenity_id
-      WHERE rta.room_type_id IN (
-        SELECT DISTINCT r.room_type_id FROM rooms r
-        WHERE r.hotel_id = ${hotelId} AND r.status != 'out_of_service'
-      )
-      ORDER BY a.category, a.name
-    `);
-
-    const amenitiesByType = new Map<number, PublicAmenity[]>();
-    for (const row of amenityRows) {
-      const list = amenitiesByType.get(row.roomTypeId) ?? [];
-      list.push({
-        id: row.id,
-        name: row.name,
-        icon: row.icon,
-        category: row.category,
-      });
-      amenitiesByType.set(row.roomTypeId, list);
-    }
-    return amenitiesByType;
-  }
-
-  /** All image URLs per room type (imageable_type = room_type). */
-  private imagesByRoomType(roomTypeIds: number[]): Map<number, string[]> {
-    const map = new Map<number, string[]>();
-    if (roomTypeIds.length === 0) return map;
-    const rows = this.db.all<{ roomTypeId: number; url: string }>(sql`
-      SELECT im.imageable_id AS roomTypeId, i.url
-      FROM imageables im
-      JOIN images i ON i.id = im.image_id
-      WHERE im.imageable_type = 'room_type'
-        AND im.imageable_id IN (${sql.join(
-          roomTypeIds.map((id) => sql`${id}`),
-          sql`, `,
-        )})
-    `);
-    for (const row of rows) {
-      const list = map.get(row.roomTypeId) ?? [];
-      list.push(row.url);
-      map.set(row.roomTypeId, list);
-    }
-    return map;
-  }
-
   listSummaries(
     filters: {
       minPrice?: number;

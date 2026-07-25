@@ -34,16 +34,14 @@ export function HomePage() {
 
   return (
     <div>
-      <section className="relative isolate min-h-[78vh] overflow-hidden sm:min-h-[85vh]">
-        <div className="absolute inset-0 -z-10">
+      <section className="relative">
+        <div className="absolute inset-0 ">
           <img
-            src="/images/hero/hero-island.jpg"
+            src="images/hero/hero-island.jpg"
             alt="Aerial view of the island at golden hour"
             className="hero-ken-burns size-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/35" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/20 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
+          <div className="absolute inset-0 dark:bg-gradient-to-b from-background/20 via-background/30 to-background" />
         </div>
 
         <div className="mx-auto flex min-h-[78vh] max-w-7xl flex-col justify-end px-4 pb-16 pt-28 sm:min-h-[85vh] sm:px-6 sm:pb-20 lg:px-8 lg:pb-24">

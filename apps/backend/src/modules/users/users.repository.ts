@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { asc, eq, like, or } from 'drizzle-orm';
 import {
   DRIZZLE,
   type DrizzleDB,
@@ -51,6 +51,32 @@ export class UsersRepository {
       .select({ user: users, slug: roles.slug })
       .from(users)
       .innerJoin(roles, eq(users.roleId, roles.id))
+      .all();
+    return Promise.resolve(
+      rows.map((r) => ({ ...r.user, role: r.slug as Role })),
+    );
+  }
+
+  /** Name/email search for staff-facing pickers (e.g. the ferry booking form). */
+  search(query: string | undefined, limit: number): Promise<UserWithRole[]> {
+    const base = this.db
+      .select({ user: users, slug: roles.slug })
+      .from(users)
+      .innerJoin(roles, eq(users.roleId, roles.id));
+
+    const trimmed = query?.trim();
+    const rows = (
+      trimmed
+        ? base.where(
+            or(
+              like(users.name, `%${trimmed}%`),
+              like(users.email, `%${trimmed}%`),
+            ),
+          )
+        : base
+    )
+      .orderBy(asc(users.name))
+      .limit(limit)
       .all();
     return Promise.resolve(
       rows.map((r) => ({ ...r.user, role: r.slug as Role })),
