@@ -79,9 +79,9 @@ function getStatusLabel(status: FerryBooking["status"]) {
   }
 }
 
-export function FerryBookingsPage() {
+export function FerryBookingsPage({ initialSearch }: { initialSearch?: string } = {}) {
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch ?? "");
   const [open, setOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<FerryBookingUser | null>(null);
   const [userSearch, setUserSearch] = useState("");

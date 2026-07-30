@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { asc, eq, like, or } from 'drizzle-orm';
+import { and, asc, eq, like, or } from 'drizzle-orm';
 import {
   DRIZZLE,
   type DrizzleDB,
@@ -57,24 +57,33 @@ export class UsersRepository {
     );
   }
 
-  /** Name/email search for staff-facing pickers (e.g. the ferry booking form). */
-  search(query: string | undefined, limit: number): Promise<UserWithRole[]> {
-    const base = this.db
-      .select({ user: users, slug: roles.slug })
-      .from(users)
-      .innerJoin(roles, eq(users.roleId, roles.id));
+  /**
+   * Name/email search for staff-facing pickers (e.g. the ferry booking form).
+   * Scoped to `roleSlug` since the only caller today picks a guest to attach
+   * to a booking, not staff.
+   */
+  search(
+    query: string | undefined,
+    limit: number,
+    roleSlug: Role,
+  ): Promise<UserWithRole[]> {
+    const conditions = [eq(roles.slug, roleSlug)];
 
     const trimmed = query?.trim();
-    const rows = (
-      trimmed
-        ? base.where(
-            or(
-              like(users.name, `%${trimmed}%`),
-              like(users.email, `%${trimmed}%`),
-            ),
-          )
-        : base
-    )
+    if (trimmed) {
+      conditions.push(
+        or(
+          like(users.name, `%${trimmed}%`),
+          like(users.email, `%${trimmed}%`),
+        )!,
+      );
+    }
+
+    const rows = this.db
+      .select({ user: users, slug: roles.slug })
+      .from(users)
+      .innerJoin(roles, eq(users.roleId, roles.id))
+      .where(and(...conditions))
       .orderBy(asc(users.name))
       .limit(limit)
       .all();
