@@ -68,7 +68,7 @@ export class UsersService {
   }
 
   search(query?: string): Promise<UserWithRole[]> {
-    return this.usersRepo.search(query, 20);
+    return this.usersRepo.search(query, 20, Role.Visitor);
   }
 
   async createVisitor(input: CreateVisitorInput): Promise<UserWithRole> {

@@ -1,3 +1,4 @@
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowRightIcon,
   BadgeCheckIcon,
@@ -19,6 +20,7 @@ import {
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { cn } from "~/lib/utils";
+import { useState } from "react";
 
 const stats = [
   {
@@ -87,6 +89,16 @@ const recentRequests = [
 ];
 
 export function FerryDashboardPage() {
+  const navigate = useNavigate();
+  const [bookingSearch, setBookingSearch] = useState("");
+
+  const handleCheckBooking = () => {
+    navigate({
+      to: "/dashboard/ferry/bookings",
+      search: bookingSearch.trim() ? { q: bookingSearch.trim() } : undefined,
+    });
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-gradient-to-br from-sky-500/10 via-background to-cyan-500/10 p-6">
@@ -106,8 +118,8 @@ export function FerryDashboardPage() {
               Validate ticket requests, review sailings, and keep passenger flow smooth for the island’s busiest routes.
             </p>
           </div>
-          <Button className="w-fit bg-cyan-700 text-white hover:bg-cyan-800">
-            Create new schedule
+          <Button asChild className="w-fit bg-cyan-700 text-white hover:bg-cyan-800">
+            <Link to="/dashboard/ferry/schedules">Create new schedule</Link>
           </Button>
         </div>
       </header>
@@ -152,8 +164,18 @@ export function FerryDashboardPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Input placeholder="Search booking or guest name" className="h-10" />
-              <Button className="h-10">Check booking</Button>
+              <Input
+                placeholder="Search booking or guest name"
+                className="h-10"
+                value={bookingSearch}
+                onChange={(event) => setBookingSearch(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") handleCheckBooking();
+                }}
+              />
+              <Button className="h-10" onClick={handleCheckBooking}>
+                Check booking
+              </Button>
             </div>
             <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
               <div className="flex items-center justify-between gap-3">
