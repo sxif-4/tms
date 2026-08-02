@@ -3,37 +3,34 @@ import {
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query";
-import { BedDoubleIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
-import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { BedDoubleIcon, PlusIcon, SearchIcon } from "lucide-react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "~/components/confirm-dialog";
 import { Button } from "~/components/ui/button";
+import { Card, CardContent } from "~/components/ui/card";
+import { Input } from "~/components/ui/input";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "~/components/ui/table";
-import { AmenityIcon } from "~/lib/amenity-icon";
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { EmptyState } from "../components/empty-state";
 import { HotelSwitcher } from "../components/hotel-switcher";
 import { RoomDialog } from "../components/room-dialog";
-import { RoomStatusBadge } from "../components/room-status-badge";
-import { RoomTypeDialog } from "../components/room-type-dialog";
-import { gbp } from "../constants";
+import { RoomTypeDetail } from "../components/room-type-detail";
+import { RoomTypeRow } from "../components/room-type-row";
 import { useCurrentHotel } from "../hooks/use-current-hotel";
 import { hotelRoomsQueryOptions, roomTypesQueryOptions } from "../queries";
 import { deleteRoomServerFn, deleteRoomTypeServerFn } from "../server";
 import type { Room, RoomType } from "../types";
+
+type SortKey = "name" | "price-asc" | "price-desc" | "occupancy";
+type AvailabilityFilter = "all" | "available" | "full";
 
 export function RoomsPage() {
   const { hotels, hotel, hotelId, setHotelId } = useCurrentHotel();
@@ -50,6 +47,7 @@ export function RoomsPage() {
 
   return (
     <RoomsPageContent
+      key={hotelId}
       hotelId={hotelId}
       hotels={hotels}
       onHotelChange={setHotelId}
@@ -70,15 +68,49 @@ function RoomsPageContent({
   const { data: roomTypes } = useSuspenseQuery(roomTypesQueryOptions(hotelId));
   const { data: rooms } = useSuspenseQuery(hotelRoomsQueryOptions(hotelId));
 
-  const [roomTypeDialogOpen, setRoomTypeDialogOpen] = useState(false);
-  const [editingRoomType, setEditingRoomType] = useState<RoomType | null>(null);
-  const [deletingRoomType, setDeletingRoomType] = useState<RoomType | null>(
-    null,
-  );
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<SortKey>("name");
+  const [availability, setAvailability] = useState<AvailabilityFilter>("all");
 
   const [roomDialogOpen, setRoomDialogOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [deletingRoom, setDeletingRoom] = useState<Room | null>(null);
+  const [deletingRoomType, setDeletingRoomType] = useState<RoomType | null>(
+    null,
+  );
+
+  const visible = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    const filtered = roomTypes.filter((rt) => {
+      if (term && !rt.name.toLowerCase().includes(term)) return false;
+      if (availability === "available") return rt.availableRooms > 0;
+      if (availability === "full")
+        return rt.totalRooms > 0 && rt.availableRooms === 0;
+      return true;
+    });
+    const sorted = [...filtered];
+    sorted.sort((a, b) => {
+      switch (sort) {
+        case "price-asc":
+          return Number(a.basePricePerNight) - Number(b.basePricePerNight);
+        case "price-desc":
+          return Number(b.basePricePerNight) - Number(a.basePricePerNight);
+        case "occupancy":
+          return b.occupiedRooms - a.occupiedRooms;
+        default:
+          return a.name.localeCompare(b.name);
+      }
+    });
+    return sorted;
+  }, [roomTypes, search, sort, availability]);
+
+  // Fall back to the first visible type whenever the selection drops out.
+  const selected =
+    visible.find((rt) => rt.id === selectedId) ?? visible[0] ?? null;
+  const roomsOfSelected = selected
+    ? rooms.filter((r) => r.roomTypeId === selected.id)
+    : [];
 
   const deleteRoomTypeMutation = useMutation({
     mutationFn: (id: number) => deleteRoomTypeServerFn({ data: { id } }),
@@ -88,6 +120,7 @@ function RoomsPageContent({
       });
       toast.success("Room type deleted");
       setDeletingRoomType(null);
+      setSelectedId(null);
     },
     onError: (err) =>
       toast.error(
@@ -101,6 +134,10 @@ function RoomsPageContent({
       queryClient.invalidateQueries({
         queryKey: hotelRoomsQueryOptions(hotelId).queryKey,
       });
+      // Room counts live on the room type, so that list is stale too.
+      queryClient.invalidateQueries({
+        queryKey: roomTypesQueryOptions(hotelId).queryKey,
+      });
       toast.success("Room deleted");
       setDeletingRoom(null);
     },
@@ -108,234 +145,144 @@ function RoomsPageContent({
       toast.error(err instanceof Error ? err.message : "Failed to delete room"),
   });
 
-  const roomTypeNameById = new Map(roomTypes.map((rt) => [rt.id, rt.name]));
-
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
           <h1 className="font-heading text-2xl font-semibold">Rooms</h1>
           <p className="text-sm text-muted-foreground">
-            Manage the room-type catalog and this hotel's room inventory.
+            This hotel's room types, their pricing and live inventory.
           </p>
         </div>
-        <HotelSwitcher
-          hotels={hotels}
-          value={hotelId}
-          onChange={onHotelChange}
-        />
+        <div className="flex items-center gap-2">
+          <HotelSwitcher
+            hotels={hotels}
+            value={hotelId}
+            onChange={onHotelChange}
+          />
+          <Button asChild>
+            <Link to="/dashboard/hotel/rooms/new">
+              <PlusIcon data-icon="inline-start" />
+              Add room type
+            </Link>
+          </Button>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-row items-start justify-between gap-4">
-          <div>
-            <CardTitle>Room types</CardTitle>
-            <CardDescription>
-              Shared catalog used across every hotel.
-            </CardDescription>
-          </div>
-          <Button
-            size="sm"
-            onClick={() => {
-              setEditingRoomType(null);
-              setRoomTypeDialogOpen(true);
-            }}
-          >
-            <PlusIcon data-icon="inline-start" />
-            New room type
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {roomTypes.length === 0 ? (
-            <EmptyState
-              icon={BedDoubleIcon}
-              title="No room types yet"
-              description="Create a room type (e.g. Standard, Deluxe, Suite) with a nightly price before adding rooms."
-              action={
-                <Button
-                  onClick={() => {
-                    setEditingRoomType(null);
-                    setRoomTypeDialogOpen(true);
-                  }}
-                >
-                  <PlusIcon data-icon="inline-start" />
-                  New room type
-                </Button>
-              }
-            />
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Amenities</TableHead>
-                  <TableHead>Price / night</TableHead>
-                  <TableHead>Max occupancy</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {roomTypes.map((rt) => (
-                  <TableRow key={rt.id}>
-                    <TableCell className="font-medium">{rt.name}</TableCell>
-                    <TableCell>
-                      {rt.amenities && rt.amenities.length > 0 ? (
-                        <ul className="flex flex-wrap gap-1">
-                          {rt.amenities.map((a) => (
-                            <li
-                              key={a.id}
-                              className="inline-flex items-center gap-1 rounded-md border bg-muted/50 px-1.5 py-0.5 text-xs text-muted-foreground"
-                            >
-                              <AmenityIcon name={a.icon} />
-                              {a.name}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="tabular-nums">
-                      {gbp(Number(rt.basePricePerNight))}
-                    </TableCell>
-                    <TableCell>{rt.maxOccupancy}</TableCell>
-                    <TableCell className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        aria-label="Edit room type"
-                        onClick={() => {
-                          setEditingRoomType(rt);
-                          setRoomTypeDialogOpen(true);
-                        }}
-                      >
-                        <PencilIcon />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        aria-label="Delete room type"
-                        onClick={() => setDeletingRoomType(rt)}
-                      >
-                        <Trash2Icon />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-
-      {roomTypes.length > 0 && (
-        <Card>
-          <CardHeader className="flex flex-row items-start justify-between gap-4">
-            <div>
-              <CardTitle>Rooms</CardTitle>
-              <CardDescription>
-                This hotel's physical room inventory.
-              </CardDescription>
-            </div>
-            <Button
-              size="sm"
-              onClick={() => {
-                setEditingRoom(null);
-                setRoomDialogOpen(true);
-              }}
-            >
-              <PlusIcon data-icon="inline-start" />
-              New room
+      {roomTypes.length === 0 ? (
+        <EmptyState
+          icon={BedDoubleIcon}
+          title="No room types yet"
+          description="Create a room type (e.g. Garden Villa, Beach Villa) with a nightly price, then add the physical rooms under it."
+          action={
+            <Button asChild>
+              <Link to="/dashboard/hotel/rooms/new">
+                <PlusIcon data-icon="inline-start" />
+                Add room type
+              </Link>
             </Button>
-          </CardHeader>
-          <CardContent>
-            {rooms.length === 0 ? (
-              <EmptyState
-                icon={BedDoubleIcon}
-                title="No rooms yet"
-                description="Add physical rooms of each type to start accepting bookings."
-                action={
-                  <Button
-                    onClick={() => {
-                      setEditingRoom(null);
-                      setRoomDialogOpen(true);
-                    }}
-                  >
-                    <PlusIcon data-icon="inline-start" />
-                    New room
-                  </Button>
-                }
-              />
+          }
+        />
+      ) : (
+        <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative min-w-52 flex-1">
+                <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search room types"
+                  aria-label="Search room types"
+                  className="pl-9"
+                />
+              </div>
+              <Select value={sort} onValueChange={(v) => setSort(v as SortKey)}>
+                <SelectTrigger className="w-44" aria-label="Sort by">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="name">Name (A–Z)</SelectItem>
+                    <SelectItem value="price-asc">Price (low first)</SelectItem>
+                    <SelectItem value="price-desc">
+                      Price (high first)
+                    </SelectItem>
+                    <SelectItem value="occupancy">Most occupied</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <Select
+                value={availability}
+                onValueChange={(v) => setAvailability(v as AvailabilityFilter)}
+              >
+                <SelectTrigger className="w-40" aria-label="Availability">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="all">All types</SelectItem>
+                    <SelectItem value="available">Available</SelectItem>
+                    <SelectItem value="full">Fully booked</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {visible.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No room types match these filters.
+              </p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Room number</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rooms.map((room) => (
-                    <TableRow key={room.id}>
-                      <TableCell className="font-medium">
-                        {room.roomNumber}
-                      </TableCell>
-                      <TableCell>
-                        {roomTypeNameById.get(room.roomTypeId) ?? "—"}
-                      </TableCell>
-                      <TableCell>
-                        <RoomStatusBadge status={room.status} />
-                      </TableCell>
-                      <TableCell className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          aria-label="Edit room"
-                          onClick={() => {
-                            setEditingRoom(room);
-                            setRoomDialogOpen(true);
-                          }}
-                        >
-                          <PencilIcon />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          aria-label="Delete room"
-                          onClick={() => setDeletingRoom(room)}
-                        >
-                          <Trash2Icon />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="flex flex-col gap-3">
+                {visible.map((rt) => (
+                  <RoomTypeRow
+                    key={rt.id}
+                    roomType={rt}
+                    selected={selected?.id === rt.id}
+                    onSelect={() => setSelectedId(rt.id)}
+                  />
+                ))}
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+
+          {selected && (
+            <Card className="xl:sticky xl:top-6">
+              <CardContent>
+                <RoomTypeDetail
+                  roomType={selected}
+                  rooms={roomsOfSelected}
+                  onAddRoom={() => {
+                    setEditingRoom(null);
+                    setRoomDialogOpen(true);
+                  }}
+                  onEditRoom={(room) => {
+                    setEditingRoom(room);
+                    setRoomDialogOpen(true);
+                  }}
+                  onDeleteRoom={setDeletingRoom}
+                  onDelete={() => setDeletingRoomType(selected)}
+                />
+              </CardContent>
+            </Card>
+          )}
+        </div>
       )}
 
-      <RoomTypeDialog
-        open={roomTypeDialogOpen}
-        onOpenChange={setRoomTypeDialogOpen}
-        hotelId={hotelId}
-        roomType={editingRoomType}
-      />
       <RoomDialog
         open={roomDialogOpen}
         onOpenChange={setRoomDialogOpen}
         hotelId={hotelId}
         roomTypes={roomTypes}
         room={editingRoom}
+        defaultRoomTypeId={selected?.id}
       />
       <ConfirmDialog
         open={deletingRoomType != null}
         onOpenChange={(o) => !o && setDeletingRoomType(null)}
         title="Delete room type?"
-        description={`"${deletingRoomType?.name}" will be permanently removed. Room types in use by a room can't be deleted.`}
+        description={`"${deletingRoomType?.name}" will be permanently removed. Room types with rooms under them can't be deleted.`}
         confirmLabel="Delete"
         destructive
         pending={deleteRoomTypeMutation.isPending}

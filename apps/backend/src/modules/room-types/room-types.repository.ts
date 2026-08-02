@@ -18,11 +18,24 @@ export interface RoomTypeAmenityDto {
   category: string;
 }
 
-export type RoomTypeWithAmenities = RoomType & {
-  amenities: RoomTypeAmenityDto[];
-  image: string | null;
-  images: string[];
-};
+/**
+ * Physical-room counts behind a room type. `occupied`/`outOfService` follow the
+ * same `rooms.status` definition the hotel dashboard uses, so the two screens
+ * can never disagree.
+ */
+export interface RoomTypeStats {
+  totalRooms: number;
+  availableRooms: number;
+  occupiedRooms: number;
+  outOfServiceRooms: number;
+}
+
+export type RoomTypeWithAmenities = RoomType &
+  RoomTypeStats & {
+    amenities: RoomTypeAmenityDto[];
+    image: string | null;
+    images: string[];
+  };
 
 /** Sole owner of Drizzle queries for room types, which belong to one hotel. */
 @Injectable()
@@ -80,14 +93,43 @@ export class RoomTypesRepository {
     return map;
   }
 
+  private statsForRoomTypes(roomTypeIds: number[]): Map<number, RoomTypeStats> {
+    const map = new Map<number, RoomTypeStats>();
+    if (roomTypeIds.length === 0) return map;
+
+    const rows = this.db.all<RoomTypeStats & { roomTypeId: number }>(sql`
+      SELECT room_type_id AS roomTypeId,
+        COUNT(*) AS totalRooms,
+        SUM(CASE WHEN status = 'available' THEN 1 ELSE 0 END) AS availableRooms,
+        SUM(CASE WHEN status = 'occupied' THEN 1 ELSE 0 END) AS occupiedRooms,
+        SUM(CASE WHEN status IN ('maintenance', 'out_of_service') THEN 1 ELSE 0 END) AS outOfServiceRooms
+      FROM rooms
+      WHERE room_type_id IN (${sql.join(
+        roomTypeIds.map((id) => sql`${id}`),
+        sql`, `,
+      )})
+      GROUP BY room_type_id
+    `);
+
+    for (const { roomTypeId, ...stats } of rows) map.set(roomTypeId, stats);
+    return map;
+  }
+
   private withAmenities(rows: RoomType[]): RoomTypeWithAmenities[] {
     const ids = rows.map((r) => r.id);
     const amenitiesByType = this.amenitiesForRoomTypes(ids);
     const imagesByType = this.imagesForRoomTypes(ids);
+    const statsByType = this.statsForRoomTypes(ids);
     return rows.map((rt) => {
       const imgs = imagesByType.get(rt.id) ?? [];
       return {
         ...rt,
+        // A type with no rooms yet reports zeroes rather than going absent.
+        totalRooms: 0,
+        availableRooms: 0,
+        occupiedRooms: 0,
+        outOfServiceRooms: 0,
+        ...statsByType.get(rt.id),
         amenities: amenitiesByType.get(rt.id) ?? [],
         image: imgs[0] ?? null,
         images: imgs,
@@ -129,6 +171,10 @@ export class RoomTypesRepository {
     const created = this.db.insert(roomTypes).values(data).returning().get();
     return Promise.resolve({
       ...created,
+      totalRooms: 0,
+      availableRooms: 0,
+      occupiedRooms: 0,
+      outOfServiceRooms: 0,
       amenities: [],
       image: null,
       images: [],

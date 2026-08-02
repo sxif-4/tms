@@ -104,6 +104,18 @@ export const getRoomTypesServerFn = createServerFn({ method: "GET" })
     return (await res.json()) as RoomType[];
   });
 
+/** A single room type, so the edit page can be deep-linked by id alone. */
+export const getRoomTypeServerFn = createServerFn({ method: "GET" })
+  .validator((input: unknown) =>
+    z.object({ id: z.number().int().positive() }).parse(input),
+  )
+  .handler(async ({ data }): Promise<RoomType> => {
+    const res = await apiFetch(`/room-types/${data.id}`);
+    if (!res.ok)
+      throw new Error(await errorMessage(res, "Failed to load room type"));
+    return (await res.json()) as RoomType;
+  });
+
 const roomTypeInputSchema = z.object({
   name: z.string().trim().min(1).max(255),
   description: z.string().trim().min(1),

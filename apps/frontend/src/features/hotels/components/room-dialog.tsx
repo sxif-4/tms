@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { ROOM_STATUSES, ROOM_STATUS_LABELS } from "../constants";
-import { hotelRoomsQueryOptions } from "../queries";
+import { hotelRoomsQueryOptions, roomTypesQueryOptions } from "../queries";
 import { createRoomServerFn, updateRoomServerFn } from "../server";
 import type { Room, RoomType } from "../types";
 
@@ -46,12 +46,15 @@ export function RoomDialog({
   hotelId,
   roomTypes,
   room,
+  defaultRoomTypeId,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   hotelId: number;
   roomTypes: RoomType[];
   room: Room | null;
+  /** Preselected type when adding from a room type's detail panel. */
+  defaultRoomTypeId?: number;
 }) {
   const queryClient = useQueryClient();
   const isEdit = room != null;
@@ -74,11 +77,12 @@ export function RoomDialog({
   useEffect(() => {
     if (!open) return;
     reset({
-      roomTypeId: room?.roomTypeId ?? roomTypes[0]?.id ?? 0,
+      roomTypeId:
+        room?.roomTypeId ?? defaultRoomTypeId ?? roomTypes[0]?.id ?? 0,
       roomNumber: room?.roomNumber ?? "",
       status: room?.status ?? "available",
     });
-  }, [open, room, roomTypes, reset]);
+  }, [open, room, roomTypes, defaultRoomTypeId, reset]);
 
   const mutation = useMutation({
     mutationFn: (values: RoomValues) =>
@@ -88,6 +92,10 @@ export function RoomDialog({
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: hotelRoomsQueryOptions(hotelId).queryKey,
+      });
+      // Inventory counts are served with the room type, so refresh those too.
+      queryClient.invalidateQueries({
+        queryKey: roomTypesQueryOptions(hotelId).queryKey,
       });
       toast.success(isEdit ? "Room updated" : "Room created");
       onOpenChange(false);
@@ -102,7 +110,7 @@ export function RoomDialog({
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit room" : "New room"}</DialogTitle>
           <DialogDescription>
-            Rooms belong to this hotel and a room type from the catalog.
+            Rooms belong to this hotel and one of its room types.
           </DialogDescription>
         </DialogHeader>
         <form

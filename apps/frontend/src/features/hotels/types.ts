@@ -26,7 +26,6 @@ export interface RoomTypeAmenity {
   category: string;
 }
 
-/** Global room-type catalog, shared across all hotels. */
 /** Room types belong to one hotel — two hotels' "Beach Villa" are separate records. */
 export interface RoomType {
   id: number;
@@ -38,6 +37,11 @@ export interface RoomType {
   maxOccupancy: number;
   createdAt: string;
   updatedAt: string;
+  /** Physical-room counts, matching the dashboard's `rooms.status` definition. */
+  totalRooms: number;
+  availableRooms: number;
+  occupiedRooms: number;
+  outOfServiceRooms: number;
   /** Seeded amenities linked via room_type_amenities (read-only in staff UI). */
   amenities?: RoomTypeAmenity[];
   /** First linked room_type imageable URL, if any. */

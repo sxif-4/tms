@@ -6,6 +6,7 @@ import {
   getHotelRevenueServerFn,
   getHotelsServerFn,
   getRoomsServerFn,
+  getRoomTypeServerFn,
   getRoomTypesServerFn,
 } from "./server";
 
@@ -21,6 +22,14 @@ export const roomTypesQueryOptions = (hotelId: number) =>
   queryOptions({
     queryKey: ["room-types", hotelId] as const,
     queryFn: () => getRoomTypesServerFn({ data: { hotelId } }),
+    staleTime: 30 * 1000,
+  });
+
+/** A single room type — lets the edit page load from the id in the URL. */
+export const roomTypeQueryOptions = (id: number) =>
+  queryOptions({
+    queryKey: ["room-type", id] as const,
+    queryFn: () => getRoomTypeServerFn({ data: { id } }),
     staleTime: 30 * 1000,
   });
 
