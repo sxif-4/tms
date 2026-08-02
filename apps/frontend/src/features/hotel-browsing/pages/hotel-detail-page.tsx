@@ -3,12 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, Images } from "lucide-react";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "~/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { ImageLightbox } from "../components/image-lightbox";
 import { RoomOptionCard } from "../components/room-option-card";
 import { gbp, hotelImage } from "../constants";
@@ -16,8 +11,7 @@ import { publicHotelQueryOptions } from "../queries";
 
 export function HotelDetailPage({ hotelId }: { hotelId: number }) {
   const { data: hotel } = useSuspenseQuery(publicHotelQueryOptions(hotelId));
-  const gallery =
-    hotel.images.length > 0 ? hotel.images : [hotelImage(hotel)];
+  const gallery = hotel.images.length > 0 ? hotel.images : [hotelImage(hotel)];
   const heroImage = gallery[0];
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -145,8 +139,9 @@ export function HotelDetailPage({ hotelId }: { hotelId: number }) {
                 <div className="glass-data rounded-xl border p-5">
                   <h3 className="font-semibold">Cancellation policy</h3>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Free cancellation up to 48 hours before check-in. Cancellations
-                    made after that window may be subject to a one-night charge.
+                    Free cancellation up to 48 hours before check-in.
+                    Cancellations made after that window may be subject to a
+                    one-night charge.
                   </p>
                 </div>
               </TabsContent>

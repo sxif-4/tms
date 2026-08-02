@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import {
   CheckCircle2Icon,
   ScanLineIcon,
@@ -56,7 +60,9 @@ export function ParkGatePage() {
       validateParkTicketServerFn({ data: { ticketReference } }),
     onSuccess: (ticket) => {
       setResult({ kind: "valid", ticket });
-      setRecent((prev) => [{ ticket, at: new Date() }, ...prev].slice(0, RECENT_LIMIT));
+      setRecent((prev) =>
+        [{ ticket, at: new Date() }, ...prev].slice(0, RECENT_LIMIT),
+      );
       setReference("");
       queryClient.invalidateQueries({ queryKey: ["park-dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["park-tickets"] });
@@ -214,7 +220,9 @@ function ResultCard({ result }: { result: Result }) {
         <p
           className={cn(
             "text-xl font-semibold",
-            valid ? "text-emerald-700 dark:text-emerald-400" : "text-destructive",
+            valid
+              ? "text-emerald-700 dark:text-emerald-400"
+              : "text-destructive",
           )}
         >
           {valid ? "Let them in" : "Do not admit"}

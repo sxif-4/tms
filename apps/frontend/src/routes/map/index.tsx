@@ -23,7 +23,9 @@ function MapRoute() {
   return (
     <IslandMapPage
       search={search}
-      onTypeChange={(type) => navigate({ search: (prev) => ({ ...prev, type }) })}
+      onTypeChange={(type) =>
+        navigate({ search: (prev) => ({ ...prev, type }) })
+      }
     />
   );
 }

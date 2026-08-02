@@ -1,11 +1,7 @@
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEffect } from "react";
 import { Button } from "~/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "~/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "~/components/ui/dialog";
 import { cn } from "~/lib/utils";
 
 export function ImageLightbox({
@@ -70,9 +66,7 @@ export function ImageLightbox({
                 size="icon"
                 className="absolute left-2 z-10 text-white hover:bg-white/10 hover:text-white"
                 aria-label="Previous photo"
-                onClick={() =>
-                  onIndexChange((safeIndex - 1 + count) % count)
-                }
+                onClick={() => onIndexChange((safeIndex - 1 + count) % count)}
               >
                 <ChevronLeft className="size-6" />
               </Button>

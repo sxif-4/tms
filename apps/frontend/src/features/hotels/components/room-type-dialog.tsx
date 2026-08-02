@@ -100,7 +100,9 @@ export function RoomTypeDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit room type" : "New room type"}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Edit room type" : "New room type"}
+          </DialogTitle>
           <DialogDescription>
             Room types are a shared catalog used across the hotel.
           </DialogDescription>
@@ -118,7 +120,11 @@ export function RoomTypeDialog({
             </Field>
             <Field>
               <FieldLabel htmlFor="rt-description">Description</FieldLabel>
-              <Textarea id="rt-description" rows={3} {...register("description")} />
+              <Textarea
+                id="rt-description"
+                rows={3}
+                {...register("description")}
+              />
               <FieldError>{errors.description?.message}</FieldError>
             </Field>
             <div className="grid grid-cols-2 gap-4">
@@ -173,7 +179,11 @@ export function RoomTypeDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? "Saving…" : isEdit ? "Save changes" : "Create"}
+              {mutation.isPending
+                ? "Saving…"
+                : isEdit
+                  ? "Save changes"
+                  : "Create"}
             </Button>
           </DialogFooter>
         </form>

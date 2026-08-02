@@ -73,7 +73,9 @@ export function ParkEventsPage() {
     },
     // 409 when schedules exist — the API's message steers staff to deactivate.
     onError: (err) =>
-      toast.error(err instanceof Error ? err.message : "Failed to delete event"),
+      toast.error(
+        err instanceof Error ? err.message : "Failed to delete event",
+      ),
   });
 
   return (
@@ -162,7 +164,9 @@ export function ParkEventsPage() {
                           )}
                         </Button>
                       </TableCell>
-                      <TableCell className="font-medium">{event.name}</TableCell>
+                      <TableCell className="font-medium">
+                        {event.name}
+                      </TableCell>
                       <TableCell>
                         <EventTypeBadge type={event.eventType} />
                       </TableCell>

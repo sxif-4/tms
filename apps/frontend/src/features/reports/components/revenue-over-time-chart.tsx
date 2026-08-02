@@ -57,7 +57,10 @@ export function RevenueOverTimeChart({ data }: { data: SalesPoint[] }) {
       fallback={<div className="h-72 animate-pulse rounded-lg bg-muted" />}
     >
       <ResponsiveContainer width="100%" height={288}>
-        <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -8 }}>
+        <AreaChart
+          data={data}
+          margin={{ top: 8, right: 8, bottom: 0, left: -8 }}
+        >
           <CartesianGrid vertical={false} stroke="var(--border)" />
           <XAxis
             dataKey="date"

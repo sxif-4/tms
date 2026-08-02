@@ -199,7 +199,11 @@ export function AdvertisementDialog({
             onClick={() => mutation.mutate()}
             disabled={mutation.isPending || !canSubmit}
           >
-            {mutation.isPending ? "Saving…" : isEdit ? "Save changes" : "Create"}
+            {mutation.isPending
+              ? "Saving…"
+              : isEdit
+                ? "Save changes"
+                : "Create"}
           </Button>
         </DialogFooter>
       </DialogContent>

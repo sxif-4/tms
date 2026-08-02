@@ -79,7 +79,11 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
           path: "/dashboard/hotel/",
           icon: <LayoutGridIcon />,
         },
-        { title: "Rooms", path: "/dashboard/hotel/rooms", icon: <BedDoubleIcon /> },
+        {
+          title: "Rooms",
+          path: "/dashboard/hotel/rooms",
+          icon: <BedDoubleIcon />,
+        },
         {
           title: "Bookings",
           path: "/dashboard/hotel/bookings",
@@ -128,7 +132,11 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
           path: "/dashboard/ferry/schedules",
           icon: <CalendarCheckIcon />,
         },
-        { title: "Bookings", path: "/dashboard/ferry/bookings", icon: <TicketIcon /> },
+        {
+          title: "Bookings",
+          path: "/dashboard/ferry/bookings",
+          icon: <TicketIcon />,
+        },
       ],
     },
   ],

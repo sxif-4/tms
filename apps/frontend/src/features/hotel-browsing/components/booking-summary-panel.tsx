@@ -1,4 +1,9 @@
-import { BedDouble, CalendarDays, Hotel as HotelIcon, Users } from "lucide-react";
+import {
+  BedDouble,
+  CalendarDays,
+  Hotel as HotelIcon,
+  Users,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
 import { gbp } from "../constants";
@@ -23,7 +28,11 @@ function formatDate(value: string) {
   });
 }
 
-export function BookingSummaryPanel({ summary }: { summary: BookingSummaryData }) {
+export function BookingSummaryPanel({
+  summary,
+}: {
+  summary: BookingSummaryData;
+}) {
   const nights = summary.nights ?? 0;
   const pricePerNight = summary.pricePerNight ?? 0;
   const subtotal = nights * pricePerNight;
@@ -63,7 +72,9 @@ export function BookingSummaryPanel({ summary }: { summary: BookingSummaryData }
                 {formatDate(summary.checkOut)}
               </span>
             ) : (
-              <span className="text-muted-foreground/70">Select on calendar</span>
+              <span className="text-muted-foreground/70">
+                Select on calendar
+              </span>
             )}
           </div>
           {summary.guests != null && (
@@ -82,7 +93,8 @@ export function BookingSummaryPanel({ summary }: { summary: BookingSummaryData }
             <Separator />
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">
-                {gbp(pricePerNight)} × {nights} {nights === 1 ? "night" : "nights"}
+                {gbp(pricePerNight)} × {nights}{" "}
+                {nights === 1 ? "night" : "nights"}
               </span>
               <span>{gbp(subtotal)}</span>
             </div>

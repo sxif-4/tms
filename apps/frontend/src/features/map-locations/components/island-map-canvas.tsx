@@ -6,7 +6,11 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { cn } from "~/lib/utils";
-import { ISLAND_MAP_IMAGE_SRC, LOCATION_TYPE_COLORS, LOCATION_TYPE_LABELS } from "../constants";
+import {
+  ISLAND_MAP_IMAGE_SRC,
+  LOCATION_TYPE_COLORS,
+  LOCATION_TYPE_LABELS,
+} from "../constants";
 import type { MapLocation } from "../types";
 
 /** Drag/click movement below this (px) is treated as a click, not a drag. */
@@ -18,9 +22,18 @@ function percentFromEvent(
   clientY: number,
 ): { top: number; left: number } {
   const rect = container.getBoundingClientRect();
-  const left = Math.min(100, Math.max(0, ((clientX - rect.left) / rect.width) * 100));
-  const top = Math.min(100, Math.max(0, ((clientY - rect.top) / rect.height) * 100));
-  return { top: Math.round(top * 100) / 100, left: Math.round(left * 100) / 100 };
+  const left = Math.min(
+    100,
+    Math.max(0, ((clientX - rect.left) / rect.width) * 100),
+  );
+  const top = Math.min(
+    100,
+    Math.max(0, ((clientY - rect.top) / rect.height) * 100),
+  );
+  return {
+    top: Math.round(top * 100) / 100,
+    left: Math.round(left * 100) / 100,
+  };
 }
 
 type Props = {
@@ -86,7 +99,8 @@ export function IslandMapCanvas({
     e: React.PointerEvent<HTMLButtonElement>,
     location: MapLocation,
   ) => {
-    if (!editable || draggingId !== location.id || !containerRef.current) return;
+    if (!editable || draggingId !== location.id || !containerRef.current)
+      return;
     movedRef.current = true;
     setDragPos(percentFromEvent(containerRef.current, e.clientX, e.clientY));
   };
@@ -194,7 +208,10 @@ export function IslandMapCanvas({
       {showLegend && presentTypes.length > 0 && (
         <div className="glass-marketing absolute bottom-3 left-3 flex flex-wrap gap-3 rounded-lg px-3 py-2">
           {presentTypes.map((t) => (
-            <span key={t} className="flex items-center gap-1.5 text-xs font-medium">
+            <span
+              key={t}
+              className="flex items-center gap-1.5 text-xs font-medium"
+            >
               <span
                 className="size-3 rounded-full"
                 style={{ backgroundColor: LOCATION_TYPE_COLORS[t] }}

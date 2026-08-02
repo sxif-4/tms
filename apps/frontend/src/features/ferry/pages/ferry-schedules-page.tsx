@@ -72,15 +72,19 @@ export function FerrySchedulesPage() {
   const [open, setOpen] = useState(false);
   const [routeId, setRouteId] = useState("");
   const [departureAt, setDepartureAt] = useState("");
-  const [direction, setDirection] = useState<FerrySchedule["direction"]>("to_theme_park");
+  const [direction, setDirection] =
+    useState<FerrySchedule["direction"]>("to_theme_park");
   const [capacity, setCapacity] = useState("");
   const [basePrice, setBasePrice] = useState("");
   const [status, setStatus] = useState<FerrySchedule["status"]>("scheduled");
   const [formError, setFormError] = useState<string | null>(null);
 
-  const { data: schedules = [], isLoading, isError, error } = useQuery(
-    ferrySchedulesQueryOptions,
-  );
+  const {
+    data: schedules = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery(ferrySchedulesQueryOptions);
   const { data: routes = [] } = useQuery(ferryRoutesQueryOptions);
   const { data: bookings = [] } = useQuery(ferryBookingsQueryOptions);
 
@@ -92,7 +96,8 @@ export function FerrySchedulesPage() {
   const passengersByScheduleId = useMemo(() => {
     const totals: Record<number, number> = {};
     for (const booking of bookings) {
-      totals[booking.scheduleId] = (totals[booking.scheduleId] ?? 0) + booking.passengerCount;
+      totals[booking.scheduleId] =
+        (totals[booking.scheduleId] ?? 0) + booking.passengerCount;
     }
     return totals;
   }, [bookings]);
@@ -102,7 +107,8 @@ export function FerrySchedulesPage() {
     if (!query) return schedules;
 
     return schedules.filter((schedule) => {
-      const routeName = routeNames[schedule.routeId] ?? `Route ${schedule.routeId}`;
+      const routeName =
+        routeNames[schedule.routeId] ?? `Route ${schedule.routeId}`;
       const timeLabel = formatScheduleTime(schedule.departureAt).toLowerCase();
       return (
         routeName.toLowerCase().includes(query) ||
@@ -126,7 +132,9 @@ export function FerrySchedulesPage() {
         },
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ferrySchedulesQueryOptions.queryKey });
+      queryClient.invalidateQueries({
+        queryKey: ferrySchedulesQueryOptions.queryKey,
+      });
       toast.success("Ferry schedule created");
       setOpen(false);
       setRouteId("");
@@ -138,7 +146,9 @@ export function FerrySchedulesPage() {
       setFormError(null);
     },
     onError: (err) =>
-      setFormError(err instanceof Error ? err.message : "Failed to create ferry schedule"),
+      setFormError(
+        err instanceof Error ? err.message : "Failed to create ferry schedule",
+      ),
   });
 
   const canSubmit =
@@ -161,9 +171,12 @@ export function FerrySchedulesPage() {
         </div>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="font-heading text-2xl font-semibold">Ferry schedules</h1>
+            <h1 className="font-heading text-2xl font-semibold">
+              Ferry schedules
+            </h1>
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Plan departures, track route capacity, and keep each sailing aligned with expected demand.
+              Plan departures, track route capacity, and keep each sailing
+              aligned with expected demand.
             </p>
           </div>
           <Button className="w-fit" onClick={() => setOpen(true)}>
@@ -176,7 +189,9 @@ export function FerrySchedulesPage() {
         <Card className="border-border/60">
           <CardHeader>
             <CardTitle>Upcoming departures</CardTitle>
-            <CardDescription>Current sailings from the database.</CardDescription>
+            <CardDescription>
+              Current sailings from the database.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {isLoading ? (
@@ -185,7 +200,9 @@ export function FerrySchedulesPage() {
               </div>
             ) : isError ? (
               <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-                {error instanceof Error ? error.message : "Failed to load ferry schedules."}
+                {error instanceof Error
+                  ? error.message
+                  : "Failed to load ferry schedules."}
               </div>
             ) : filteredSchedules.length === 0 ? (
               <div className="rounded-xl border border-dashed border-border/70 p-4 text-sm text-muted-foreground">
@@ -193,18 +210,28 @@ export function FerrySchedulesPage() {
               </div>
             ) : (
               filteredSchedules.map((item) => (
-                <div key={item.id} className="rounded-xl border border-border/60 p-4">
+                <div
+                  key={item.id}
+                  className="rounded-xl border border-border/60 p-4"
+                >
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="font-medium">{routeNames[item.routeId] ?? `Route ${item.routeId}`}</p>
-                      <p className="mt-1 text-sm text-muted-foreground">{formatScheduleTime(item.departureAt)}</p>
+                      <p className="font-medium">
+                        {routeNames[item.routeId] ?? `Route ${item.routeId}`}
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {formatScheduleTime(item.departureAt)}
+                      </p>
                     </div>
-                    <Badge variant="outline">{getStatusLabel(item.status)}</Badge>
+                    <Badge variant="outline">
+                      {getStatusLabel(item.status)}
+                    </Badge>
                   </div>
                   <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <UsersIcon className="size-4" />
-                      {passengersByScheduleId[item.id] ?? 0} / {item.capacity} passengers
+                      {passengersByScheduleId[item.id] ?? 0} / {item.capacity}{" "}
+                      passengers
                     </span>
                     <span>•</span>
                     <span className="flex items-center gap-1">
@@ -223,7 +250,9 @@ export function FerrySchedulesPage() {
         <Card className="border-border/60">
           <CardHeader>
             <CardTitle>Adjust schedule</CardTitle>
-            <CardDescription>Search existing sailings or add a new departure.</CardDescription>
+            <CardDescription>
+              Search existing sailings or add a new departure.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Input
@@ -232,10 +261,12 @@ export function FerrySchedulesPage() {
               onChange={(event) => setSearch(event.target.value)}
             />
             <div className="rounded-xl border border-dashed border-border/70 p-4 text-sm text-muted-foreground">
-              Use this board to review departure times, route capacity, and ticket pricing before boarding begins.
+              Use this board to review departure times, route capacity, and
+              ticket pricing before boarding begins.
             </div>
             <div className="rounded-xl bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-300">
-              Route capacity and pricing update immediately after each new sailing is created.
+              Route capacity and pricing update immediately after each new
+              sailing is created.
             </div>
           </CardContent>
         </Card>
@@ -245,7 +276,9 @@ export function FerrySchedulesPage() {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Create ferry schedule</DialogTitle>
-            <DialogDescription>Add a new departure for the island ferry network.</DialogDescription>
+            <DialogDescription>
+              Add a new departure for the island ferry network.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-2">
@@ -278,7 +311,12 @@ export function FerrySchedulesPage() {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="grid gap-2">
                 <Label htmlFor="schedule-direction">Direction</Label>
-                <Select value={direction} onValueChange={(value) => setDirection(value as FerrySchedule["direction"])}>
+                <Select
+                  value={direction}
+                  onValueChange={(value) =>
+                    setDirection(value as FerrySchedule["direction"])
+                  }
+                >
                   <SelectTrigger id="schedule-direction">
                     <SelectValue />
                   </SelectTrigger>
@@ -291,7 +329,12 @@ export function FerrySchedulesPage() {
 
               <div className="grid gap-2">
                 <Label htmlFor="schedule-status">Status</Label>
-                <Select value={status} onValueChange={(value) => setStatus(value as FerrySchedule["status"])}>
+                <Select
+                  value={status}
+                  onValueChange={(value) =>
+                    setStatus(value as FerrySchedule["status"])
+                  }
+                >
                   <SelectTrigger id="schedule-status">
                     <SelectValue />
                   </SelectTrigger>
@@ -328,14 +371,23 @@ export function FerrySchedulesPage() {
               </div>
             </div>
 
-            {formError ? <p className="text-sm text-destructive">{formError}</p> : null}
+            {formError ? (
+              <p className="text-sm text-destructive">{formError}</p>
+            ) : null}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)} disabled={mutation.isPending}>
+            <Button
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={mutation.isPending}
+            >
               Cancel
             </Button>
-            <Button onClick={() => mutation.mutate()} disabled={mutation.isPending || !canSubmit}>
+            <Button
+              onClick={() => mutation.mutate()}
+              disabled={mutation.isPending || !canSubmit}
+            >
               {mutation.isPending ? "Creating…" : "Create schedule"}
             </Button>
           </DialogFooter>

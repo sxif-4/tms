@@ -186,7 +186,11 @@ export function EventDialog({
             </div>
             <Field>
               <FieldLabel htmlFor="ev-price">Base price (£)</FieldLabel>
-              <Input id="ev-price" placeholder="12.50" {...register("basePrice")} />
+              <Input
+                id="ev-price"
+                placeholder="12.50"
+                {...register("basePrice")}
+              />
               <FieldError>{errors.basePrice?.message}</FieldError>
             </Field>
             <Controller

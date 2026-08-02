@@ -1,22 +1,25 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "@tanstack/react-router";
-import { Menu, Palmtree } from "lucide-react";
-import { useState } from "react";
-import { Button, buttonVariants } from "~/components/ui/button";
+import { Menu } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Button } from "~/components/ui/button";
 import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "~/components/ui/sheet";
-import { ModeToggle } from "~/components/mode-toggle";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/sheet";
 import { meQueryOptions, useLogout } from "~/features/auth";
 import { cn } from "~/lib/utils";
 
 const NAV_LINKS = [
+  { to: "/hotels", label: "Destinations" },
   { to: "/hotels", label: "Hotels" },
-  { to: "/map", label: "Map" },
-  { to: "/ferry", label: "Ferry", badge: "Soon" },
-  { to: "/theme-park", label: "Theme Park", badge: "Soon" },
+  { to: "/theme-park", label: "Theme Park" },
+  { to: "/theme-park", label: "Beach Events" },
+  { to: "/map", label: "Island Map" },
 ] as const;
 
 export function SiteHeader() {
@@ -24,6 +27,17 @@ export function SiteHeader() {
   const logout = useLogout();
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  const isHome = pathname === "/";
+
+  useEffect(() => {
+    if (!isHome) return;
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [isHome]);
 
   if (
     pathname === "/login" ||
@@ -33,131 +47,155 @@ export function SiteHeader() {
     return null;
   }
 
+  // On the landing page the bar floats over the hero image until you scroll.
+  const overlay = isHome && !scrolled;
+
   return (
-    <header className="sticky top-0 z-50 w-full">
-      <div className="glass-data-strong border-b border-border/40">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link to="/" className="flex items-center gap-2 font-semibold tracking-tight">
-            <span className="flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <Palmtree className="size-5" />
-            </span>
-            <span className="hidden text-lg sm:inline">Island Booking</span>
-          </Link>
+    <header
+      className={cn(
+        "top-0 z-50 w-full",
+        isHome ? "fixed" : "sticky",
+        overlay
+          ? "bg-transparent"
+          : "glass-data-strong border-b border-border/40",
+      )}
+    >
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:h-20 sm:px-6 lg:px-8">
+        <Link
+          to="/"
+          className={cn(
+            "text-xl font-extrabold tracking-tight sm:text-2xl",
+            overlay && "text-white drop-shadow-sm",
+          )}
+        >
+          FUNISLAND
+        </Link>
 
-          <nav className="hidden items-center gap-1 md:flex">
-            {NAV_LINKS.map((link) => {
-              const active = pathname.startsWith(link.to);
-              return (
-                <Link
-                  key={link.to}
-                  to={link.to}
+        <nav className="hidden items-center gap-1 lg:flex">
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.label}
+              to={link.to}
+              className={cn(
+                "rounded-full px-3.5 py-2 text-sm font-medium transition-colors",
+                overlay
+                  ? "text-white/80 hover:bg-white/10 hover:text-white"
+                  : "text-muted-foreground hover:bg-accent hover:text-foreground",
+              )}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-2">
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
                   className={cn(
-                    "relative rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                    active
-                      ? "text-foreground"
-                      : "text-muted-foreground hover:text-foreground",
+                    "hidden h-10 items-center rounded-full px-5 text-sm font-semibold transition-colors sm:inline-flex",
+                    overlay
+                      ? "bg-white text-zinc-900 hover:bg-white/90"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90",
                   )}
                 >
-                  <span className="flex items-center gap-1.5">
-                    {link.label}
-                    {"badge" in link && link.badge && (
-                      <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                        {link.badge}
-                      </span>
-                    )}
-                    {active && (
-                      <span className="absolute -bottom-px left-3 right-3 h-0.5 rounded-full bg-primary" />
-                    )}
-                  </span>
-                </Link>
-              );
-            })}
-          </nav>
-
-          <div className="flex items-center gap-2">
-            {user ? (
-              <>
-                <Link
-                  to="/my-bookings"
-                  className={cn(
-                    buttonVariants({ variant: "ghost", size: "sm" }),
-                    "hidden sm:inline-flex",
-                  )}
-                >
-                  My bookings
-                </Link>
+                  My account
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem asChild>
+                  <Link to="/my-bookings">My bookings</Link>
+                </DropdownMenuItem>
                 {user.role === "admin" && (
-                  <Link
-                    to="/dashboard/admin"
-                    className={buttonVariants({ variant: "ghost", size: "sm" })}
-                  >
-                    Admin
-                  </Link>
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard/admin">Admin</Link>
+                  </DropdownMenuItem>
                 )}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => logout.mutate()}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={() => logout.mutate()}
                   disabled={logout.isPending}
                 >
                   Sign out
-                </Button>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className={buttonVariants({ variant: "ghost", size: "sm" })}
-                >
-                  Sign in
-                </Link>
-                <Link to="/signup" className={buttonVariants({ size: "sm" })}>
-                  Sign up
-                </Link>
-              </>
-            )}
-            <ModeToggle />
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link
+              to="/login"
+              className={cn(
+                "hidden h-10 items-center rounded-full px-6 text-sm font-semibold transition-colors sm:inline-flex",
+                overlay
+                  ? "bg-white text-zinc-900 hover:bg-white/90"
+                  : "bg-primary text-primary-foreground hover:bg-primary/90",
+              )}
+            >
+              Sign in
+            </Link>
+          )}
 
-            <Sheet open={open} onOpenChange={setOpen}>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="md:hidden">
-                  <Menu className="size-5" />
-                  <span className="sr-only">Open menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-72">
-                <nav className="mt-8 flex flex-col gap-1">
-                  {NAV_LINKS.map((link) => (
-                    <Link
-                      key={link.to}
-                      to={link.to}
-                      onClick={() => setOpen(false)}
-                      className="rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                  {user ? (
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon-lg"
+                className={cn(
+                  "rounded-full lg:hidden",
+                  overlay &&
+                    "border-white/40 bg-white/10 text-white hover:bg-white/20 hover:text-white",
+                )}
+              >
+                <Menu className="size-5" />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-72">
+              <nav className="mt-10 flex flex-col gap-1 px-4">
+                {NAV_LINKS.map((link) => (
+                  <Link
+                    key={link.label}
+                    to={link.to}
+                    onClick={() => setOpen(false)}
+                    className="rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+                {user ? (
+                  <>
                     <Link
                       to="/my-bookings"
                       onClick={() => setOpen(false)}
-                      className="mt-2 rounded-md border px-3 py-2.5 text-sm font-medium"
+                      className="mt-3 rounded-full border px-3 py-2.5 text-center text-sm font-semibold"
                     >
                       My bookings
                     </Link>
-                  ) : (
-                    <Link
-                      to="/login"
-                      onClick={() => setOpen(false)}
-                      className="mt-2 rounded-md border px-3 py-2.5 text-sm font-medium"
+                    <Button
+                      variant="ghost"
+                      className="mt-1 h-10"
+                      onClick={() => {
+                        setOpen(false);
+                        logout.mutate();
+                      }}
+                      disabled={logout.isPending}
                     >
-                      Sign in
-                    </Link>
-                  )}
-                </nav>
-              </SheetContent>
-            </Sheet>
-          </div>
+                      Sign out
+                    </Button>
+                  </>
+                ) : (
+                  <Link
+                    to="/login"
+                    onClick={() => setOpen(false)}
+                    className="mt-3 rounded-full bg-primary px-3 py-2.5 text-center text-sm font-semibold text-primary-foreground"
+                  >
+                    Sign in
+                  </Link>
+                )}
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>

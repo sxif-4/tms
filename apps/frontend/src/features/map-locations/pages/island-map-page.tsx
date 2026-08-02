@@ -10,13 +10,20 @@ import {
   LOCATION_TYPE_LABELS,
   type MapSearch,
 } from "../constants";
-import { mapLocationsQueryOptions, publicHotelPinsQueryOptions } from "../queries";
+import {
+  mapLocationsQueryOptions,
+  publicHotelPinsQueryOptions,
+} from "../queries";
 import type { LocationType, MapLocation } from "../types";
 
 /** Matches a `hotel`-type location to its hotel id by comparing pin position. */
 function hotelIdFor(
   loc: MapLocation,
-  pins: { id: number; positionTop: string | null; positionLeft: string | null }[],
+  pins: {
+    id: number;
+    positionTop: string | null;
+    positionLeft: string | null;
+  }[],
 ): number | undefined {
   const top = Number(loc.positionTop);
   const left = Number(loc.positionLeft);
@@ -89,7 +96,10 @@ export function IslandMapPage({
               if (!hotelId) return null;
               return (
                 <Button asChild size="sm" className="w-full">
-                  <Link to="/hotels/$hotelId" params={{ hotelId: String(hotelId) }}>
+                  <Link
+                    to="/hotels/$hotelId"
+                    params={{ hotelId: String(hotelId) }}
+                  >
                     View hotel
                   </Link>
                 </Button>
@@ -105,7 +115,8 @@ export function IslandMapPage({
             </p>
           ) : (
             filtered.map((loc) => {
-              const hotelId = loc.type === "hotel" ? hotelIdFor(loc, hotelPins) : undefined;
+              const hotelId =
+                loc.type === "hotel" ? hotelIdFor(loc, hotelPins) : undefined;
               const content = (
                 <div className="flex items-center gap-3 rounded-lg border bg-card p-3">
                   <span
@@ -120,7 +131,9 @@ export function IslandMapPage({
                       {loc.description}
                     </span>
                   </div>
-                  <Badge variant="outline">{LOCATION_TYPE_LABELS[loc.type]}</Badge>
+                  <Badge variant="outline">
+                    {LOCATION_TYPE_LABELS[loc.type]}
+                  </Badge>
                 </div>
               );
               return hotelId ? (
@@ -144,7 +157,11 @@ export function IslandMapPage({
         <Button asChild variant="outline">
           <Link
             to="/hotels"
-            search={{ minPrice: search.minPrice, maxPrice: search.maxPrice, guests: search.guests }}
+            search={{
+              minPrice: search.minPrice,
+              maxPrice: search.maxPrice,
+              guests: search.guests,
+            }}
           >
             View filtered results as a list
           </Link>

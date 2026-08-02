@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Slider as SliderPrimitive } from "radix-ui"
+import * as React from "react";
+import { Slider as SliderPrimitive } from "radix-ui";
 
-import { cn } from "~/lib/utils"
+import { cn } from "~/lib/utils";
 
 function Slider({
   className,
@@ -32,7 +32,7 @@ function Slider({
         className="block size-5 rounded-full border-2 border-primary bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
       />
     </SliderPrimitive.Root>
-  )
+  );
 }
 
-export { Slider }
+export { Slider };

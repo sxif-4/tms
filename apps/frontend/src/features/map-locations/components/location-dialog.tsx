@@ -128,7 +128,10 @@ export function LocationDialog({
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="loc-type">Type</Label>
-            <Select value={type} onValueChange={(v) => setType(v as LocationType)}>
+            <Select
+              value={type}
+              onValueChange={(v) => setType(v as LocationType)}
+            >
               <SelectTrigger id="loc-type" className="w-full">
                 <SelectValue />
               </SelectTrigger>
@@ -170,8 +173,8 @@ export function LocationDialog({
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            Position as a percentage of the map image — click the map or drag
-            a pin to set these automatically.
+            Position as a percentage of the map image — click the map or drag a
+            pin to set these automatically.
           </p>
           {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
@@ -188,7 +191,11 @@ export function LocationDialog({
             onClick={() => mutation.mutate()}
             disabled={mutation.isPending || !canSubmit}
           >
-            {mutation.isPending ? "Saving…" : isEdit ? "Save changes" : "Create"}
+            {mutation.isPending
+              ? "Saving…"
+              : isEdit
+                ? "Save changes"
+                : "Create"}
           </Button>
         </DialogFooter>
       </DialogContent>

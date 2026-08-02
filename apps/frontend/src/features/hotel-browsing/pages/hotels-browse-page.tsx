@@ -11,7 +11,6 @@ import type { HotelSearch } from "../constants";
 import { publicHotelsQueryOptions } from "../queries";
 import { useState, useEffect } from "react";
 
-
 const DEFAULT_MAX = 500;
 
 export function HotelsBrowsePage({
@@ -34,20 +33,22 @@ export function HotelsBrowsePage({
     setDraftMax(maxPrice);
   }, [maxPrice]);
   const hasFilters =
-    search.minPrice != null ||
-    search.maxPrice != null ||
-    search.guests != null;
-  
+    search.minPrice != null || search.maxPrice != null || search.guests != null;
+
   const visibleHotels = hotels.filter(
-    (hotel) => hotel.minPrice == null || hotel.minPrice <= draftMax)
+    (hotel) => hotel.minPrice == null || hotel.minPrice <= draftMax,
+  );
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Island hotels</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Island hotels
+          </h1>
           <p className="mt-2 text-muted-foreground">
-            {visibleHotels.length} {visibleHotels.length === 1 ? "stay" : "stays"} available
+            {visibleHotels.length}{" "}
+            {visibleHotels.length === 1 ? "stay" : "stays"} available
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
@@ -94,7 +95,7 @@ export function HotelsBrowsePage({
                   max={DEFAULT_MAX}
                   step={10}
                   onValueChange={(v) => setDraftMax(v[0])}
-                  onValueCommit={(v) => 
+                  onValueCommit={(v) =>
                     onSearchChange({
                       maxPrice: v[0] === DEFAULT_MAX ? undefined : v[0],
                     })
@@ -116,7 +117,10 @@ export function HotelsBrowsePage({
                           onSearchChange({ guests: checked ? n : undefined })
                         }
                       />
-                      <Label htmlFor={`guests-${n}`} className="cursor-pointer font-normal">
+                      <Label
+                        htmlFor={`guests-${n}`}
+                        className="cursor-pointer font-normal"
+                      >
                         {n}+ guests
                       </Label>
                     </div>
@@ -130,7 +134,9 @@ export function HotelsBrowsePage({
         <div>
           {visibleHotels.length === 0 ? (
             <div className="glass-data rounded-xl border p-12 text-center">
-              <p className="text-lg font-medium">No hotels match your filters.</p>
+              <p className="text-lg font-medium">
+                No hotels match your filters.
+              </p>
               <Button
                 variant="outline"
                 className="mt-4"

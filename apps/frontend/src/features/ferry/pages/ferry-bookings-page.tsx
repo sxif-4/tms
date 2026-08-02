@@ -35,7 +35,10 @@ import {
   ferryRoutesQueryOptions,
   ferrySchedulesQueryOptions,
 } from "~/features/ferry/queries";
-import { createFerryBookingServerFn, searchFerryUsersServerFn } from "~/features/ferry/server";
+import {
+  createFerryBookingServerFn,
+  searchFerryUsersServerFn,
+} from "~/features/ferry/server";
 import type { FerryBooking } from "~/features/ferry/bookings-types";
 import type { FerryBookingUser, FerrySchedule } from "~/features/ferry/types";
 
@@ -59,7 +62,10 @@ function formatScheduleTime(value: string | Date) {
 }
 
 function formatDate(value: string | Date) {
-  return new Date(value).toLocaleDateString([], { month: "short", day: "numeric" });
+  return new Date(value).toLocaleDateString([], {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 function getDirectionLabel(direction: FerrySchedule["direction"]) {
@@ -79,11 +85,15 @@ function getStatusLabel(status: FerryBooking["status"]) {
   }
 }
 
-export function FerryBookingsPage({ initialSearch }: { initialSearch?: string } = {}) {
+export function FerryBookingsPage({
+  initialSearch,
+}: { initialSearch?: string } = {}) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState(initialSearch ?? "");
   const [open, setOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<FerryBookingUser | null>(null);
+  const [selectedUser, setSelectedUser] = useState<FerryBookingUser | null>(
+    null,
+  );
   const [userSearch, setUserSearch] = useState("");
   const [debouncedUserSearch, setDebouncedUserSearch] = useState("");
   const [scheduleId, setScheduleId] = useState("");
@@ -92,9 +102,12 @@ export function FerryBookingsPage({ initialSearch }: { initialSearch?: string } 
   const [status, setStatus] = useState<FerryBooking["status"]>("pending");
   const [formError, setFormError] = useState<string | null>(null);
 
-  const { data: bookings = [], isLoading, isError, error } = useQuery(
-    ferryBookingsQueryOptions,
-  );
+  const {
+    data: bookings = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery(ferryBookingsQueryOptions);
   const { data: schedules = [] } = useQuery(ferrySchedulesQueryOptions);
   const { data: routes = [] } = useQuery(ferryRoutesQueryOptions);
 
@@ -106,17 +119,19 @@ export function FerryBookingsPage({ initialSearch }: { initialSearch?: string } 
   const { data: userResults = [], isFetching: isUserSearchLoading } = useQuery({
     queryKey: ["ferry", "user-search", debouncedUserSearch] as const,
     queryFn: () =>
-      searchFerryUsersServerFn({ data: { q: debouncedUserSearch || undefined } }),
+      searchFerryUsersServerFn({
+        data: { q: debouncedUserSearch || undefined },
+      }),
     staleTime: 10 * 1000,
     enabled: open,
   });
 
-  const { data: hotelBookingOptions = [], isLoading: isHotelBookingsLoading } = useQuery(
-    ferryHotelBookingsForUserQueryOptions(selectedUser?.id ?? null),
-  );
+  const { data: hotelBookingOptions = [], isLoading: isHotelBookingsLoading } =
+    useQuery(ferryHotelBookingsForUserQueryOptions(selectedUser?.id ?? null));
 
   const scheduleMap = useMemo(
-    () => Object.fromEntries(schedules.map((schedule) => [schedule.id, schedule])),
+    () =>
+      Object.fromEntries(schedules.map((schedule) => [schedule.id, schedule])),
     [schedules],
   );
   const routeMap = useMemo(
@@ -130,7 +145,10 @@ export function FerryBookingsPage({ initialSearch }: { initialSearch?: string } 
       label: user.name,
       description: user.email,
     }));
-    if (selectedUser && !options.some((option) => option.value === String(selectedUser.id))) {
+    if (
+      selectedUser &&
+      !options.some((option) => option.value === String(selectedUser.id))
+    ) {
       options.unshift({
         value: String(selectedUser.id),
         label: selectedUser.name,
@@ -165,7 +183,8 @@ export function FerryBookingsPage({ initialSearch }: { initialSearch?: string } 
     if (!query) return bookings;
 
     return bookings.filter((booking) => {
-      const routeName = routeMap[scheduleMap[booking.scheduleId]?.routeId ?? -1] ?? "";
+      const routeName =
+        routeMap[scheduleMap[booking.scheduleId]?.routeId ?? -1] ?? "";
       return [
         booking.bookingReference,
         routeName,
@@ -205,13 +224,17 @@ export function FerryBookingsPage({ initialSearch }: { initialSearch?: string } 
         },
       }),
     onSuccess: (created) => {
-      queryClient.invalidateQueries({ queryKey: ferryBookingsQueryOptions.queryKey });
+      queryClient.invalidateQueries({
+        queryKey: ferryBookingsQueryOptions.queryKey,
+      });
       toast.success(`Ferry booking ${created.bookingReference} created`);
       setOpen(false);
       resetForm();
     },
     onError: (err) =>
-      setFormError(err instanceof Error ? err.message : "Failed to create ferry booking"),
+      setFormError(
+        err instanceof Error ? err.message : "Failed to create ferry booking",
+      ),
   });
 
   const canSubmit =
@@ -233,9 +256,12 @@ export function FerryBookingsPage({ initialSearch }: { initialSearch?: string } 
         </div>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="font-heading text-2xl font-semibold">Ferry bookings</h1>
+            <h1 className="font-heading text-2xl font-semibold">
+              Ferry bookings
+            </h1>
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Review ferry reservations, confirm eligibility, and issue passes without interruption.
+              Review ferry reservations, confirm eligibility, and issue passes
+              without interruption.
             </p>
           </div>
           <Button className="w-fit" onClick={() => setOpen(true)}>
@@ -248,7 +274,9 @@ export function FerryBookingsPage({ initialSearch }: { initialSearch?: string } 
         <Card className="border-border/60">
           <CardHeader>
             <CardTitle>Pending and confirmed requests</CardTitle>
-            <CardDescription>Visitors waiting for ticket approval or boarding.</CardDescription>
+            <CardDescription>
+              Visitors waiting for ticket approval or boarding.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {isLoading ? (
@@ -257,7 +285,9 @@ export function FerryBookingsPage({ initialSearch }: { initialSearch?: string } 
               </div>
             ) : isError ? (
               <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-                {error instanceof Error ? error.message : "Failed to load ferry bookings."}
+                {error instanceof Error
+                  ? error.message
+                  : "Failed to load ferry bookings."}
               </div>
             ) : filteredBookings.length === 0 ? (
               <div className="rounded-xl border border-dashed border-border/70 p-4 text-sm text-muted-foreground">
@@ -265,15 +295,30 @@ export function FerryBookingsPage({ initialSearch }: { initialSearch?: string } 
               </div>
             ) : (
               filteredBookings.map((booking) => {
-                const routeName = routeMap[scheduleMap[booking.scheduleId]?.routeId ?? -1] ?? "Unknown route";
+                const routeName =
+                  routeMap[scheduleMap[booking.scheduleId]?.routeId ?? -1] ??
+                  "Unknown route";
                 return (
-                  <div key={booking.id} className="rounded-xl border border-border/60 p-4">
+                  <div
+                    key={booking.id}
+                    className="rounded-xl border border-border/60 p-4"
+                  >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="font-medium">{booking.bookingReference}</p>
-                        <p className="mt-1 text-sm text-muted-foreground">{routeName}</p>
+                        <p className="font-medium">
+                          {booking.bookingReference}
+                        </p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {routeName}
+                        </p>
                       </div>
-                      <Badge variant={booking.status === "validated" ? "secondary" : "outline"}>
+                      <Badge
+                        variant={
+                          booking.status === "validated"
+                            ? "secondary"
+                            : "outline"
+                        }
+                      >
                         {getStatusLabel(booking.status)}
                       </Badge>
                     </div>
@@ -294,7 +339,9 @@ export function FerryBookingsPage({ initialSearch }: { initialSearch?: string } 
                         ) : (
                           <Clock3Icon className="size-4" />
                         )}
-                        {booking.status === "validated" ? "Ready for boarding" : "Needs review"}
+                        {booking.status === "validated"
+                          ? "Ready for boarding"
+                          : "Needs review"}
                       </div>
                       <Button variant="ghost" size="sm" className="h-7 px-2">
                         Review
@@ -310,7 +357,9 @@ export function FerryBookingsPage({ initialSearch }: { initialSearch?: string } 
         <Card className="border-border/60">
           <CardHeader>
             <CardTitle>Find a booking</CardTitle>
-            <CardDescription>Search by booking reference, route, or status.</CardDescription>
+            <CardDescription>
+              Search by booking reference, route, or status.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Input
@@ -319,10 +368,12 @@ export function FerryBookingsPage({ initialSearch }: { initialSearch?: string } 
               onChange={(event) => setSearch(event.target.value)}
             />
             <div className="rounded-xl border border-dashed border-border/70 p-4 text-sm text-muted-foreground">
-              Booking validation is tied to hotel confirmation. Staff should confirm eligibility before issuing a ticket.
+              Booking validation is tied to hotel confirmation. Staff should
+              confirm eligibility before issuing a ticket.
             </div>
             <div className="rounded-xl bg-emerald-500/10 p-4 text-sm text-emerald-800 dark:text-emerald-300">
-              Booking review uses the current ferry schedule and hotel booking records from the backend.
+              Booking review uses the current ferry schedule and hotel booking
+              records from the backend.
             </div>
           </CardContent>
         </Card>
@@ -339,7 +390,8 @@ export function FerryBookingsPage({ initialSearch }: { initialSearch?: string } 
           <DialogHeader>
             <DialogTitle>Create ferry booking</DialogTitle>
             <DialogDescription>
-              Add a new ferry booking request to the system. The booking reference is generated automatically.
+              Add a new ferry booking request to the system. The booking
+              reference is generated automatically.
             </DialogDescription>
           </DialogHeader>
 
@@ -351,7 +403,9 @@ export function FerryBookingsPage({ initialSearch }: { initialSearch?: string } 
                 options={userOptions}
                 value={selectedUser ? String(selectedUser.id) : ""}
                 onChange={(value) => {
-                  const found = userResults.find((user) => String(user.id) === value);
+                  const found = userResults.find(
+                    (user) => String(user.id) === value,
+                  );
                   setSelectedUser(found ?? null);
                   setHotelBookingId("");
                 }}
@@ -378,7 +432,12 @@ export function FerryBookingsPage({ initialSearch }: { initialSearch?: string } 
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="booking-status">Status</Label>
-                <Select value={status} onValueChange={(value) => setStatus(value as FerryBooking["status"])}>
+                <Select
+                  value={status}
+                  onValueChange={(value) =>
+                    setStatus(value as FerryBooking["status"])
+                  }
+                >
                   <SelectTrigger id="booking-status">
                     <SelectValue />
                   </SelectTrigger>
@@ -401,7 +460,11 @@ export function FerryBookingsPage({ initialSearch }: { initialSearch?: string } 
                 onChange={setHotelBookingId}
                 loading={isHotelBookingsLoading}
                 disabled={!selectedUser}
-                placeholder={selectedUser ? "Select a hotel booking" : "Select a guest first"}
+                placeholder={
+                  selectedUser
+                    ? "Select a hotel booking"
+                    : "Select a guest first"
+                }
                 searchPlaceholder="Search hotel bookings…"
                 emptyText="This guest has no eligible hotel bookings."
               />
@@ -410,7 +473,13 @@ export function FerryBookingsPage({ initialSearch }: { initialSearch?: string } 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="grid gap-2">
                 <Label htmlFor="booking-passengers">Passenger count</Label>
-                <Input id="booking-passengers" type="number" min="1" value={passengerCount} onChange={(event) => setPassengerCount(event.target.value)} />
+                <Input
+                  id="booking-passengers"
+                  type="number"
+                  min="1"
+                  value={passengerCount}
+                  onChange={(event) => setPassengerCount(event.target.value)}
+                />
               </div>
               <div className="grid gap-2">
                 <Label>Total amount</Label>
@@ -419,14 +488,23 @@ export function FerryBookingsPage({ initialSearch }: { initialSearch?: string } 
                 </p>
               </div>
             </div>
-            {formError ? <p className="text-sm text-destructive">{formError}</p> : null}
+            {formError ? (
+              <p className="text-sm text-destructive">{formError}</p>
+            ) : null}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)} disabled={mutation.isPending}>
+            <Button
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={mutation.isPending}
+            >
               Cancel
             </Button>
-            <Button onClick={() => mutation.mutate()} disabled={mutation.isPending || !canSubmit}>
+            <Button
+              onClick={() => mutation.mutate()}
+              disabled={mutation.isPending || !canSubmit}
+            >
               {mutation.isPending ? "Creating…" : "Create booking"}
             </Button>
           </DialogFooter>

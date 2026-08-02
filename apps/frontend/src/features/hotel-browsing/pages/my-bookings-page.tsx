@@ -168,8 +168,12 @@ export function MyBookingsPage() {
   });
 
   const upcoming = bookings.filter((b) => visitorTab(b.status) === "upcoming");
-  const completed = bookings.filter((b) => visitorTab(b.status) === "completed");
-  const cancelled = bookings.filter((b) => visitorTab(b.status) === "cancelled");
+  const completed = bookings.filter(
+    (b) => visitorTab(b.status) === "completed",
+  );
+  const cancelled = bookings.filter(
+    (b) => visitorTab(b.status) === "cancelled",
+  );
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
@@ -204,11 +208,7 @@ export function MyBookingsPage() {
             <EmptyState />
           ) : (
             upcoming.map((b) => (
-              <BookingCard
-                key={b.id}
-                booking={b}
-                onCancel={setCancelling}
-              />
+              <BookingCard key={b.id} booking={b} onCancel={setCancelling} />
             ))
           )}
         </TabsContent>

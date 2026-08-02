@@ -19,9 +19,24 @@ const gbp = (n: number) =>
   }).format(n);
 
 const TICKET_TIERS = [
-  { id: 1, name: "Day pass", price: 65, description: "Full-day access to all rides and shows" },
-  { id: 2, name: "Family pass", price: 220, description: "2 adults + 2 children, full-day access" },
-  { id: 3, name: "VIP express", price: 120, description: "Skip-the-line on all major attractions" },
+  {
+    id: 1,
+    name: "Day pass",
+    price: 65,
+    description: "Full-day access to all rides and shows",
+  },
+  {
+    id: 2,
+    name: "Family pass",
+    price: 220,
+    description: "2 adults + 2 children, full-day access",
+  },
+  {
+    id: 3,
+    name: "VIP express",
+    price: 120,
+    description: "Skip-the-line on all major attractions",
+  },
 ];
 
 function ThemeParkPage() {
@@ -46,8 +61,8 @@ function ThemeParkPage() {
           Island theme park
         </h1>
         <p className="mt-3 text-lg text-muted-foreground">
-          Rides, shows, and family adventures opening this season. Sign up
-          for early access to tickets.
+          Rides, shows, and family adventures opening this season. Sign up for
+          early access to tickets.
         </p>
       </div>
 
@@ -83,8 +98,8 @@ function ThemeParkPage() {
             <h2 className="mt-4 text-xl font-semibold">You're on the list!</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               We'll email{" "}
-              <span className="font-medium text-foreground">{email}</span>{" "}
-              when theme park tickets go on sale.
+              <span className="font-medium text-foreground">{email}</span> when
+              theme park tickets go on sale.
             </p>
           </div>
         ) : (
@@ -114,7 +129,11 @@ function ThemeParkPage() {
       </div>
 
       <p className="mt-8 text-center text-sm text-muted-foreground">
-        Meanwhile, <Link to="/hotels" className="underline underline-offset-4">browse hotel stays</Link>.
+        Meanwhile,{" "}
+        <Link to="/hotels" className="underline underline-offset-4">
+          browse hotel stays
+        </Link>
+        .
       </p>
     </div>
   );

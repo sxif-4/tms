@@ -1,5 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRightIcon, CompassIcon, MapPinIcon, ShipWheelIcon } from "lucide-react";
+import {
+  ArrowRightIcon,
+  CompassIcon,
+  MapPinIcon,
+  ShipWheelIcon,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "~/components/ui/badge";
@@ -32,17 +37,26 @@ export function FerryRoutesPage() {
   const [destination, setDestination] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
 
-  const { data: routes = [], isLoading, isError, error } = useQuery(
-    ferryRoutesQueryOptions,
-  );
+  const {
+    data: routes = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery(ferryRoutesQueryOptions);
 
   const mutation = useMutation({
     mutationFn: () =>
       createFerryRouteServerFn({
-        data: { name: name.trim(), origin: origin.trim(), destination: destination.trim() },
+        data: {
+          name: name.trim(),
+          origin: origin.trim(),
+          destination: destination.trim(),
+        },
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ferryRoutesQueryOptions.queryKey });
+      queryClient.invalidateQueries({
+        queryKey: ferryRoutesQueryOptions.queryKey,
+      });
       toast.success("Ferry route created");
       setOpen(false);
       setName("");
@@ -51,10 +65,13 @@ export function FerryRoutesPage() {
       setFormError(null);
     },
     onError: (err) =>
-      setFormError(err instanceof Error ? err.message : "Failed to create ferry route"),
+      setFormError(
+        err instanceof Error ? err.message : "Failed to create ferry route",
+      ),
   });
 
-  const canSubmit = name.trim() !== "" && origin.trim() !== "" && destination.trim() !== "";
+  const canSubmit =
+    name.trim() !== "" && origin.trim() !== "" && destination.trim() !== "";
 
   return (
     <div className="flex flex-col gap-6">
@@ -68,12 +85,17 @@ export function FerryRoutesPage() {
         </div>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="font-heading text-2xl font-semibold">Ferry routes</h1>
+            <h1 className="font-heading text-2xl font-semibold">
+              Ferry routes
+            </h1>
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Monitor island routes, service frequency, and passenger capacity from one place.
+              Monitor island routes, service frequency, and passenger capacity
+              from one place.
             </p>
           </div>
-          <Button className="w-fit" onClick={() => setOpen(true)}>Add new route</Button>
+          <Button className="w-fit" onClick={() => setOpen(true)}>
+            Add new route
+          </Button>
         </div>
       </header>
 
@@ -81,7 +103,9 @@ export function FerryRoutesPage() {
         <Card className="border-border/60">
           <CardHeader>
             <CardTitle>Route overview</CardTitle>
-            <CardDescription>Live service map for the island ferry network.</CardDescription>
+            <CardDescription>
+              Live service map for the island ferry network.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {isLoading ? (
@@ -90,7 +114,9 @@ export function FerryRoutesPage() {
               </div>
             ) : isError ? (
               <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-                {error instanceof Error ? error.message : "Failed to load ferry routes."}
+                {error instanceof Error
+                  ? error.message
+                  : "Failed to load ferry routes."}
               </div>
             ) : routes.length === 0 ? (
               <div className="rounded-xl border border-dashed border-border/70 p-4 text-sm text-muted-foreground">
@@ -98,7 +124,10 @@ export function FerryRoutesPage() {
               </div>
             ) : (
               routes.map((route) => (
-                <div key={route.id} className="rounded-xl border border-border/60 p-4">
+                <div
+                  key={route.id}
+                  className="rounded-xl border border-border/60 p-4"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="font-medium">{route.name}</p>
@@ -132,15 +161,19 @@ export function FerryRoutesPage() {
         <Card className="border-border/60">
           <CardHeader>
             <CardTitle>Quick search</CardTitle>
-            <CardDescription>Find routes by destination or capacity.</CardDescription>
+            <CardDescription>
+              Find routes by destination or capacity.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Input placeholder="Search route" />
             <div className="rounded-xl border border-dashed border-border/70 p-4 text-sm text-muted-foreground">
-              Suggested actions: add a new stop, update frequency, or pause a low-traffic route.
+              Suggested actions: add a new stop, update frequency, or pause a
+              low-traffic route.
             </div>
             <div className="rounded-xl bg-cyan-500/10 p-4 text-sm text-cyan-800 dark:text-cyan-300">
-              Peak traffic is expected between 08:00 and 13:00. Consider adding extra capacity to Picnic Bay Express.
+              Peak traffic is expected between 08:00 and 13:00. Consider adding
+              extra capacity to Picnic Bay Express.
             </div>
           </CardContent>
         </Card>
@@ -150,32 +183,55 @@ export function FerryRoutesPage() {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Add ferry route</DialogTitle>
-            <DialogDescription>Create a new route for the island ferry network.</DialogDescription>
+            <DialogDescription>
+              Create a new route for the island ferry network.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-2">
             <div className="grid gap-2">
               <Label htmlFor="route-name">Route name</Label>
-              <Input id="route-name" value={name} onChange={(event) => setName(event.target.value)} />
+              <Input
+                id="route-name"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+              />
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="grid gap-2">
                 <Label htmlFor="route-origin">Origin</Label>
-                <Input id="route-origin" value={origin} onChange={(event) => setOrigin(event.target.value)} />
+                <Input
+                  id="route-origin"
+                  value={origin}
+                  onChange={(event) => setOrigin(event.target.value)}
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="route-destination">Destination</Label>
-                <Input id="route-destination" value={destination} onChange={(event) => setDestination(event.target.value)} />
+                <Input
+                  id="route-destination"
+                  value={destination}
+                  onChange={(event) => setDestination(event.target.value)}
+                />
               </div>
             </div>
-            {formError ? <p className="text-sm text-destructive">{formError}</p> : null}
+            {formError ? (
+              <p className="text-sm text-destructive">{formError}</p>
+            ) : null}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)} disabled={mutation.isPending}>
+            <Button
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={mutation.isPending}
+            >
               Cancel
             </Button>
-            <Button onClick={() => mutation.mutate()} disabled={mutation.isPending || !canSubmit}>
+            <Button
+              onClick={() => mutation.mutate()}
+              disabled={mutation.isPending || !canSubmit}
+            >
               {mutation.isPending ? "Creating…" : "Add route"}
             </Button>
           </DialogFooter>

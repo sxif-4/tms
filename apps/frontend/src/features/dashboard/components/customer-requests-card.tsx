@@ -28,7 +28,9 @@ const initials = (name: string) =>
     .join("")
     .toUpperCase();
 
-const openCount = CUSTOMER_REQUESTS.filter((r) => r.status !== "pending").length;
+const openCount = CUSTOMER_REQUESTS.filter(
+  (r) => r.status !== "pending",
+).length;
 
 export function CustomerRequestsCard() {
   return (

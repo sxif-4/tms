@@ -28,11 +28,7 @@ import {
   TARGET_TYPE_LABELS,
 } from "../constants";
 import { createPromotionServerFn, updatePromotionServerFn } from "../server";
-import type {
-  DiscountType,
-  Promotion,
-  PromotionTargetType,
-} from "../types";
+import type { DiscountType, Promotion, PromotionTargetType } from "../types";
 
 const DECIMAL = /^\d+(\.\d{1,2})?$/;
 const toDateInput = (iso: string) => iso.slice(0, 10);
@@ -74,7 +70,9 @@ export function PromotionDialog({
     setDiscountType(promotion?.discountType ?? "percentage");
     setDiscountValue(promotion?.discountValue ?? "");
     setMinSpend(promotion?.minSpend ?? "");
-    setUsageLimit(promotion?.usageLimit != null ? String(promotion.usageLimit) : "");
+    setUsageLimit(
+      promotion?.usageLimit != null ? String(promotion.usageLimit) : "",
+    );
     setPerUserLimit(
       promotion?.perUserLimit != null ? String(promotion.perUserLimit) : "",
     );
@@ -144,9 +142,12 @@ export function PromotionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit promotion" : "New promotion"}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Edit promotion" : "New promotion"}
+          </DialogTitle>
           <DialogDescription>
-            Discounts applied to bookings, optionally scoped to specific targets.
+            Discounts applied to bookings, optionally scoped to specific
+            targets.
           </DialogDescription>
         </DialogHeader>
 
@@ -266,7 +267,12 @@ export function PromotionDialog({
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <Label>Targets (optional)</Label>
-              <Button type="button" variant="outline" size="sm" onClick={addTarget}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addTarget}
+              >
                 <PlusIcon data-icon="inline-start" />
                 Add
               </Button>
@@ -303,7 +309,9 @@ export function PromotionDialog({
                     className="w-24"
                     placeholder="ID"
                     value={t.targetId}
-                    onChange={(e) => updateTarget(i, { targetId: e.target.value })}
+                    onChange={(e) =>
+                      updateTarget(i, { targetId: e.target.value })
+                    }
                   />
                   <Button
                     type="button"
@@ -343,7 +351,11 @@ export function PromotionDialog({
             onClick={() => mutation.mutate()}
             disabled={mutation.isPending || !canSubmit}
           >
-            {mutation.isPending ? "Saving…" : isEdit ? "Save changes" : "Create"}
+            {mutation.isPending
+              ? "Saving…"
+              : isEdit
+                ? "Save changes"
+                : "Create"}
           </Button>
         </DialogFooter>
       </DialogContent>

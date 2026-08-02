@@ -31,10 +31,7 @@ function BarTooltip({
   return (
     <div className="rounded-lg border bg-popover p-2 text-xs shadow-md">
       <div className="flex items-center gap-2">
-        <span
-          className="size-2 rounded-full"
-          style={{ background: d.color }}
-        />
+        <span className="size-2 rounded-full" style={{ background: d.color }} />
         <span className="text-muted-foreground">{d.label}</span>
         <span className="ml-auto tabular-nums">{gbp(d.revenue)}</span>
       </div>

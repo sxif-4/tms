@@ -12,7 +12,10 @@ import { HotelSwitcher } from "../components/hotel-switcher";
 import { OccupancyTrendChart } from "../components/occupancy-trend-chart";
 import { RevenueTrendChart } from "../components/revenue-trend-chart";
 import { useCurrentHotel } from "../hooks/use-current-hotel";
-import { hotelOccupancyQueryOptions, hotelRevenueQueryOptions } from "../queries";
+import {
+  hotelOccupancyQueryOptions,
+  hotelRevenueQueryOptions,
+} from "../queries";
 
 export function HotelReportsPage() {
   const { hotels, hotel, hotelId, setHotelId } = useCurrentHotel();
@@ -28,7 +31,11 @@ export function HotelReportsPage() {
   }
 
   return (
-    <HotelReportsContent hotelId={hotelId} hotels={hotels} onHotelChange={setHotelId} />
+    <HotelReportsContent
+      hotelId={hotelId}
+      hotels={hotels}
+      onHotelChange={setHotelId}
+    />
   );
 }
 
@@ -42,7 +49,9 @@ function HotelReportsContent({
   onHotelChange: (id: number) => void;
 }) {
   const { data: revenue } = useSuspenseQuery(hotelRevenueQueryOptions(hotelId));
-  const { data: occupancy } = useSuspenseQuery(hotelOccupancyQueryOptions(hotelId));
+  const { data: occupancy } = useSuspenseQuery(
+    hotelOccupancyQueryOptions(hotelId),
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -50,10 +59,15 @@ function HotelReportsContent({
         <div className="flex flex-col gap-1">
           <h1 className="font-heading text-2xl font-semibold">Reports</h1>
           <p className="text-sm text-muted-foreground">
-            Revenue and occupancy trends for this hotel, last 30 to next 30 days.
+            Revenue and occupancy trends for this hotel, last 30 to next 30
+            days.
           </p>
         </div>
-        <HotelSwitcher hotels={hotels} value={hotelId} onChange={onHotelChange} />
+        <HotelSwitcher
+          hotels={hotels}
+          value={hotelId}
+          onChange={onHotelChange}
+        />
       </div>
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">

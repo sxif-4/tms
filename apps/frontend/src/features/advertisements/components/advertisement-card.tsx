@@ -48,12 +48,7 @@ export function AdvertisementCard({
         </CardAction>
       </CardHeader>
       <CardFooter className="gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1"
-          onClick={onEdit}
-        >
+        <Button variant="outline" size="sm" className="flex-1" onClick={onEdit}>
           <PencilIcon data-icon="inline-start" />
           Edit
         </Button>

@@ -46,7 +46,8 @@ export function AssignRoomDialog({
     ? rooms.filter((r) => r.roomTypeId === booking.roomTypeId)
     : [];
   const availableRooms = candidateRooms.filter((r) => r.status === "available");
-  const roomsToShow = availableRooms.length > 0 ? availableRooms : candidateRooms;
+  const roomsToShow =
+    availableRooms.length > 0 ? availableRooms : candidateRooms;
 
   useEffect(() => {
     if (!open) return;

@@ -41,7 +41,9 @@ export function HotelBookingConfirmationPage({
         <span className="mx-auto flex size-16 items-center justify-center rounded-full bg-primary/10">
           <CheckCircle2 className="size-9 text-primary" />
         </span>
-        <h1 className="mt-6 text-3xl font-bold tracking-tight">Booking confirmed!</h1>
+        <h1 className="mt-6 text-3xl font-bold tracking-tight">
+          Booking confirmed!
+        </h1>
         <p className="mt-2 text-muted-foreground">
           Thank you{booking ? `, ${booking.guestName.split(" ")[0]}` : ""}. Your
           reservation is set.
@@ -77,14 +79,18 @@ export function HotelBookingConfirmationPage({
                     <CalendarDays className="size-4" />
                     Check-in
                   </p>
-                  <p className="mt-1 font-medium">{formatDate(booking.checkIn)}</p>
+                  <p className="mt-1 font-medium">
+                    {formatDate(booking.checkIn)}
+                  </p>
                 </div>
                 <div>
                   <p className="flex items-center gap-1.5 text-muted-foreground">
                     <CalendarDays className="size-4" />
                     Check-out
                   </p>
-                  <p className="mt-1 font-medium">{formatDate(booking.checkOut)}</p>
+                  <p className="mt-1 font-medium">
+                    {formatDate(booking.checkOut)}
+                  </p>
                 </div>
                 <div>
                   <p className="flex items-center gap-1.5 text-muted-foreground">
@@ -95,7 +101,9 @@ export function HotelBookingConfirmationPage({
                 </div>
                 <div>
                   <p className="text-muted-foreground">Total paid</p>
-                  <p className="mt-1 font-semibold">{gbp(Number(booking.totalAmount))}</p>
+                  <p className="mt-1 font-semibold">
+                    {gbp(Number(booking.totalAmount))}
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-2 rounded-lg bg-muted/50 p-3 text-sm">

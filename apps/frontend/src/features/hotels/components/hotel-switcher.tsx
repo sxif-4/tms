@@ -25,10 +25,7 @@ export function HotelSwitcher({
   if (hotels.length <= 1) return null;
 
   return (
-    <Select
-      value={String(value)}
-      onValueChange={(v) => onChange(Number(v))}
-    >
+    <Select value={String(value)} onValueChange={(v) => onChange(Number(v))}>
       <SelectTrigger aria-label="Switch hotel">
         <SelectValue />
       </SelectTrigger>

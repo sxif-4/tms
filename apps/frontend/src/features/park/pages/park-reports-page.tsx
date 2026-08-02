@@ -281,7 +281,9 @@ function BreakdownCard({
                     {gbp(r.revenue)}
                   </TableCell>
                   <TableCell className="text-right tabular-nums">
-                    {total > 0 ? `${Math.round((r.revenue / total) * 100)}%` : "—"}
+                    {total > 0
+                      ? `${Math.round((r.revenue / total) * 100)}%`
+                      : "—"}
                   </TableCell>
                 </TableRow>
               ))}

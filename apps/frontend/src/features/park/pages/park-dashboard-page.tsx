@@ -155,7 +155,10 @@ export function ParkDashboardPage() {
               )}
 
               {capacityAlerts.daysNearCapacity.length > 0 && (
-                <AlertGroup icon={AlertTriangleIcon} title="Days nearly sold out">
+                <AlertGroup
+                  icon={AlertTriangleIcon}
+                  title="Days nearly sold out"
+                >
                   {capacityAlerts.daysNearCapacity.map((d) => (
                     <div
                       key={d.date}

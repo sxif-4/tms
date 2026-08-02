@@ -13,7 +13,9 @@ export function RevenueBySourceCard({ data }: { data: SalesPoint[] }) {
     <Card className="p-4">
       <CardHeader className="p-0">
         <CardTitle>Revenue by source</CardTitle>
-        <CardDescription>Booked value over time, split by source</CardDescription>
+        <CardDescription>
+          Booked value over time, split by source
+        </CardDescription>
       </CardHeader>
       <CardContent className="p-0">
         <RevenueAreaChart data={data} />

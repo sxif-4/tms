@@ -20,7 +20,12 @@ import {
   registerRequest,
 } from "~/features/auth/api";
 import { meQueryOptions } from "~/features/auth/queries";
-import { loginSchema, signupSchema, type LoginValues, type SignupValues } from "~/features/auth/schemas";
+import {
+  loginSchema,
+  signupSchema,
+  type LoginValues,
+  type SignupValues,
+} from "~/features/auth/schemas";
 
 export function InlineAuthPanel({
   defaultName = "",
@@ -96,7 +101,11 @@ export function InlineAuthPanel({
         Your dates and contact details are saved — just sign in or create an
         account to confirm.
       </p>
-      <Tabs value={tab} onValueChange={(v) => setTab(v as "login" | "signup")} className="mt-4">
+      <Tabs
+        value={tab}
+        onValueChange={(v) => setTab(v as "login" | "signup")}
+        className="mt-4"
+      >
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="signup">Create account</TabsTrigger>
           <TabsTrigger value="login">Sign in</TabsTrigger>
@@ -113,7 +122,9 @@ export function InlineAuthPanel({
               <Field>
                 <FieldLabel htmlFor="inline-name">Full name</FieldLabel>
                 <Input id="inline-name" {...signupForm.register("name")} />
-                <FieldError>{signupForm.formState.errors.name?.message}</FieldError>
+                <FieldError>
+                  {signupForm.formState.errors.name?.message}
+                </FieldError>
               </Field>
               <Field>
                 <FieldLabel htmlFor="inline-signup-email">Email</FieldLabel>
@@ -122,10 +133,14 @@ export function InlineAuthPanel({
                   type="email"
                   {...signupForm.register("email")}
                 />
-                <FieldError>{signupForm.formState.errors.email?.message}</FieldError>
+                <FieldError>
+                  {signupForm.formState.errors.email?.message}
+                </FieldError>
               </Field>
               <Field>
-                <FieldLabel htmlFor="inline-signup-password">Password</FieldLabel>
+                <FieldLabel htmlFor="inline-signup-password">
+                  Password
+                </FieldLabel>
                 <Input
                   id="inline-signup-password"
                   type="password"
@@ -136,7 +151,9 @@ export function InlineAuthPanel({
                 </FieldError>
               </Field>
               <Field>
-                <FieldLabel htmlFor="inline-confirm">Confirm password</FieldLabel>
+                <FieldLabel htmlFor="inline-confirm">
+                  Confirm password
+                </FieldLabel>
                 <Input
                   id="inline-confirm"
                   type="password"
@@ -146,8 +163,14 @@ export function InlineAuthPanel({
                   {signupForm.formState.errors.confirmPassword?.message}
                 </FieldError>
               </Field>
-              <Button type="submit" disabled={signupMutation.isPending} className="w-full">
-                {signupMutation.isPending ? "Creating account…" : "Create account & book"}
+              <Button
+                type="submit"
+                disabled={signupMutation.isPending}
+                className="w-full"
+              >
+                {signupMutation.isPending
+                  ? "Creating account…"
+                  : "Create account & book"}
               </Button>
             </FieldGroup>
           </form>
@@ -168,10 +191,14 @@ export function InlineAuthPanel({
                   type="email"
                   {...loginForm.register("email")}
                 />
-                <FieldError>{loginForm.formState.errors.email?.message}</FieldError>
+                <FieldError>
+                  {loginForm.formState.errors.email?.message}
+                </FieldError>
               </Field>
               <Field>
-                <FieldLabel htmlFor="inline-login-password">Password</FieldLabel>
+                <FieldLabel htmlFor="inline-login-password">
+                  Password
+                </FieldLabel>
                 <Input
                   id="inline-login-password"
                   type="password"
@@ -181,7 +208,11 @@ export function InlineAuthPanel({
                   {loginForm.formState.errors.password?.message}
                 </FieldError>
               </Field>
-              <Button type="submit" disabled={loginMutation.isPending} className="w-full">
+              <Button
+                type="submit"
+                disabled={loginMutation.isPending}
+                className="w-full"
+              >
                 {loginMutation.isPending ? "Signing in…" : "Sign in & book"}
               </Button>
             </FieldGroup>

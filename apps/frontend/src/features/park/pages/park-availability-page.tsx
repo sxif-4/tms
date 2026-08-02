@@ -55,7 +55,9 @@ export function ParkAvailabilityPage() {
 
   const shiftMonth = (delta: number) =>
     setMonth(
-      new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth() + delta, 1)),
+      new Date(
+        Date.UTC(month.getUTCFullYear(), month.getUTCMonth() + delta, 1),
+      ),
     );
 
   return (
@@ -192,14 +194,29 @@ function Legend() {
   return (
     <div className="text-muted-foreground flex flex-wrap gap-4 text-xs">
       <LegendItem className="border-ring/40" label="Custom cap" />
-      <LegendItem className="border-amber-500/50 bg-amber-500/10" label="Nearly full" />
-      <LegendItem className="border-destructive/40 bg-destructive/5" label="Sold out" />
-      <LegendItem className="border-destructive/40 bg-destructive/10" label="Closed" />
+      <LegendItem
+        className="border-amber-500/50 bg-amber-500/10"
+        label="Nearly full"
+      />
+      <LegendItem
+        className="border-destructive/40 bg-destructive/5"
+        label="Sold out"
+      />
+      <LegendItem
+        className="border-destructive/40 bg-destructive/10"
+        label="Closed"
+      />
     </div>
   );
 }
 
-function LegendItem({ className, label }: { className: string; label: string }) {
+function LegendItem({
+  className,
+  label,
+}: {
+  className: string;
+  label: string;
+}) {
   return (
     <span className="flex items-center gap-1.5">
       <span className={cn("size-3 rounded border", className)} />

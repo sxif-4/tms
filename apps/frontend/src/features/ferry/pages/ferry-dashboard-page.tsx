@@ -115,10 +115,14 @@ export function FerryDashboardPage() {
               Ferry control center
             </h1>
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Validate ticket requests, review sailings, and keep passenger flow smooth for the island’s busiest routes.
+              Validate ticket requests, review sailings, and keep passenger flow
+              smooth for the island’s busiest routes.
             </p>
           </div>
-          <Button asChild className="w-fit bg-cyan-700 text-white hover:bg-cyan-800">
+          <Button
+            asChild
+            className="w-fit bg-cyan-700 text-white hover:bg-cyan-800"
+          >
             <Link to="/dashboard/ferry/schedules">Create new schedule</Link>
           </Button>
         </div>
@@ -153,7 +157,8 @@ export function FerryDashboardPage() {
               <div>
                 <CardTitle>Validate ferry pass</CardTitle>
                 <CardDescription>
-                  Confirm that a visitor has a valid hotel booking before issuing a ferry ticket.
+                  Confirm that a visitor has a valid hotel booking before
+                  issuing a ferry ticket.
                 </CardDescription>
               </div>
               <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
@@ -198,15 +203,22 @@ export function FerryDashboardPage() {
         <Card className="border-border/60">
           <CardHeader>
             <CardTitle>Today’s departures</CardTitle>
-            <CardDescription>Live schedule overview for the next few sailings.</CardDescription>
+            <CardDescription>
+              Live schedule overview for the next few sailings.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {schedules.map((item) => (
-              <div key={item.time} className="rounded-lg border border-border/60 p-3">
+              <div
+                key={item.time}
+                className="rounded-lg border border-border/60 p-3"
+              >
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="font-medium">{item.time}</p>
-                    <p className="text-sm text-muted-foreground">{item.route}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {item.route}
+                    </p>
                   </div>
                   <Badge variant="outline">{item.status}</Badge>
                 </div>
@@ -226,11 +238,16 @@ export function FerryDashboardPage() {
         <Card className="border-border/60">
           <CardHeader>
             <CardTitle>Route occupancy</CardTitle>
-            <CardDescription>Quick pulse on passenger demand and capacity.</CardDescription>
+            <CardDescription>
+              Quick pulse on passenger demand and capacity.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {routeHighlights.map((route) => (
-              <div key={route.name} className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2.5">
+              <div
+                key={route.name}
+                className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2.5"
+              >
                 <div>
                   <p className="font-medium">{route.name}</p>
                   <p className="text-sm text-muted-foreground">{route.trend}</p>
@@ -242,11 +259,13 @@ export function FerryDashboardPage() {
                         "h-2 rounded-full bg-cyan-600",
                         route.name === "Picnic Bay" && "w-[82%]",
                         route.name === "Theme Park" && "w-[61%]",
-                        route.name === "Sunset Cove" && "w-[47%]"
+                        route.name === "Sunset Cove" && "w-[47%]",
                       )}
                     />
                   </div>
-                  <span className="min-w-10 text-sm font-medium">{route.occupancy}</span>
+                  <span className="min-w-10 text-sm font-medium">
+                    {route.occupancy}
+                  </span>
                 </div>
               </div>
             ))}
@@ -256,14 +275,21 @@ export function FerryDashboardPage() {
         <Card className="border-border/60">
           <CardHeader>
             <CardTitle>Recent requests</CardTitle>
-            <CardDescription>Newest visitor requests that need attention.</CardDescription>
+            <CardDescription>
+              Newest visitor requests that need attention.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {recentRequests.map((request) => (
-              <div key={request.name} className="flex items-start justify-between rounded-lg border border-border/60 p-3">
+              <div
+                key={request.name}
+                className="flex items-start justify-between rounded-lg border border-border/60 p-3"
+              >
                 <div className="space-y-1">
                   <p className="font-medium">{request.name}</p>
-                  <p className="text-sm text-muted-foreground">{request.booking}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {request.booking}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Clock3Icon className="size-4" />

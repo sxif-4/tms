@@ -12,10 +12,34 @@ export const Route = createFileRoute("/ferry/")({
 });
 
 const PLANNED_SCHEDULE = [
-  { id: 1, route: "Mainland → Island", departure: "08:00", arrival: "10:30", days: "Daily" },
-  { id: 2, route: "Island → Mainland", departure: "11:00", arrival: "13:30", days: "Daily" },
-  { id: 3, route: "Mainland → Island", departure: "14:00", arrival: "16:30", days: "Daily" },
-  { id: 4, route: "Island → Mainland", departure: "17:00", arrival: "19:30", days: "Daily" },
+  {
+    id: 1,
+    route: "Mainland → Island",
+    departure: "08:00",
+    arrival: "10:30",
+    days: "Daily",
+  },
+  {
+    id: 2,
+    route: "Island → Mainland",
+    departure: "11:00",
+    arrival: "13:30",
+    days: "Daily",
+  },
+  {
+    id: 3,
+    route: "Mainland → Island",
+    departure: "14:00",
+    arrival: "16:30",
+    days: "Daily",
+  },
+  {
+    id: 4,
+    route: "Island → Mainland",
+    departure: "17:00",
+    arrival: "19:30",
+    days: "Daily",
+  },
 ];
 
 function FerryPage() {
@@ -36,10 +60,12 @@ function FerryPage() {
         <Badge variant="secondary" className="mt-4">
           Coming soon
         </Badge>
-        <h1 className="mt-4 text-4xl font-bold tracking-tight">Ferry service</h1>
+        <h1 className="mt-4 text-4xl font-bold tracking-tight">
+          Ferry service
+        </h1>
         <p className="mt-3 text-lg text-muted-foreground">
-          Daily ferries between the mainland and the island. Bookings open
-          soon — be the first to know.
+          Daily ferries between the mainland and the island. Bookings open soon
+          — be the first to know.
         </p>
       </div>
 
@@ -113,7 +139,11 @@ function FerryPage() {
       </div>
 
       <p className="mt-8 text-center text-sm text-muted-foreground">
-        Meanwhile, <Link to="/hotels" className="underline underline-offset-4">browse hotel stays</Link>.
+        Meanwhile,{" "}
+        <Link to="/hotels" className="underline underline-offset-4">
+          browse hotel stays
+        </Link>
+        .
       </p>
     </div>
   );

@@ -1,7 +1,7 @@
-import { ChevronsUpDownIcon, Loader2Icon } from "lucide-react"
-import { useState } from "react"
+import { ChevronsUpDownIcon, Loader2Icon } from "lucide-react";
+import { useState } from "react";
 
-import { Button } from "~/components/ui/button"
+import { Button } from "~/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -9,27 +9,31 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "~/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover"
-import { cn } from "~/lib/utils"
+} from "~/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import { cn } from "~/lib/utils";
 
 export interface ComboboxOption {
-  value: string
-  label: string
-  description?: string
+  value: string;
+  label: string;
+  description?: string;
 }
 
 interface ComboboxProps {
-  options: ComboboxOption[]
-  value: string
-  onChange: (value: string) => void
-  onSearchChange?: (search: string) => void
-  placeholder?: string
-  searchPlaceholder?: string
-  emptyText?: string
-  loading?: boolean
-  disabled?: boolean
-  id?: string
+  options: ComboboxOption[];
+  value: string;
+  onChange: (value: string) => void;
+  onSearchChange?: (search: string) => void;
+  placeholder?: string;
+  searchPlaceholder?: string;
+  emptyText?: string;
+  loading?: boolean;
+  disabled?: boolean;
+  id?: string;
 }
 
 export function Combobox({
@@ -58,13 +62,18 @@ export function Combobox({
           aria-expanded={open}
           className="w-full justify-between font-normal"
         >
-          <span className={cn("truncate", !selected && "text-muted-foreground")}>
+          <span
+            className={cn("truncate", !selected && "text-muted-foreground")}
+          >
             {selected ? selected.label : placeholder}
           </span>
           <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+      <PopoverContent
+        className="w-(--radix-popover-trigger-width) p-0"
+        align="start"
+      >
         <Command shouldFilter={!onSearchChange}>
           <CommandInput
             placeholder={searchPlaceholder}

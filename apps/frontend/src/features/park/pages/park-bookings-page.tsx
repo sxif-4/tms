@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { CalendarCheckIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -73,7 +77,9 @@ export function ParkBookingsPage() {
       queryClient.invalidateQueries({ queryKey: ["event-schedules"] });
       queryClient.invalidateQueries({ queryKey: ["park-dashboard"] });
       toast.success(
-        input.status === "cancelled" ? "Booking cancelled" : "Booking confirmed",
+        input.status === "cancelled"
+          ? "Booking cancelled"
+          : "Booking confirmed",
       );
       setConfirming(null);
       setCancelling(null);

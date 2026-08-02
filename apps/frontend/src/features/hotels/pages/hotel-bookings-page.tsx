@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { CalendarCheckIcon, DoorOpenIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -39,7 +43,11 @@ const fmtDate = (iso: string) =>
     year: "numeric",
   });
 
-type StaffAction = { label: string; to: "confirmed" | "cancelled" | "completed"; destructive?: boolean };
+type StaffAction = {
+  label: string;
+  to: "confirmed" | "cancelled" | "completed";
+  destructive?: boolean;
+};
 
 function actionsFor(status: BookingStatus): StaffAction[] {
   switch (status) {
@@ -72,7 +80,11 @@ export function HotelBookingsPage() {
   }
 
   return (
-    <HotelBookingsContent hotelId={hotelId} hotels={hotels} onHotelChange={setHotelId} />
+    <HotelBookingsContent
+      hotelId={hotelId}
+      hotels={hotels}
+      onHotelChange={setHotelId}
+    />
   );
 }
 
@@ -95,14 +107,20 @@ function HotelBookingsContent({
   } | null>(null);
 
   const { data: bookings } = useSuspenseQuery(
-    hotelBookingsQueryOptions(hotelId, statusFilter === "all" ? undefined : statusFilter),
+    hotelBookingsQueryOptions(
+      hotelId,
+      statusFilter === "all" ? undefined : statusFilter,
+    ),
   );
   const { data: rooms } = useSuspenseQuery(hotelRoomsQueryOptions(hotelId));
 
   const statusMutation = useMutation({
     mutationFn: () =>
       updateBookingStatusServerFn({
-        data: { id: pendingAction!.booking.id, status: pendingAction!.action.to },
+        data: {
+          id: pendingAction!.booking.id,
+          status: pendingAction!.action.to,
+        },
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["hotel-bookings"] });
@@ -111,7 +129,9 @@ function HotelBookingsContent({
       setPendingAction(null);
     },
     onError: (err) =>
-      toast.error(err instanceof Error ? err.message : "Failed to update booking"),
+      toast.error(
+        err instanceof Error ? err.message : "Failed to update booking",
+      ),
   });
 
   return (
@@ -123,7 +143,11 @@ function HotelBookingsContent({
             Assign rooms and manage the booking lifecycle for this hotel.
           </p>
         </div>
-        <HotelSwitcher hotels={hotels} value={hotelId} onChange={onHotelChange} />
+        <HotelSwitcher
+          hotels={hotels}
+          value={hotelId}
+          onChange={onHotelChange}
+        />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -192,7 +216,9 @@ function HotelBookingsContent({
                           </span>
                         </div>
                       ) : (
-                        <span className="text-muted-foreground">Guest ••••</span>
+                        <span className="text-muted-foreground">
+                          Guest ••••
+                        </span>
                       )}
                     </TableCell>
                     <TableCell>{booking.roomTypeName}</TableCell>
@@ -228,7 +254,9 @@ function HotelBookingsContent({
                             key={action.to}
                             variant="outline"
                             size="sm"
-                            onClick={() => setPendingAction({ booking, action })}
+                            onClick={() =>
+                              setPendingAction({ booking, action })
+                            }
                           >
                             {action.label}
                           </Button>

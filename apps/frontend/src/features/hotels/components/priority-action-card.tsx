@@ -9,7 +9,11 @@ import {
 } from "~/components/ui/card";
 import type { HotelDashboardResponse } from "../types";
 
-type Row = { key: string; label: string; to: "/dashboard/hotel/bookings" | "/dashboard/hotel/rooms" };
+type Row = {
+  key: string;
+  label: string;
+  to: "/dashboard/hotel/bookings" | "/dashboard/hotel/rooms";
+};
 
 /** Renders only when there's at least one actionable item across the three priority buckets. */
 export function PriorityActionCard({

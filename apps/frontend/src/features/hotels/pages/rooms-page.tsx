@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { BedDoubleIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -45,7 +49,11 @@ export function RoomsPage() {
   }
 
   return (
-    <RoomsPageContent hotelId={hotelId} hotels={hotels} onHotelChange={setHotelId} />
+    <RoomsPageContent
+      hotelId={hotelId}
+      hotels={hotels}
+      onHotelChange={setHotelId}
+    />
   );
 }
 
@@ -64,7 +72,9 @@ function RoomsPageContent({
 
   const [roomTypeDialogOpen, setRoomTypeDialogOpen] = useState(false);
   const [editingRoomType, setEditingRoomType] = useState<RoomType | null>(null);
-  const [deletingRoomType, setDeletingRoomType] = useState<RoomType | null>(null);
+  const [deletingRoomType, setDeletingRoomType] = useState<RoomType | null>(
+    null,
+  );
 
   const [roomDialogOpen, setRoomDialogOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
@@ -73,12 +83,16 @@ function RoomsPageContent({
   const deleteRoomTypeMutation = useMutation({
     mutationFn: (id: number) => deleteRoomTypeServerFn({ data: { id } }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: roomTypesQueryOptions.queryKey });
+      queryClient.invalidateQueries({
+        queryKey: roomTypesQueryOptions.queryKey,
+      });
       toast.success("Room type deleted");
       setDeletingRoomType(null);
     },
     onError: (err) =>
-      toast.error(err instanceof Error ? err.message : "Failed to delete room type"),
+      toast.error(
+        err instanceof Error ? err.message : "Failed to delete room type",
+      ),
   });
 
   const deleteRoomMutation = useMutation({
@@ -105,7 +119,11 @@ function RoomsPageContent({
             Manage the room-type catalog and this hotel's room inventory.
           </p>
         </div>
-        <HotelSwitcher hotels={hotels} value={hotelId} onChange={onHotelChange} />
+        <HotelSwitcher
+          hotels={hotels}
+          value={hotelId}
+          onChange={onHotelChange}
+        />
       </div>
 
       <Card>
@@ -215,7 +233,9 @@ function RoomsPageContent({
           <CardHeader className="flex flex-row items-start justify-between gap-4">
             <div>
               <CardTitle>Rooms</CardTitle>
-              <CardDescription>This hotel's physical room inventory.</CardDescription>
+              <CardDescription>
+                This hotel's physical room inventory.
+              </CardDescription>
             </div>
             <Button
               size="sm"
@@ -259,7 +279,9 @@ function RoomsPageContent({
                 <TableBody>
                   {rooms.map((room) => (
                     <TableRow key={room.id}>
-                      <TableCell className="font-medium">{room.roomNumber}</TableCell>
+                      <TableCell className="font-medium">
+                        {room.roomNumber}
+                      </TableCell>
                       <TableCell>
                         {roomTypeNameById.get(room.roomTypeId) ?? "—"}
                       </TableCell>
@@ -328,7 +350,9 @@ function RoomsPageContent({
         confirmLabel="Delete"
         destructive
         pending={deleteRoomMutation.isPending}
-        onConfirm={() => deletingRoom && deleteRoomMutation.mutate(deletingRoom.id)}
+        onConfirm={() =>
+          deletingRoom && deleteRoomMutation.mutate(deletingRoom.id)
+        }
       />
     </div>
   );

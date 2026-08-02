@@ -92,7 +92,8 @@ export function AnalyticsPage() {
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {usage.map((u) => {
-          const label = DOMAINS.find((d) => d.key === u.domain)?.label ?? u.domain;
+          const label =
+            DOMAINS.find((d) => d.key === u.domain)?.label ?? u.domain;
           return (
             <Card key={u.domain}>
               <CardHeader>

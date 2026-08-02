@@ -99,8 +99,7 @@ export function GateSaleDialog({
     selectedType && quantity > 0 ? Number(selectedType.price) * quantity : 0;
 
   const mutation = useMutation({
-    mutationFn: (values: GateSaleValues) =>
-      gateSaleServerFn({ data: values }),
+    mutationFn: (values: GateSaleValues) => gateSaleServerFn({ data: values }),
     onSuccess: (ticket) => {
       queryClient.invalidateQueries({ queryKey: ["park-tickets"] });
       queryClient.invalidateQueries({ queryKey: ["park-dashboard"] });
@@ -169,7 +168,12 @@ export function GateSaleDialog({
             </div>
             <Field>
               <FieldLabel htmlFor="gs-date">Visit date</FieldLabel>
-              <Input id="gs-date" type="date" min={today} {...register("visitDate")} />
+              <Input
+                id="gs-date"
+                type="date"
+                min={today}
+                {...register("visitDate")}
+              />
               <FieldError>{errors.visitDate?.message}</FieldError>
             </Field>
             <Field>

@@ -113,7 +113,11 @@ export function RoomDialog({
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="room-number">Room number</FieldLabel>
-              <Input id="room-number" placeholder="101" {...register("roomNumber")} />
+              <Input
+                id="room-number"
+                placeholder="101"
+                {...register("roomNumber")}
+              />
               <FieldError>{errors.roomNumber?.message}</FieldError>
             </Field>
             <Field>
@@ -178,7 +182,11 @@ export function RoomDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? "Saving…" : isEdit ? "Save changes" : "Create"}
+              {mutation.isPending
+                ? "Saving…"
+                : isEdit
+                  ? "Save changes"
+                  : "Create"}
             </Button>
           </DialogFooter>
         </form>

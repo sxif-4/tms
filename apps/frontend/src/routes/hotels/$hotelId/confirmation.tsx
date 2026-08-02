@@ -26,9 +26,6 @@ function ConfirmationRoute() {
   const { hotelId } = Route.useParams();
   const { ref } = Route.useSearch();
   return (
-    <HotelBookingConfirmationPage
-      hotelId={Number(hotelId)}
-      reference={ref}
-    />
+    <HotelBookingConfirmationPage hotelId={Number(hotelId)} reference={ref} />
   );
 }

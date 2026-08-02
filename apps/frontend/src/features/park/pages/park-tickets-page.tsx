@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { PencilIcon, PlusIcon, TicketIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -37,7 +41,10 @@ import {
   TICKET_STATUS_LABELS,
   gbp,
 } from "../constants";
-import { parkTicketsQueryOptions, parkTicketTypesQueryOptions } from "../queries";
+import {
+  parkTicketsQueryOptions,
+  parkTicketTypesQueryOptions,
+} from "../queries";
 import {
   deleteParkTicketTypeServerFn,
   updateParkTicketStatusServerFn,
@@ -111,7 +118,9 @@ export function ParkTicketsPage() {
       setRefunding(null);
     },
     onError: (err) =>
-      toast.error(err instanceof Error ? err.message : "Failed to update ticket"),
+      toast.error(
+        err instanceof Error ? err.message : "Failed to update ticket",
+      ),
   });
 
   return (

@@ -31,7 +31,9 @@ function AvailabilityDayButton({
     day: "numeric",
     month: "long",
   });
-  const availabilityLabel = info ? AVAILABILITY_TIER_LABEL[info.level] : undefined;
+  const availabilityLabel = info
+    ? AVAILABILITY_TIER_LABEL[info.level]
+    : undefined;
 
   return (
     <Button

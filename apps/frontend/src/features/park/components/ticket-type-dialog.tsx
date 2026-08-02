@@ -99,7 +99,11 @@ export function TicketTypeDialog({
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="tt-name">Name</FieldLabel>
-              <Input id="tt-name" placeholder="Day Pass" {...register("name")} />
+              <Input
+                id="tt-name"
+                placeholder="Day Pass"
+                {...register("name")}
+              />
               <FieldError>{errors.name?.message}</FieldError>
             </Field>
             <Field>
