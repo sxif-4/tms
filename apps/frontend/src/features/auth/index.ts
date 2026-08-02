@@ -4,4 +4,4 @@ export { SignupForm } from "./components/signup-form";
 export { meQueryOptions, useCurrentUser, useLogout } from "./queries";
 export { landingPathForRole, roleLandingPath } from "./redirects";
 export { loginSearchSchema } from "./schemas";
-export type { Role, User } from "./types";
+export type { AssignedHotel, Role, User } from "./types";

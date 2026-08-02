@@ -13,6 +13,8 @@ export interface Hotel {
   description: string | null;
   mapLocationId: number | null;
   maxRooms: number;
+  /** Suspended hotels are hidden from visitors and take no new bookings. */
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }

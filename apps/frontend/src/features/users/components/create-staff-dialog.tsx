@@ -21,10 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { Separator } from "~/components/ui/separator";
 import type { Role } from "~/features/auth";
 import { ASSIGNABLE_ROLES, ROLE_LABELS } from "../constants";
 import { usersQueryOptions } from "../queries";
 import { createStaffServerFn, type StaffCreated } from "../server";
+import { HotelAssignmentEditor } from "./hotel-assignment-editor";
 
 export function CreateStaffDialog({
   open,
@@ -99,6 +101,14 @@ export function CreateStaffDialog({
               value={created.temporaryPassword}
               mono
             />
+            {/* Hotel staff are useless until scoped to a hotel — do it here
+                rather than sending the admin back to the grid to remember. */}
+            {created.user.role === "hotel_staff" && (
+              <>
+                <Separator className="my-1" />
+                <HotelAssignmentEditor userId={created.user.id} />
+              </>
+            )}
           </div>
         ) : (
           <div className="flex flex-col gap-4">

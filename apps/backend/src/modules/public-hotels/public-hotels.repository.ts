@@ -143,7 +143,7 @@ export class PublicHotelsRepository {
           (SELECT COUNT(*) FROM imageables im
              WHERE im.imageable_type = 'hotel' AND im.imageable_id = h.id) AS imageCount
         FROM hotels h LEFT JOIN map_locations ml ON ml.id = h.map_location_id
-        WHERE 1 = 1 ${guestsFilter}
+        WHERE h.is_active = 1 ${guestsFilter}
       )
       WHERE 1 = 1
         ${filters.minPrice != null ? sql`AND (minPrice IS NULL OR minPrice >= ${filters.minPrice})` : sql``}
@@ -162,7 +162,7 @@ export class PublicHotelsRepository {
            WHERE r.hotel_id = h.id AND r.status != 'out_of_service') AS minPrice,
         NULL AS image
       FROM hotels h LEFT JOIN map_locations ml ON ml.id = h.map_location_id
-      WHERE h.id = ${hotelId}
+      WHERE h.id = ${hotelId} AND h.is_active = 1
     `);
     if (!hotel) return undefined;
 

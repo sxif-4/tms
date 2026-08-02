@@ -10,6 +10,13 @@ export const hotels = sqliteTable(
     description: text('description'),
     mapLocationId: integer('map_location_id').references(() => mapLocations.id),
     maxRooms: integer('max_rooms').notNull(),
+    /**
+     * Admin can suspend a hotel without deleting it: suspended hotels vanish
+     * from visitor browsing and reject new bookings, but existing bookings and
+     * their price snapshots survive, and assigned staff keep access so they
+     * can see out the guests already booked in.
+     */
+    isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
     createdAt: integer('created_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(unixepoch())`),

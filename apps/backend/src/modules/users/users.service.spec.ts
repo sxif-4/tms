@@ -13,6 +13,7 @@ describe('UsersService', () => {
     updateRole: jest.Mock;
     setActive: jest.Mock;
   };
+  let assignments: { deleteInvalidForRole: jest.Mock };
   let audit: { record: jest.Mock };
 
   beforeEach(() => {
@@ -24,8 +25,15 @@ describe('UsersService', () => {
       updateRole: jest.fn(),
       setActive: jest.fn(),
     };
+    assignments = {
+      deleteInvalidForRole: jest.fn().mockResolvedValue(undefined),
+    };
     audit = { record: jest.fn().mockResolvedValue(undefined) };
-    service = new UsersService(repo as never, audit as never);
+    service = new UsersService(
+      repo as never,
+      assignments as never,
+      audit as never,
+    );
   });
 
   describe('createStaff', () => {
@@ -89,6 +97,20 @@ describe('UsersService', () => {
           action: AuditAction.UserRoleUpdated,
           metadata: { from: Role.Visitor, to: Role.HotelStaff },
         }),
+      );
+    });
+
+    it('drops assignments the new role cannot use', async () => {
+      repo.findByIdWithRole
+        .mockResolvedValueOnce({ id: 5, role: Role.HotelStaff })
+        .mockResolvedValueOnce({ id: 5, role: Role.Visitor });
+      repo.findRoleBySlug.mockResolvedValue({ id: 1 });
+
+      await service.updateRole(5, Role.Visitor, 1);
+
+      expect(assignments.deleteInvalidForRole).toHaveBeenCalledWith(
+        5,
+        Role.Visitor,
       );
     });
   });

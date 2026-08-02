@@ -14,6 +14,7 @@ import { useCurrentUser } from "~/features/auth";
 import type { Role, User } from "~/features/auth";
 import { ChangeRoleDialog } from "../components/change-role-dialog";
 import { CreateStaffDialog } from "../components/create-staff-dialog";
+import { ManageHotelsDialog } from "../components/manage-hotels-dialog";
 import { UserCard } from "../components/user-card";
 import { ROLE_LABELS } from "../constants";
 import { usersQueryOptions } from "../queries";
@@ -26,6 +27,7 @@ export function UsersListPage() {
   const currentUser = useCurrentUser();
   const { data: users } = useSuspenseQuery(usersQueryOptions);
   const [selected, setSelected] = useState<User | null>(null);
+  const [managingHotels, setManagingHotels] = useState<User | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [roleFilter, setRoleFilter] = useState<Role | "all">("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -110,12 +112,17 @@ export function UsersListPage() {
               key={user.id}
               user={user}
               onChangeRole={() => setSelected(user)}
+              onManageHotels={() => setManagingHotels(user)}
             />
           ))}
         </div>
       )}
 
       <ChangeRoleDialog user={selected} onClose={() => setSelected(null)} />
+      <ManageHotelsDialog
+        user={managingHotels}
+        onClose={() => setManagingHotels(null)}
+      />
       <CreateStaffDialog open={showCreate} onOpenChange={setShowCreate} />
     </div>
   );

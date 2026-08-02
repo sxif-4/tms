@@ -8,5 +8,6 @@ import { MapLocationsService } from './map-locations.service';
   imports: [AuditModule],
   controllers: [MapLocationsController],
   providers: [MapLocationsService, MapLocationsRepository],
+  exports: [MapLocationsRepository],
 })
 export class MapLocationsModule {}

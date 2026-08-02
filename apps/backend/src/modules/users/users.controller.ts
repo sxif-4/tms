@@ -16,6 +16,8 @@ import type { AuthenticatedUser } from '../../shared/interfaces/authenticated-us
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto';
 import { UserResponseDto } from './dto/user-response.dto';
+import { UserAssignmentsService } from './user-assignments.service';
+import { type UserWithRole } from './users.repository';
 import { UsersService } from './users.service';
 
 /** Shape returned once when an admin creates an account. */
@@ -28,12 +30,20 @@ interface StaffCreatedResponse {
 @Controller('users')
 @Roles(Role.Admin)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly assignments: UserAssignmentsService,
+  ) {}
 
   @Get()
   async findAll(): Promise<UserResponseDto[]> {
     const users = await this.usersService.listAll();
-    return users.map((u) => new UserResponseDto(u));
+    const hotelsByUser = await this.assignments.hotelsForUsers(
+      users.map((u) => u.id),
+    );
+    return users.map(
+      (u) => new UserResponseDto(u, hotelsByUser.get(u.id) ?? []),
+    );
   }
 
   /** Name/email search for staff-facing pickers (e.g. the ferry booking form). Must stay above `:id` — Nest matches routes in declaration order per method. */
@@ -60,7 +70,8 @@ export class UsersController {
   async findOne(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<UserResponseDto> {
-    return new UserResponseDto(await this.usersService.findByIdWithRole(id));
+    const user = await this.usersService.findByIdWithRole(id);
+    return this.withAssignments(user);
   }
 
   @Patch(':id/role')
@@ -72,7 +83,8 @@ export class UsersController {
     if (id === currentUser.id) {
       throw new ForbiddenException('You cannot change your own role');
     }
-    return new UserResponseDto(
+    // Re-read assignments: a role change drops the ones the new role can't use.
+    return this.withAssignments(
       await this.usersService.updateRole(id, dto.role, currentUser.id),
     );
   }
@@ -82,7 +94,7 @@ export class UsersController {
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() currentUser: AuthenticatedUser,
   ): Promise<UserResponseDto> {
-    return new UserResponseDto(
+    return this.withAssignments(
       await this.usersService.activate(id, currentUser.id),
     );
   }
@@ -95,8 +107,14 @@ export class UsersController {
     if (id === currentUser.id) {
       throw new ForbiddenException('You cannot deactivate your own account');
     }
-    return new UserResponseDto(
+    return this.withAssignments(
       await this.usersService.deactivate(id, currentUser.id),
     );
+  }
+
+  /** Serialises a single user with the hotels they're scoped to. */
+  private async withAssignments(user: UserWithRole): Promise<UserResponseDto> {
+    const byUser = await this.assignments.hotelsForUsers([user.id]);
+    return new UserResponseDto(user, byUser.get(user.id) ?? []);
   }
 }

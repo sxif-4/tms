@@ -212,7 +212,11 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
     {
       label: "Operations",
       items: [
-        { title: "Hotels", path: "#/hotels", icon: <HotelIcon /> },
+        {
+          title: "Hotels",
+          path: "/dashboard/admin/hotels",
+          icon: <HotelIcon />,
+        },
         { title: "Ferries", path: "#/ferries", icon: <ShipIcon /> },
         {
           title: "Theme Park",

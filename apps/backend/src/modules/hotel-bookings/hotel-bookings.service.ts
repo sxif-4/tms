@@ -64,6 +64,12 @@ export class HotelBookingsService {
   ): Promise<HotelBookingRow> {
     const hotel = await this.hotelsRepo.findById(dto.hotelId);
     if (!hotel) throw new NotFoundException(`Hotel #${dto.hotelId} not found`);
+    // Suspended hotels keep their existing bookings but take no new ones.
+    if (!hotel.isActive) {
+      throw new BadRequestException(
+        `${hotel.name} is not accepting bookings at the moment`,
+      );
+    }
     const roomType = await this.roomTypesRepo.findById(dto.roomTypeId);
     if (!roomType)
       throw new NotFoundException(`Room type #${dto.roomTypeId} not found`);

@@ -10,6 +10,7 @@ import { randomBytes } from 'node:crypto';
 import { AuditService } from '../../shared/audit/audit.service';
 import { AuditAction } from '../../shared/enums/audit-action.enum';
 import { Role } from '../../shared/enums/role.enum';
+import { UserAssignmentsRepository } from './user-assignments.repository';
 import { UsersRepository, UserWithRole } from './users.repository';
 
 const BCRYPT_ROUNDS = 12;
@@ -50,6 +51,7 @@ function generateTemporaryPassword(length = 12): string {
 export class UsersService {
   constructor(
     private readonly usersRepo: UsersRepository,
+    private readonly assignmentsRepo: UserAssignmentsRepository,
     private readonly audit: AuditService,
   ) {}
 
@@ -177,6 +179,8 @@ export class UsersService {
     }
 
     await this.usersRepo.updateRole(id, roleRow.id);
+    // Assignments outlive the role that justified them unless dropped here.
+    await this.assignmentsRepo.deleteInvalidForRole(id, role);
     await this.audit.record({
       userId: actorId,
       action: AuditAction.UserRoleUpdated,

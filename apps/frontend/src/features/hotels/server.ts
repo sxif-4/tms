@@ -18,7 +18,11 @@ const ROOM_STATUS_VALUES = [
   "maintenance",
   "out_of_service",
 ] as const;
-const STAFF_SETTABLE_STATUSES = ["confirmed", "cancelled", "completed"] as const;
+const STAFF_SETTABLE_STATUSES = [
+  "confirmed",
+  "cancelled",
+  "completed",
+] as const;
 
 /** Lists hotels the caller is scoped to (admin sees all, hotel_staff sees their assignments). */
 export const getHotelsServerFn = createServerFn({ method: "GET" }).handler(
@@ -29,6 +33,64 @@ export const getHotelsServerFn = createServerFn({ method: "GET" }).handler(
     return (await res.json()) as Hotel[];
   },
 );
+
+const hotelPayloadSchema = z.object({
+  name: z.string().trim().min(1).max(255),
+  description: z.string().trim().max(2000).optional(),
+  mapLocationId: z.number().int().positive().optional(),
+  maxRooms: z.number().int().positive(),
+});
+
+/** Creates a hotel (admin-only on the API). */
+export const createHotelServerFn = createServerFn({ method: "POST" })
+  .validator((input: unknown) => hotelPayloadSchema.parse(input))
+  .handler(async ({ data }): Promise<Hotel> => {
+    const res = await apiFetch("/hotels", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok)
+      throw new Error(await errorMessage(res, "Failed to create hotel"));
+    return (await res.json()) as Hotel;
+  });
+
+const updateHotelSchema = hotelPayloadSchema
+  .partial()
+  .extend({ id: z.number().int().positive() });
+
+/** Patches a hotel (admin-only on the API). */
+export const updateHotelServerFn = createServerFn({ method: "POST" })
+  .validator((input: unknown) => updateHotelSchema.parse(input))
+  .handler(async ({ data }): Promise<Hotel> => {
+    const { id, ...payload } = data;
+    const res = await apiFetch(`/hotels/${id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok)
+      throw new Error(await errorMessage(res, "Failed to update hotel"));
+    return (await res.json()) as Hotel;
+  });
+
+const setHotelActiveSchema = z.object({
+  id: z.number().int().positive(),
+  isActive: z.boolean(),
+});
+
+/** Suspends or reinstates a hotel (admin-only on the API). */
+export const setHotelActiveServerFn = createServerFn({ method: "POST" })
+  .validator((input: unknown) => setHotelActiveSchema.parse(input))
+  .handler(async ({ data }): Promise<Hotel> => {
+    const action = data.isActive ? "activate" : "deactivate";
+    const res = await apiFetch(`/hotels/${data.id}/${action}`, {
+      method: "PATCH",
+    });
+    if (!res.ok)
+      throw new Error(await errorMessage(res, "Failed to update hotel status"));
+    return (await res.json()) as Hotel;
+  });
 
 /** Global room-type catalog. */
 export const getRoomTypesServerFn = createServerFn({ method: "GET" }).handler(
@@ -62,7 +124,9 @@ export const createRoomTypeServerFn = createServerFn({ method: "POST" })
 
 export const updateRoomTypeServerFn = createServerFn({ method: "POST" })
   .validator((input: unknown) =>
-    roomTypeInputSchema.extend({ id: z.number().int().positive() }).parse(input),
+    roomTypeInputSchema
+      .extend({ id: z.number().int().positive() })
+      .parse(input),
   )
   .handler(async ({ data }): Promise<RoomType> => {
     const { id, ...body } = data;
@@ -241,9 +305,7 @@ export const getHotelOccupancyServerFn = createServerFn({ method: "GET" })
     const params = new URLSearchParams({ hotelId: String(data.hotelId) });
     if (data.from) params.set("from", data.from);
     if (data.to) params.set("to", data.to);
-    const res = await apiFetch(
-      `/hotel-reports/occupancy?${params.toString()}`,
-    );
+    const res = await apiFetch(`/hotel-reports/occupancy?${params.toString()}`);
     if (!res.ok)
       throw new Error(
         await errorMessage(res, "Failed to load occupancy report"),

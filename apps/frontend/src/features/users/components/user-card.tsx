@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  HotelIcon,
   MoreVerticalIcon,
+  TriangleAlertIcon,
   UserCheckIcon,
   UserCogIcon,
   UserXIcon,
@@ -32,11 +34,18 @@ import { initials } from "../utils";
 export function UserCard({
   user,
   onChangeRole,
+  onManageHotels,
 }: {
   user: User;
   onChangeRole: () => void;
+  onManageHotels: () => void;
 }) {
   const queryClient = useQueryClient();
+  // Hotel staff are authorised per-hotel, so an unassigned account can't reach
+  // any hotel data — worth flagging on the card rather than leaving the admin
+  // to discover it from a support request.
+  const isHotelStaff = user.role === "hotel_staff";
+  const hotels = user.assignedHotels ?? [];
 
   const statusMutation = useMutation({
     mutationFn: (isActive: boolean) =>
@@ -69,6 +78,24 @@ export function UserCard({
       <CardContent className="flex flex-wrap items-center gap-2">
         <Badge variant="secondary">{ROLE_LABELS[user.role]}</Badge>
         {!user.isActive && <Badge variant="outline">Inactive</Badge>}
+        {isHotelStaff &&
+          (hotels.length === 0 ? (
+            <Badge variant="destructive" className="gap-1">
+              <TriangleAlertIcon className="size-3" />
+              No hotel assigned
+            </Badge>
+          ) : (
+            hotels.map((hotel) => (
+              <Badge
+                key={hotel.assignmentId}
+                variant="outline"
+                className="gap-1"
+              >
+                <HotelIcon className="size-3" />
+                {hotel.name}
+              </Badge>
+            ))
+          ))}
       </CardContent>
       <CardFooter className="gap-2">
         <Button
@@ -92,6 +119,12 @@ export function UserCard({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            {isHotelStaff && (
+              <DropdownMenuItem onClick={onManageHotels}>
+                <HotelIcon />
+                Manage hotels
+              </DropdownMenuItem>
+            )}
             {user.isActive ? (
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"

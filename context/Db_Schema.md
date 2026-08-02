@@ -69,8 +69,11 @@ These apply across every table below unless a table explicitly notes otherwise:
 | description     | text         | nullable                        | Hotel description         |
 | map_location_id | bigint       | FK → map_locations.id, nullable | Reference to map location |
 | max_rooms       | int unsigned | -                               | Maximum number of rooms   |
+| is_active       | boolean      | default true                    | Admin can suspend a hotel without deleting it |
 | created_at      | timestamp    | -                               | Record creation time      |
 | updated_at      | timestamp    | -                               | Record update time        |
+
+**Note:** A suspended hotel (`is_active = false`) is hidden from visitor browsing and rejects new bookings, but keeps its existing bookings and stays visible to admins and its assigned staff. Enforced in application code.
 
 ### room_types
 
