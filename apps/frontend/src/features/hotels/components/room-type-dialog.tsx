@@ -46,10 +46,13 @@ type RoomTypeValues = z.infer<typeof roomTypeSchema>;
 export function RoomTypeDialog({
   open,
   onOpenChange,
+  hotelId,
   roomType,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** The hotel a newly created type belongs to. */
+  hotelId: number;
   roomType: RoomType | null;
 }) {
   const queryClient = useQueryClient();
@@ -84,10 +87,10 @@ export function RoomTypeDialog({
     mutationFn: (values: RoomTypeValues) =>
       isEdit
         ? updateRoomTypeServerFn({ data: { id: roomType.id, ...values } })
-        : createRoomTypeServerFn({ data: values }),
+        : createRoomTypeServerFn({ data: { hotelId, ...values } }),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: roomTypesQueryOptions.queryKey,
+        queryKey: roomTypesQueryOptions(hotelId).queryKey,
       });
       toast.success(isEdit ? "Room type updated" : "Room type created");
       onOpenChange(false);

@@ -106,9 +106,14 @@ export const hotelsRelations = relations(hotels, ({ one, many }) => ({
     references: [mapLocations.id],
   }),
   rooms: many(rooms),
+  roomTypes: many(roomTypes),
 }));
 
-export const roomTypesRelations = relations(roomTypes, ({ many }) => ({
+export const roomTypesRelations = relations(roomTypes, ({ one, many }) => ({
+  hotel: one(hotels, {
+    fields: [roomTypes.hotelId],
+    references: [hotels.id],
+  }),
   rooms: many(rooms),
   roomTypeAmenities: many(roomTypeAmenities),
 }));

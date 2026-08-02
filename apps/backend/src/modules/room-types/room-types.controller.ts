@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator';
 import { Roles } from '../../shared/decorators/roles.decorator';
@@ -19,22 +20,26 @@ import { UpdateRoomTypeDto } from './dto/update-room-type.dto';
 import type { RoomTypeWithAmenities } from './room-types.repository';
 import { RoomTypesService } from './room-types.service';
 
-/** Global room-type catalog, manageable by any hotel staff (scoped guards on write). */
+/** A hotel's own room types. Every route is scoped to the caller's assignments. */
 @Controller('room-types')
 @Roles(Role.Admin, Role.HotelStaff)
 export class RoomTypesController {
   constructor(private readonly roomTypesService: RoomTypesService) {}
 
   @Get()
-  findAll(): Promise<RoomTypeWithAmenities[]> {
-    return this.roomTypesService.listAll();
+  findAll(
+    @Query('hotelId', ParseIntPipe) hotelId: number,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<RoomTypeWithAmenities[]> {
+    return this.roomTypesService.listByHotel(currentUser, hotelId);
   }
 
   @Get(':id')
   findOne(
     @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() currentUser: AuthenticatedUser,
   ): Promise<RoomTypeWithAmenities> {
-    return this.roomTypesService.findById(id);
+    return this.roomTypesService.findById(currentUser, id);
   }
 
   @Post()
@@ -42,7 +47,7 @@ export class RoomTypesController {
     @Body() dto: CreateRoomTypeDto,
     @CurrentUser() currentUser: AuthenticatedUser,
   ): Promise<RoomTypeWithAmenities> {
-    return this.roomTypesService.create(dto, currentUser.id);
+    return this.roomTypesService.create(dto, currentUser);
   }
 
   @Patch(':id')

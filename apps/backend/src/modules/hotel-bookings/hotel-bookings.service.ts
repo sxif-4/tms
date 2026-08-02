@@ -73,6 +73,12 @@ export class HotelBookingsService {
     const roomType = await this.roomTypesRepo.findById(dto.roomTypeId);
     if (!roomType)
       throw new NotFoundException(`Room type #${dto.roomTypeId} not found`);
+    // Room types are per-hotel — reject one borrowed from another property.
+    if (roomType.hotelId !== dto.hotelId) {
+      throw new BadRequestException(
+        `${roomType.name} is not a room type at ${hotel.name}`,
+      );
+    }
 
     const checkIn = new Date(dto.checkIn);
     const checkOut = new Date(dto.checkOut);

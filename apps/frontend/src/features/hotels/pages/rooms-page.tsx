@@ -67,7 +67,7 @@ function RoomsPageContent({
   onHotelChange: (id: number) => void;
 }) {
   const queryClient = useQueryClient();
-  const { data: roomTypes } = useSuspenseQuery(roomTypesQueryOptions);
+  const { data: roomTypes } = useSuspenseQuery(roomTypesQueryOptions(hotelId));
   const { data: rooms } = useSuspenseQuery(hotelRoomsQueryOptions(hotelId));
 
   const [roomTypeDialogOpen, setRoomTypeDialogOpen] = useState(false);
@@ -84,7 +84,7 @@ function RoomsPageContent({
     mutationFn: (id: number) => deleteRoomTypeServerFn({ data: { id } }),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: roomTypesQueryOptions.queryKey,
+        queryKey: roomTypesQueryOptions(hotelId).queryKey,
       });
       toast.success("Room type deleted");
       setDeletingRoomType(null);
@@ -321,6 +321,7 @@ function RoomsPageContent({
       <RoomTypeDialog
         open={roomTypeDialogOpen}
         onOpenChange={setRoomTypeDialogOpen}
+        hotelId={hotelId}
         roomType={editingRoomType}
       />
       <RoomDialog

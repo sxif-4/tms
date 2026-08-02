@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -8,6 +9,7 @@ import { AuditAction } from '../../shared/enums/audit-action.enum';
 import { HotelAccessService } from '../../shared/hotel-access/hotel-access.service';
 import { type Room } from '../../shared/database/schema';
 import type { AuthenticatedUser } from '../../shared/interfaces/authenticated-user.interface';
+import { RoomTypesRepository } from '../room-types/room-types.repository';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
 import { RoomsRepository } from './rooms.repository';
@@ -16,6 +18,7 @@ import { RoomsRepository } from './rooms.repository';
 export class RoomsService {
   constructor(
     private readonly roomsRepo: RoomsRepository,
+    private readonly roomTypesRepo: RoomTypesRepository,
     private readonly hotelAccess: HotelAccessService,
     private readonly audit: AuditService,
   ) {}
@@ -34,6 +37,7 @@ export class RoomsService {
 
   async create(dto: CreateRoomDto, user: AuthenticatedUser): Promise<Room> {
     await this.hotelAccess.assertHotelAccess(user, dto.hotelId);
+    await this.assertRoomTypeBelongsToHotel(dto.roomTypeId, dto.hotelId);
 
     let room: Room;
     try {
@@ -65,6 +69,9 @@ export class RoomsService {
     user: AuthenticatedUser,
   ): Promise<Room> {
     const room = await this.findById(user, id); // 404 + access check
+    if (dto.roomTypeId != null) {
+      await this.assertRoomTypeBelongsToHotel(dto.roomTypeId, room.hotelId);
+    }
 
     let updated: Room | undefined;
     try {
@@ -100,5 +107,24 @@ export class RoomsService {
       subjectId: id,
       metadata: { hotelId: room.hotelId, roomNumber: room.roomNumber },
     });
+  }
+
+  /**
+   * Room types are per-hotel, so a room may only use one of its own hotel's
+   * types. The FK alone can't express this — it only checks the type exists.
+   */
+  private async assertRoomTypeBelongsToHotel(
+    roomTypeId: number,
+    hotelId: number,
+  ): Promise<void> {
+    const roomType = await this.roomTypesRepo.findById(roomTypeId);
+    if (!roomType) {
+      throw new NotFoundException(`Room type #${roomTypeId} not found`);
+    }
+    if (roomType.hotelId !== hotelId) {
+      throw new BadRequestException(
+        'That room type belongs to a different hotel',
+      );
+    }
   }
 }

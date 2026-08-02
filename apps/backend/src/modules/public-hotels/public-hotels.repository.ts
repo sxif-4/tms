@@ -66,9 +66,9 @@ export class PublicHotelsRepository {
   constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
 
   /**
-   * Amenities for every room type stocked at `hotelId`, keyed by room type id.
-   * Scoped by hotel rather than by id list so both call sites can resolve it
-   * before knowing which room types the outer query returned.
+   * Amenities for every room type belonging to `hotelId`, keyed by room type
+   * id. Scoped by hotel rather than by id list so both call sites can resolve
+   * it before knowing which room types the outer query returned.
    */
   private amenitiesByRoomType(hotelId: number): Map<number, PublicAmenity[]> {
     const map = new Map<number, PublicAmenity[]>();
@@ -76,9 +76,8 @@ export class PublicHotelsRepository {
       SELECT DISTINCT rta.room_type_id AS roomTypeId, a.id, a.name, a.icon, a.category
       FROM room_type_amenities rta
       JOIN amenities a ON a.id = rta.amenity_id
-      WHERE rta.room_type_id IN (
-        SELECT r.room_type_id FROM rooms r WHERE r.hotel_id = ${hotelId}
-      )
+      JOIN room_types rt ON rt.id = rta.room_type_id
+      WHERE rt.hotel_id = ${hotelId}
       ORDER BY a.category, a.name
     `);
 
@@ -182,7 +181,7 @@ export class PublicHotelsRepository {
         rt.base_price_per_night AS basePricePerNight, rt.max_occupancy AS maxOccupancy,
         COUNT(r.id) AS totalRooms
       FROM room_types rt JOIN rooms r ON r.room_type_id = rt.id
-      WHERE r.hotel_id = ${hotelId} AND r.status != 'out_of_service'
+      WHERE rt.hotel_id = ${hotelId} AND r.status != 'out_of_service'
       GROUP BY rt.id
       ORDER BY CAST(rt.base_price_per_night AS REAL)
     `);
@@ -228,9 +227,7 @@ export class PublicHotelsRepository {
              AND hb.check_in < ${checkOutSec} AND hb.check_out > ${checkInSec}
         ) AS overlapping
       FROM room_types rt
-      WHERE EXISTS (
-        SELECT 1 FROM rooms r WHERE r.hotel_id = ${hotelId} AND r.room_type_id = rt.id
-      )
+      WHERE rt.hotel_id = ${hotelId}
       ORDER BY CAST(rt.base_price_per_night AS REAL)
     `);
     const amenitiesByType = this.amenitiesByRoomType(hotelId);

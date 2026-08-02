@@ -231,15 +231,8 @@ export class PromotionsService {
     const scope = await this.hotelAccess.scopedHotelIds(user);
     const scopedIds = scope === 'all' ? [] : scope;
     for (const target of roomTypeTargets) {
-      const hotelIds = await this.roomTypesRepo.hotelIdsUsingRoomType(
-        target.targetId,
-      );
-      if (
-        hotelIds.length === 0 ||
-        !hotelIds.every((id) => scopedIds.includes(id))
-      ) {
-        return false;
-      }
+      const roomType = await this.roomTypesRepo.findById(target.targetId);
+      if (!roomType || !scopedIds.includes(roomType.hotelId)) return false;
     }
     return true;
   }
@@ -280,15 +273,10 @@ export class PromotionsService {
           'Hotel staff may only scope promotions to room types',
         );
       }
-      const hotelIds = await this.roomTypesRepo.hotelIdsUsingRoomType(
-        target.targetId,
-      );
-      if (
-        hotelIds.length === 0 ||
-        !hotelIds.every((id) => scopedIds.includes(id))
-      ) {
+      const roomType = await this.roomTypesRepo.findById(target.targetId);
+      if (!roomType || !scopedIds.includes(roomType.hotelId)) {
         throw new ForbiddenException(
-          `Room type #${target.targetId} is not used by a hotel you manage`,
+          `Room type #${target.targetId} does not belong to a hotel you manage`,
         );
       }
     }

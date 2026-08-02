@@ -33,7 +33,7 @@ describe('PromotionsService', () => {
     delete: jest.Mock;
     countUsages: jest.Mock;
   };
-  let roomTypesRepo: { hotelIdsUsingRoomType: jest.Mock };
+  let roomTypesRepo: { findById: jest.Mock };
   let eventsRepo: { findById: jest.Mock };
   let hotelAccess: { scopedHotelIds: jest.Mock };
   let audit: { record: jest.Mock };
@@ -47,7 +47,7 @@ describe('PromotionsService', () => {
       delete: jest.fn(),
       countUsages: jest.fn(),
     };
-    roomTypesRepo = { hotelIdsUsingRoomType: jest.fn() };
+    roomTypesRepo = { findById: jest.fn() };
     eventsRepo = { findById: jest.fn() };
     hotelAccess = { scopedHotelIds: jest.fn() };
     audit = { record: jest.fn().mockResolvedValue(undefined) };

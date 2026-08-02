@@ -11,6 +11,11 @@ import {
 const DECIMAL = /^\d+(\.\d{1,2})?$/;
 
 export class CreateRoomTypeDto {
+  /** Room types belong to one hotel; the caller must be assigned to it. */
+  @IsInt()
+  @Min(1)
+  hotelId!: number;
+
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)

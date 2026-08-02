@@ -16,12 +16,13 @@ export const hotelsQueryOptions = queryOptions({
   staleTime: 30 * 1000,
 });
 
-/** Global room-type catalog. */
-export const roomTypesQueryOptions = queryOptions({
-  queryKey: ["room-types"] as const,
-  queryFn: () => getRoomTypesServerFn(),
-  staleTime: 30 * 1000,
-});
+/** One hotel's room types. */
+export const roomTypesQueryOptions = (hotelId: number) =>
+  queryOptions({
+    queryKey: ["room-types", hotelId] as const,
+    queryFn: () => getRoomTypesServerFn({ data: { hotelId } }),
+    staleTime: 30 * 1000,
+  });
 
 export const hotelRoomsQueryOptions = (hotelId: number) =>
   queryOptions({

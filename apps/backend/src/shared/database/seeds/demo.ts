@@ -356,41 +356,133 @@ export async function seedDemo(db: DemoDb): Promise<void> {
   const [velara, maafushi, coral, reef, thulha, bandos, kura, embudu, fulha] =
     hotelRows;
 
-  // ── Room types ───────────────────────────────────────────────────────────
-  const [garden, beach, overwater, suite] = db
+  // ── Room types (one set per hotel) ───────────────────────────────────────
+  // Room types belong to a hotel, so every property gets its own copies. The
+  // templates keep the demo data consistent; prices and descriptions are now
+  // free to diverge per hotel, which is the point of the per-hotel model.
+  const roomTypeTemplates = [
+    {
+      key: 'garden',
+      name: 'Garden Villa',
+      description:
+        'Shaded garden villa with a king bed, rain shower, and private patio among the palms.',
+      basePricePerNight: '180.00',
+      maxOccupancy: 2,
+      amenities: [
+        'Wi‑Fi',
+        'Air conditioning',
+        'Rain shower',
+        'Garden view',
+        'Coffee machine',
+        'Smart TV',
+        'King bed',
+      ],
+    },
+    {
+      key: 'beach',
+      name: 'Beach Villa',
+      description:
+        'Sand-level beach villa with ocean view, private deck, and snorkel gear ready by the door.',
+      basePricePerNight: '280.00',
+      maxOccupancy: 3,
+      amenities: [
+        'Wi‑Fi',
+        'Air conditioning',
+        'Rain shower',
+        'Ocean view',
+        'Coffee machine',
+        'Smart TV',
+        'King bed',
+        'Private deck',
+        'Mini bar',
+        'Snorkel gear',
+      ],
+    },
+    {
+      key: 'overwater',
+      name: 'Overwater Villa',
+      description:
+        'Classic overwater villa with glass floor panels, outdoor shower, and steps into the lagoon.',
+      basePricePerNight: '450.00',
+      maxOccupancy: 3,
+      amenities: [
+        'Wi‑Fi',
+        'Air conditioning',
+        'Rain shower',
+        'Ocean view',
+        'Lagoon view',
+        'Coffee machine',
+        'Smart TV',
+        'King bed',
+        'Private deck',
+        'Mini bar',
+        'Snorkel gear',
+        'Direct lagoon access',
+        'Outdoor shower',
+        'Daybed',
+      ],
+    },
+    {
+      key: 'suite',
+      name: 'Sunset Water Suite',
+      description:
+        'Spacious water suite with private pool, butler service, bathtub, and west-facing sunset deck.',
+      basePricePerNight: '720.00',
+      maxOccupancy: 4,
+      amenities: [
+        'Wi‑Fi',
+        'Air conditioning',
+        'Rain shower',
+        'Ocean view',
+        'Lagoon view',
+        'Coffee machine',
+        'Smart TV',
+        'King bed',
+        'Private deck',
+        'Mini bar',
+        'Snorkel gear',
+        'Direct lagoon access',
+        'Outdoor shower',
+        'Daybed',
+        'Private pool',
+        'Butler service',
+        'Bathtub',
+        'Breakfast included',
+      ],
+    },
+  ] as const;
+
+  type RoomTypeKey = (typeof roomTypeTemplates)[number]['key'];
+
+  const roomTypeRows = db
     .insert(roomTypes)
-    .values([
-      {
-        name: 'Garden Villa',
-        description:
-          'Shaded garden villa with a king bed, rain shower, and private patio among the palms.',
-        basePricePerNight: '180.00',
-        maxOccupancy: 2,
-      },
-      {
-        name: 'Beach Villa',
-        description:
-          'Sand-level beach villa with ocean view, private deck, and snorkel gear ready by the door.',
-        basePricePerNight: '280.00',
-        maxOccupancy: 3,
-      },
-      {
-        name: 'Overwater Villa',
-        description:
-          'Classic overwater villa with glass floor panels, outdoor shower, and steps into the lagoon.',
-        basePricePerNight: '450.00',
-        maxOccupancy: 3,
-      },
-      {
-        name: 'Sunset Water Suite',
-        description:
-          'Spacious water suite with private pool, butler service, bathtub, and west-facing sunset deck.',
-        basePricePerNight: '720.00',
-        maxOccupancy: 4,
-      },
-    ])
+    .values(
+      hotelRows.flatMap((hotel) =>
+        roomTypeTemplates.map((t) => ({
+          hotelId: hotel.id,
+          name: t.name,
+          description: t.description,
+          basePricePerNight: t.basePricePerNight,
+          maxOccupancy: t.maxOccupancy,
+        })),
+      ),
+    )
     .returning()
     .all();
+
+  // `${hotelId}:${key}` → the room type row for that hotel.
+  const roomTypeIndex = new Map<string, (typeof roomTypeRows)[number]>();
+  roomTypeRows.forEach((row, i) => {
+    const key = roomTypeTemplates[i % roomTypeTemplates.length].key;
+    roomTypeIndex.set(`${row.hotelId}:${key}`, row);
+  });
+
+  /** The given hotel's copy of a room type. */
+  const rt = (hotelId: number, key: RoomTypeKey) => {
+    const row = roomTypeIndex.get(`${hotelId}:${key}`);
+    if (!row) throw new Error(`room type ${key} missing for hotel ${hotelId}`);
+    return row;
+  };
 
   // ── Amenities catalog ────────────────────────────────────────────────────
   const amenityDefs = [
@@ -436,78 +528,26 @@ export async function seedDemo(db: DemoDb): Promise<void> {
     .values(amenityDefs)
     .returning()
     .all();
-  const byName = Object.fromEntries(amenityRows.map((a) => [a.name, a]));
+  const amenityByName = new Map(amenityRows.map((a) => [a.name, a]));
 
-  const amenityIds = (...names: string[]) =>
-    names.map((n) => {
-      const a = byName[n];
-      if (!a) throw new Error(`amenity missing: ${n}`);
-      return a.id;
-    });
+  const amenityIdFor = (name: string): number => {
+    const amenity = amenityByName.get(name);
+    if (!amenity) throw new Error(`amenity missing: ${name}`);
+    return amenity.id;
+  };
 
-  const linkAmenities = (roomTypeId: number, names: string[]) =>
-    names.map((n) => ({ roomTypeId, amenityId: amenityIds(n)[0] }));
-
+  // Each hotel's copy of a template gets that template's amenity list.
   db.insert(roomTypeAmenities)
-    .values([
-      ...linkAmenities(garden.id, [
-        'Wi‑Fi',
-        'Air conditioning',
-        'Rain shower',
-        'Garden view',
-        'Coffee machine',
-        'Smart TV',
-        'King bed',
-      ]),
-      ...linkAmenities(beach.id, [
-        'Wi‑Fi',
-        'Air conditioning',
-        'Rain shower',
-        'Ocean view',
-        'Coffee machine',
-        'Smart TV',
-        'King bed',
-        'Private deck',
-        'Mini bar',
-        'Snorkel gear',
-      ]),
-      ...linkAmenities(overwater.id, [
-        'Wi‑Fi',
-        'Air conditioning',
-        'Rain shower',
-        'Ocean view',
-        'Lagoon view',
-        'Coffee machine',
-        'Smart TV',
-        'King bed',
-        'Private deck',
-        'Mini bar',
-        'Snorkel gear',
-        'Direct lagoon access',
-        'Outdoor shower',
-        'Daybed',
-      ]),
-      ...linkAmenities(suite.id, [
-        'Wi‑Fi',
-        'Air conditioning',
-        'Rain shower',
-        'Ocean view',
-        'Lagoon view',
-        'Coffee machine',
-        'Smart TV',
-        'King bed',
-        'Private deck',
-        'Mini bar',
-        'Snorkel gear',
-        'Direct lagoon access',
-        'Outdoor shower',
-        'Daybed',
-        'Private pool',
-        'Butler service',
-        'Bathtub',
-        'Breakfast included',
-      ]),
-    ])
+    .values(
+      roomTypeRows.flatMap((row, i) => {
+        const names: readonly string[] =
+          roomTypeTemplates[i % roomTypeTemplates.length].amenities;
+        return names.map((name) => ({
+          roomTypeId: row.id,
+          amenityId: amenityIdFor(name),
+        }));
+      }),
+    )
     .run();
 
   // ── Rooms (~3–4 per hotel) ───────────────────────────────────────────────
@@ -515,422 +555,452 @@ export async function seedDemo(db: DemoDb): Promise<void> {
 
   const roomSpecs: {
     hotelId: number;
-    roomTypeId: number;
+    roomTypeKey: RoomTypeKey;
     roomNumber: string;
     status: RoomStatus;
   }[] = [
     // Velara — flagship (keep free rooms for assign-room)
     {
       hotelId: velara.id,
-      roomTypeId: garden.id,
+      roomTypeKey: 'garden' as const,
       roomNumber: 'V-101',
       status: 'available',
     },
     {
       hotelId: velara.id,
-      roomTypeId: garden.id,
+      roomTypeKey: 'garden' as const,
       roomNumber: 'V-102',
       status: 'available',
     },
     {
       hotelId: velara.id,
-      roomTypeId: beach.id,
+      roomTypeKey: 'beach' as const,
       roomNumber: 'V-201',
       status: 'occupied',
     },
     {
       hotelId: velara.id,
-      roomTypeId: overwater.id,
+      roomTypeKey: 'overwater' as const,
       roomNumber: 'V-301',
       status: 'available',
     },
     {
       hotelId: velara.id,
-      roomTypeId: suite.id,
+      roomTypeKey: 'suite' as const,
       roomNumber: 'V-401',
       status: 'available',
     },
     // Maafushi
     {
       hotelId: maafushi.id,
-      roomTypeId: garden.id,
+      roomTypeKey: 'garden' as const,
       roomNumber: 'M-101',
       status: 'available',
     },
     {
       hotelId: maafushi.id,
-      roomTypeId: beach.id,
+      roomTypeKey: 'beach' as const,
       roomNumber: 'M-201',
       status: 'available',
     },
     {
       hotelId: maafushi.id,
-      roomTypeId: beach.id,
+      roomTypeKey: 'beach' as const,
       roomNumber: 'M-202',
       status: 'maintenance',
     },
     {
       hotelId: maafushi.id,
-      roomTypeId: overwater.id,
+      roomTypeKey: 'overwater' as const,
       roomNumber: 'M-301',
       status: 'available',
     },
     // Coral
     {
       hotelId: coral.id,
-      roomTypeId: garden.id,
+      roomTypeKey: 'garden' as const,
       roomNumber: 'C-101',
       status: 'available',
     },
     {
       hotelId: coral.id,
-      roomTypeId: garden.id,
+      roomTypeKey: 'garden' as const,
       roomNumber: 'C-102',
       status: 'occupied',
     },
     {
       hotelId: coral.id,
-      roomTypeId: beach.id,
+      roomTypeKey: 'beach' as const,
       roomNumber: 'C-201',
       status: 'available',
     },
     {
       hotelId: coral.id,
-      roomTypeId: overwater.id,
+      roomTypeKey: 'overwater' as const,
       roomNumber: 'C-301',
       status: 'available',
     },
     // Reef
     {
       hotelId: reef.id,
-      roomTypeId: beach.id,
+      roomTypeKey: 'beach' as const,
       roomNumber: 'R-101',
       status: 'available',
     },
     {
       hotelId: reef.id,
-      roomTypeId: overwater.id,
+      roomTypeKey: 'overwater' as const,
       roomNumber: 'R-201',
       status: 'available',
     },
     {
       hotelId: reef.id,
-      roomTypeId: suite.id,
+      roomTypeKey: 'suite' as const,
       roomNumber: 'R-301',
       status: 'occupied',
     },
     // Thulhagiri
     {
       hotelId: thulha.id,
-      roomTypeId: garden.id,
+      roomTypeKey: 'garden' as const,
       roomNumber: 'T-101',
       status: 'available',
     },
     {
       hotelId: thulha.id,
-      roomTypeId: beach.id,
+      roomTypeKey: 'beach' as const,
       roomNumber: 'T-201',
       status: 'available',
     },
     {
       hotelId: thulha.id,
-      roomTypeId: overwater.id,
+      roomTypeKey: 'overwater' as const,
       roomNumber: 'T-301',
       status: 'maintenance',
     },
     {
       hotelId: thulha.id,
-      roomTypeId: suite.id,
+      roomTypeKey: 'suite' as const,
       roomNumber: 'T-401',
       status: 'available',
     },
     // Bandos
     {
       hotelId: bandos.id,
-      roomTypeId: garden.id,
+      roomTypeKey: 'garden' as const,
       roomNumber: 'B-101',
       status: 'available',
     },
     {
       hotelId: bandos.id,
-      roomTypeId: beach.id,
+      roomTypeKey: 'beach' as const,
       roomNumber: 'B-201',
       status: 'occupied',
     },
     {
       hotelId: bandos.id,
-      roomTypeId: beach.id,
+      roomTypeKey: 'beach' as const,
       roomNumber: 'B-202',
       status: 'available',
     },
     {
       hotelId: bandos.id,
-      roomTypeId: overwater.id,
+      roomTypeKey: 'overwater' as const,
       roomNumber: 'B-301',
       status: 'available',
     },
     // Kuramathi
     {
       hotelId: kura.id,
-      roomTypeId: garden.id,
+      roomTypeKey: 'garden' as const,
       roomNumber: 'K-101',
       status: 'available',
     },
     {
       hotelId: kura.id,
-      roomTypeId: beach.id,
+      roomTypeKey: 'beach' as const,
       roomNumber: 'K-201',
       status: 'available',
     },
     {
       hotelId: kura.id,
-      roomTypeId: overwater.id,
+      roomTypeKey: 'overwater' as const,
       roomNumber: 'K-301',
       status: 'available',
     },
     // Embudu
     {
       hotelId: embudu.id,
-      roomTypeId: garden.id,
+      roomTypeKey: 'garden' as const,
       roomNumber: 'E-101',
       status: 'available',
     },
     {
       hotelId: embudu.id,
-      roomTypeId: beach.id,
+      roomTypeKey: 'beach' as const,
       roomNumber: 'E-201',
       status: 'occupied',
     },
     {
       hotelId: embudu.id,
-      roomTypeId: overwater.id,
+      roomTypeKey: 'overwater' as const,
       roomNumber: 'E-301',
       status: 'available',
     },
     // Fulhadhoo
     {
       hotelId: fulha.id,
-      roomTypeId: beach.id,
+      roomTypeKey: 'beach' as const,
       roomNumber: 'F-101',
       status: 'available',
     },
     {
       hotelId: fulha.id,
-      roomTypeId: overwater.id,
+      roomTypeKey: 'overwater' as const,
       roomNumber: 'F-201',
       status: 'available',
     },
     {
       hotelId: fulha.id,
-      roomTypeId: suite.id,
+      roomTypeKey: 'suite' as const,
       roomNumber: 'F-301',
       status: 'available',
     },
   ];
 
-  const roomRows = db.insert(rooms).values(roomSpecs).returning().all();
+  const roomRows = db
+    .insert(rooms)
+    .values(
+      roomSpecs.map(({ hotelId, roomTypeKey, roomNumber, status }) => ({
+        hotelId,
+        roomTypeId: rt(hotelId, roomTypeKey).id,
+        roomNumber,
+        status,
+      })),
+    )
+    .returning()
+    .all();
   const roomByNumber = Object.fromEntries(
     roomRows.map((r) => [r.roomNumber, r]),
   );
 
   // ── Hotel bookings ───────────────────────────────────────────────────────
+  const bookingSpecs: {
+    bookingReference: string;
+    userId: number;
+    hotelId: number;
+    roomTypeKey: RoomTypeKey;
+    /** null for bookings not yet allocated a physical room. */
+    roomId?: number | null;
+    checkIn: Date;
+    checkOut: Date;
+    guests: number;
+    totalAmount: string;
+    status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  }[] = [
+    {
+      bookingReference: ref('HB', 1),
+      userId: aisha.id,
+      hotelId: velara.id,
+      roomTypeKey: 'garden' as const,
+      roomId: roomByNumber['V-101'].id,
+      checkIn: at(-10),
+      checkOut: at(-7),
+      guests: 2,
+      totalAmount: '540.00',
+      status: 'completed',
+    },
+    {
+      bookingReference: ref('HB', 2),
+      userId: james.id,
+      hotelId: velara.id,
+      roomTypeKey: 'beach' as const,
+      roomId: roomByNumber['V-201'].id,
+      checkIn: at(-3),
+      checkOut: at(1),
+      guests: 2,
+      totalAmount: '1120.00',
+      status: 'confirmed',
+    },
+    {
+      bookingReference: ref('HB', 3),
+      userId: mei.id,
+      hotelId: maafushi.id,
+      roomTypeKey: 'overwater' as const,
+      roomId: roomByNumber['M-301'].id,
+      checkIn: at(5),
+      checkOut: at(9),
+      guests: 3,
+      totalAmount: '1800.00',
+      status: 'confirmed',
+    },
+    {
+      bookingReference: ref('HB', 4),
+      userId: aisha.id,
+      hotelId: maafushi.id,
+      roomTypeKey: 'beach' as const,
+      roomId: roomByNumber['M-201'].id,
+      checkIn: at(14),
+      checkOut: at(16),
+      guests: 1,
+      totalAmount: '560.00',
+      status: 'pending',
+    },
+    {
+      bookingReference: ref('HB', 5),
+      userId: james.id,
+      hotelId: velara.id,
+      roomTypeKey: 'suite' as const,
+      roomId: roomByNumber['V-401'].id,
+      checkIn: at(-30),
+      checkOut: at(-28),
+      guests: 2,
+      totalAmount: '1440.00',
+      status: 'cancelled',
+    },
+    // Unassigned — Velara priority-action widget
+    {
+      bookingReference: ref('HB', 6),
+      userId: hassan.id,
+      hotelId: velara.id,
+      roomTypeKey: 'overwater' as const,
+      roomId: null,
+      checkIn: at(2),
+      checkOut: at(4),
+      guests: 2,
+      totalAmount: '900.00',
+      status: 'confirmed',
+    },
+    {
+      bookingReference: ref('HB', 7),
+      userId: sophie.id,
+      hotelId: velara.id,
+      roomTypeKey: 'garden' as const,
+      roomId: null,
+      checkIn: at(20),
+      checkOut: at(22),
+      guests: 1,
+      totalAmount: '360.00',
+      status: 'pending',
+    },
+    {
+      bookingReference: ref('HB', 8),
+      userId: priya.id,
+      hotelId: velara.id,
+      roomTypeKey: 'beach' as const,
+      roomId: null,
+      checkIn: at(8),
+      checkOut: at(11),
+      guests: 2,
+      totalAmount: '840.00',
+      status: 'confirmed',
+    },
+    {
+      bookingReference: ref('HB', 9),
+      userId: mei.id,
+      hotelId: coral.id,
+      roomTypeKey: 'garden' as const,
+      roomId: roomByNumber['C-101'].id,
+      checkIn: at(-5),
+      checkOut: at(-2),
+      guests: 2,
+      totalAmount: '540.00',
+      status: 'completed',
+    },
+    {
+      bookingReference: ref('HB', 10),
+      userId: hassan.id,
+      hotelId: bandos.id,
+      roomTypeKey: 'beach' as const,
+      roomId: roomByNumber['B-202'].id,
+      checkIn: at(3),
+      checkOut: at(7),
+      guests: 3,
+      totalAmount: '1120.00',
+      status: 'confirmed',
+    },
+    {
+      bookingReference: ref('HB', 11),
+      userId: sophie.id,
+      hotelId: reef.id,
+      roomTypeKey: 'overwater' as const,
+      roomId: roomByNumber['R-201'].id,
+      checkIn: at(12),
+      checkOut: at(15),
+      guests: 2,
+      totalAmount: '1350.00',
+      status: 'pending',
+    },
+    {
+      bookingReference: ref('HB', 12),
+      userId: priya.id,
+      hotelId: thulha.id,
+      roomTypeKey: 'suite' as const,
+      roomId: roomByNumber['T-401'].id,
+      checkIn: at(-15),
+      checkOut: at(-12),
+      guests: 4,
+      totalAmount: '2160.00',
+      status: 'completed',
+    },
+    {
+      bookingReference: ref('HB', 13),
+      userId: james.id,
+      hotelId: kura.id,
+      roomTypeKey: 'beach' as const,
+      roomId: roomByNumber['K-201'].id,
+      checkIn: at(6),
+      checkOut: at(8),
+      guests: 2,
+      totalAmount: '560.00',
+      status: 'confirmed',
+    },
+    {
+      bookingReference: ref('HB', 14),
+      userId: aisha.id,
+      hotelId: embudu.id,
+      roomTypeKey: 'overwater' as const,
+      roomId: roomByNumber['E-301'].id,
+      checkIn: at(18),
+      checkOut: at(21),
+      guests: 2,
+      totalAmount: '1350.00',
+      status: 'pending',
+    },
+    {
+      bookingReference: ref('HB', 15),
+      userId: mei.id,
+      hotelId: fulha.id,
+      roomTypeKey: 'suite' as const,
+      roomId: roomByNumber['F-301'].id,
+      checkIn: at(-20),
+      checkOut: at(-17),
+      guests: 3,
+      totalAmount: '2160.00',
+      status: 'cancelled',
+    },
+    {
+      bookingReference: ref('HB', 16),
+      userId: hassan.id,
+      hotelId: bandos.id,
+      roomTypeKey: 'garden' as const,
+      roomId: roomByNumber['B-101'].id,
+      checkIn: at(1),
+      checkOut: at(3),
+      guests: 2,
+      totalAmount: '360.00',
+      status: 'confirmed',
+    },
+  ];
+
   const hotelBookingRows = db
     .insert(hotelBookings)
-    .values([
-      {
-        bookingReference: ref('HB', 1),
-        userId: aisha.id,
-        hotelId: velara.id,
-        roomTypeId: garden.id,
-        roomId: roomByNumber['V-101'].id,
-        checkIn: at(-10),
-        checkOut: at(-7),
-        guests: 2,
-        totalAmount: '540.00',
-        status: 'completed',
-      },
-      {
-        bookingReference: ref('HB', 2),
-        userId: james.id,
-        hotelId: velara.id,
-        roomTypeId: beach.id,
-        roomId: roomByNumber['V-201'].id,
-        checkIn: at(-3),
-        checkOut: at(1),
-        guests: 2,
-        totalAmount: '1120.00',
-        status: 'confirmed',
-      },
-      {
-        bookingReference: ref('HB', 3),
-        userId: mei.id,
-        hotelId: maafushi.id,
-        roomTypeId: overwater.id,
-        roomId: roomByNumber['M-301'].id,
-        checkIn: at(5),
-        checkOut: at(9),
-        guests: 3,
-        totalAmount: '1800.00',
-        status: 'confirmed',
-      },
-      {
-        bookingReference: ref('HB', 4),
-        userId: aisha.id,
-        hotelId: maafushi.id,
-        roomTypeId: beach.id,
-        roomId: roomByNumber['M-201'].id,
-        checkIn: at(14),
-        checkOut: at(16),
-        guests: 1,
-        totalAmount: '560.00',
-        status: 'pending',
-      },
-      {
-        bookingReference: ref('HB', 5),
-        userId: james.id,
-        hotelId: velara.id,
-        roomTypeId: suite.id,
-        roomId: roomByNumber['V-401'].id,
-        checkIn: at(-30),
-        checkOut: at(-28),
-        guests: 2,
-        totalAmount: '1440.00',
-        status: 'cancelled',
-      },
-      // Unassigned — Velara priority-action widget
-      {
-        bookingReference: ref('HB', 6),
-        userId: hassan.id,
-        hotelId: velara.id,
-        roomTypeId: overwater.id,
-        roomId: null,
-        checkIn: at(2),
-        checkOut: at(4),
-        guests: 2,
-        totalAmount: '900.00',
-        status: 'confirmed',
-      },
-      {
-        bookingReference: ref('HB', 7),
-        userId: sophie.id,
-        hotelId: velara.id,
-        roomTypeId: garden.id,
-        roomId: null,
-        checkIn: at(20),
-        checkOut: at(22),
-        guests: 1,
-        totalAmount: '360.00',
-        status: 'pending',
-      },
-      {
-        bookingReference: ref('HB', 8),
-        userId: priya.id,
-        hotelId: velara.id,
-        roomTypeId: beach.id,
-        roomId: null,
-        checkIn: at(8),
-        checkOut: at(11),
-        guests: 2,
-        totalAmount: '840.00',
-        status: 'confirmed',
-      },
-      {
-        bookingReference: ref('HB', 9),
-        userId: mei.id,
-        hotelId: coral.id,
-        roomTypeId: garden.id,
-        roomId: roomByNumber['C-101'].id,
-        checkIn: at(-5),
-        checkOut: at(-2),
-        guests: 2,
-        totalAmount: '540.00',
-        status: 'completed',
-      },
-      {
-        bookingReference: ref('HB', 10),
-        userId: hassan.id,
-        hotelId: bandos.id,
-        roomTypeId: beach.id,
-        roomId: roomByNumber['B-202'].id,
-        checkIn: at(3),
-        checkOut: at(7),
-        guests: 3,
-        totalAmount: '1120.00',
-        status: 'confirmed',
-      },
-      {
-        bookingReference: ref('HB', 11),
-        userId: sophie.id,
-        hotelId: reef.id,
-        roomTypeId: overwater.id,
-        roomId: roomByNumber['R-201'].id,
-        checkIn: at(12),
-        checkOut: at(15),
-        guests: 2,
-        totalAmount: '1350.00',
-        status: 'pending',
-      },
-      {
-        bookingReference: ref('HB', 12),
-        userId: priya.id,
-        hotelId: thulha.id,
-        roomTypeId: suite.id,
-        roomId: roomByNumber['T-401'].id,
-        checkIn: at(-15),
-        checkOut: at(-12),
-        guests: 4,
-        totalAmount: '2160.00',
-        status: 'completed',
-      },
-      {
-        bookingReference: ref('HB', 13),
-        userId: james.id,
-        hotelId: kura.id,
-        roomTypeId: beach.id,
-        roomId: roomByNumber['K-201'].id,
-        checkIn: at(6),
-        checkOut: at(8),
-        guests: 2,
-        totalAmount: '560.00',
-        status: 'confirmed',
-      },
-      {
-        bookingReference: ref('HB', 14),
-        userId: aisha.id,
-        hotelId: embudu.id,
-        roomTypeId: overwater.id,
-        roomId: roomByNumber['E-301'].id,
-        checkIn: at(18),
-        checkOut: at(21),
-        guests: 2,
-        totalAmount: '1350.00',
-        status: 'pending',
-      },
-      {
-        bookingReference: ref('HB', 15),
-        userId: mei.id,
-        hotelId: fulha.id,
-        roomTypeId: suite.id,
-        roomId: roomByNumber['F-301'].id,
-        checkIn: at(-20),
-        checkOut: at(-17),
-        guests: 3,
-        totalAmount: '2160.00',
-        status: 'cancelled',
-      },
-      {
-        bookingReference: ref('HB', 16),
-        userId: hassan.id,
-        hotelId: bandos.id,
-        roomTypeId: garden.id,
-        roomId: roomByNumber['B-101'].id,
-        checkIn: at(1),
-        checkOut: at(3),
-        guests: 2,
-        totalAmount: '360.00',
-        status: 'confirmed',
-      },
-    ])
+    .values(
+      bookingSpecs.map(({ roomTypeKey, ...booking }) => ({
+        ...booking,
+        roomTypeId: rt(booking.hotelId, roomTypeKey).id,
+      })),
+    )
     .returning()
     .all();
   const [hb1, hb2, hb3] = hotelBookingRows;
@@ -1248,7 +1318,12 @@ export async function seedDemo(db: DemoDb): Promise<void> {
 
   db.insert(promotionTargets)
     .values([
-      { promotionId: monsoon.id, targetType: 'room_type', targetId: beach.id },
+      // Scoped to Velara's own Beach Villa — the hotel its owner is assigned to.
+      {
+        promotionId: monsoon.id,
+        targetType: 'room_type',
+        targetId: rt(velara.id, 'beach').id,
+      },
       { promotionId: monsoon.id, targetType: 'event', targetId: dolphin.id },
       {
         promotionId: welcome.id,
@@ -1331,17 +1406,18 @@ export async function seedDemo(db: DemoDb): Promise<void> {
     }
   }
 
-  const roomTypesForImages = [garden, beach, overwater, suite];
+  // Every hotel's copy of a template shares that template's gallery, so each
+  // hotel's detail page has room-type photos.
   const roomTypeImageUrls: { roomTypeId: number; url: string }[] = [];
-  for (let ri = 0; ri < roomTypesForImages.length; ri++) {
-    const rt = roomTypesForImages[ri];
+  roomTypeRows.forEach((row, i) => {
+    const templateIndex = i % roomTypeTemplates.length;
     for (let k = 0; k < 3; k++) {
       roomTypeImageUrls.push({
-        roomTypeId: rt.id,
-        url: galleryUrls[(ri * 3 + k) % galleryUrls.length],
+        roomTypeId: row.id,
+        url: galleryUrls[(templateIndex * 3 + k) % galleryUrls.length],
       });
     }
-  }
+  });
 
   const allImageInserts = [
     ...hotelImageRows,

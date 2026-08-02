@@ -1,11 +1,10 @@
 import {
-  ForbiddenException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { AuditService } from '../../shared/audit/audit.service';
 import { AuditAction } from '../../shared/enums/audit-action.enum';
-import { Role } from '../../shared/enums/role.enum';
 import { HotelAccessService } from '../../shared/hotel-access/hotel-access.service';
 import type { AuthenticatedUser } from '../../shared/interfaces/authenticated-user.interface';
 import { CreateRoomTypeDto } from './dto/create-room-type.dto';
@@ -16,10 +15,9 @@ import {
 } from './room-types.repository';
 
 /**
- * Room types are a global catalog (not owned by a single hotel), since the
- * same "Deluxe" concept is reused across properties. Creating one is open to
- * any hotel staff member; updating/deleting one is only blocked when doing so
- * would affect a hotel outside the actor's assignment.
+ * Room types belong to a single hotel, so every operation reduces to the same
+ * question every other hotel-domain module asks: may this user act on that
+ * hotel? `HotelAccessService` answers it; there is no cross-hotel case left.
  */
 @Injectable()
 export class RoomTypesService {
@@ -29,32 +27,52 @@ export class RoomTypesService {
     private readonly audit: AuditService,
   ) {}
 
-  listAll(): Promise<RoomTypeWithAmenities[]> {
-    return this.roomTypesRepo.findAll();
+  async listByHotel(
+    user: AuthenticatedUser,
+    hotelId: number,
+  ): Promise<RoomTypeWithAmenities[]> {
+    await this.hotelAccess.assertHotelAccess(user, hotelId);
+    return this.roomTypesRepo.findByHotel(hotelId);
   }
 
-  async findById(id: number): Promise<RoomTypeWithAmenities> {
+  async findById(
+    user: AuthenticatedUser,
+    id: number,
+  ): Promise<RoomTypeWithAmenities> {
     const roomType = await this.roomTypesRepo.findById(id);
     if (!roomType) throw new NotFoundException(`Room type #${id} not found`);
+    await this.hotelAccess.assertHotelAccess(user, roomType.hotelId);
     return roomType;
   }
 
   async create(
     dto: CreateRoomTypeDto,
-    actorId: number,
+    user: AuthenticatedUser,
   ): Promise<RoomTypeWithAmenities> {
-    const roomType = await this.roomTypesRepo.create({
-      name: dto.name,
-      description: dto.description,
-      basePricePerNight: dto.basePricePerNight,
-      maxOccupancy: dto.maxOccupancy,
-    });
+    await this.hotelAccess.assertHotelAccess(user, dto.hotelId);
+
+    let roomType: RoomTypeWithAmenities;
+    try {
+      roomType = await this.roomTypesRepo.create({
+        hotelId: dto.hotelId,
+        name: dto.name,
+        description: dto.description,
+        basePricePerNight: dto.basePricePerNight,
+        maxOccupancy: dto.maxOccupancy,
+      });
+    } catch {
+      // Unique on (hotel_id, name) — same name is fine at a different hotel.
+      throw new ConflictException(
+        `This hotel already has a room type named "${dto.name}"`,
+      );
+    }
+
     await this.audit.record({
-      userId: actorId,
+      userId: user.id,
       action: AuditAction.RoomTypeCreated,
       subjectType: 'RoomType',
       subjectId: roomType.id,
-      metadata: { name: roomType.name },
+      metadata: { name: roomType.name, hotelId: roomType.hotelId },
     });
     return roomType;
   }
@@ -64,10 +82,16 @@ export class RoomTypesService {
     dto: UpdateRoomTypeDto,
     user: AuthenticatedUser,
   ): Promise<RoomTypeWithAmenities> {
-    await this.findById(id); // 404 if missing
-    await this.assertScopedAccess(user, id);
+    await this.findById(user, id); // 404 + access check
 
-    const updated = await this.roomTypesRepo.update(id, dto);
+    let updated: RoomTypeWithAmenities | undefined;
+    try {
+      updated = await this.roomTypesRepo.update(id, dto);
+    } catch {
+      throw new ConflictException(
+        `This hotel already has a room type named "${dto.name}"`,
+      );
+    }
     if (!updated) throw new NotFoundException(`Room type #${id} not found`);
 
     await this.audit.record({
@@ -80,8 +104,15 @@ export class RoomTypesService {
   }
 
   async remove(id: number, user: AuthenticatedUser): Promise<void> {
-    const roomType = await this.findById(id);
-    await this.assertScopedAccess(user, id);
+    const roomType = await this.findById(user, id); // 404 + access check
+
+    // Rooms reference the type without cascade, so deleting an in-use type
+    // would surface as a raw constraint failure instead of a clear 409.
+    if (await this.roomTypesRepo.isInUse(id)) {
+      throw new ConflictException(
+        'Cannot delete a room type while rooms of that type exist',
+      );
+    }
 
     await this.roomTypesRepo.delete(id);
     await this.audit.record({
@@ -89,26 +120,7 @@ export class RoomTypesService {
       action: AuditAction.RoomTypeDeleted,
       subjectType: 'RoomType',
       subjectId: id,
-      metadata: { name: roomType.name },
+      metadata: { name: roomType.name, hotelId: roomType.hotelId },
     });
-  }
-
-  private async assertScopedAccess(
-    user: AuthenticatedUser,
-    roomTypeId: number,
-  ): Promise<void> {
-    if (user.role === Role.Admin) return;
-    const hotelIdsUsing =
-      await this.roomTypesRepo.hotelIdsUsingRoomType(roomTypeId);
-    if (hotelIdsUsing.length === 0) return; // unused catalog entry — fair game
-
-    const scope = await this.hotelAccess.scopedHotelIds(user);
-    const scopedIds = scope === 'all' ? [] : scope;
-    const outsideScope = hotelIdsUsing.some((id) => !scopedIds.includes(id));
-    if (outsideScope) {
-      throw new ForbiddenException(
-        'This room type is used by a hotel outside your assignment',
-      );
-    }
   }
 }

@@ -92,15 +92,17 @@ export const setHotelActiveServerFn = createServerFn({ method: "POST" })
     return (await res.json()) as Hotel;
   });
 
-/** Global room-type catalog. */
-export const getRoomTypesServerFn = createServerFn({ method: "GET" }).handler(
-  async (): Promise<RoomType[]> => {
-    const res = await apiFetch("/room-types");
+/** One hotel's room types. */
+export const getRoomTypesServerFn = createServerFn({ method: "GET" })
+  .validator((input: unknown) =>
+    z.object({ hotelId: z.number().int().positive() }).parse(input),
+  )
+  .handler(async ({ data }): Promise<RoomType[]> => {
+    const res = await apiFetch(`/room-types?hotelId=${data.hotelId}`);
     if (!res.ok)
       throw new Error(await errorMessage(res, "Failed to load room types"));
     return (await res.json()) as RoomType[];
-  },
-);
+  });
 
 const roomTypeInputSchema = z.object({
   name: z.string().trim().min(1).max(255),
@@ -110,7 +112,11 @@ const roomTypeInputSchema = z.object({
 });
 
 export const createRoomTypeServerFn = createServerFn({ method: "POST" })
-  .validator((input: unknown) => roomTypeInputSchema.parse(input))
+  .validator((input: unknown) =>
+    roomTypeInputSchema
+      .extend({ hotelId: z.number().int().positive() })
+      .parse(input),
+  )
   .handler(async ({ data }): Promise<RoomType> => {
     const res = await apiFetch("/room-types", {
       method: "POST",

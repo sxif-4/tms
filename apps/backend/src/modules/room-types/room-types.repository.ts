@@ -24,7 +24,7 @@ export type RoomTypeWithAmenities = RoomType & {
   images: string[];
 };
 
-/** Sole owner of Drizzle queries for the global room-type catalog. */
+/** Sole owner of Drizzle queries for room types, which belong to one hotel. */
 @Injectable()
 export class RoomTypesRepository {
   constructor(@Inject(DRIZZLE) private readonly db: DrizzleDB) {}
@@ -95,13 +95,24 @@ export class RoomTypesRepository {
     });
   }
 
-  findAll(): Promise<RoomTypeWithAmenities[]> {
+  findByHotel(hotelId: number): Promise<RoomTypeWithAmenities[]> {
     const rows = this.db
       .select()
       .from(roomTypes)
+      .where(eq(roomTypes.hotelId, hotelId))
       .orderBy(asc(roomTypes.name))
       .all();
     return Promise.resolve(this.withAmenities(rows));
+  }
+
+  /** True when any room still references this type — blocks deletion. */
+  isInUse(roomTypeId: number): Promise<boolean> {
+    const row = this.db
+      .select({ id: rooms.id })
+      .from(rooms)
+      .where(eq(rooms.roomTypeId, roomTypeId))
+      .get();
+    return Promise.resolve(!!row);
   }
 
   findById(id: number): Promise<RoomTypeWithAmenities | undefined> {
@@ -141,15 +152,5 @@ export class RoomTypesRepository {
   delete(id: number): Promise<void> {
     this.db.delete(roomTypes).where(eq(roomTypes.id, id)).run();
     return Promise.resolve();
-  }
-
-  /** Distinct hotel IDs with at least one room of this type — used to guard cross-hotel edits. */
-  hotelIdsUsingRoomType(roomTypeId: number): Promise<number[]> {
-    const rows = this.db
-      .selectDistinct({ hotelId: rooms.hotelId })
-      .from(rooms)
-      .where(eq(rooms.roomTypeId, roomTypeId))
-      .all();
-    return Promise.resolve(rows.map((r) => r.hotelId));
   }
 }

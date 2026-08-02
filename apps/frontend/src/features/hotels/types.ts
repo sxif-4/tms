@@ -27,8 +27,10 @@ export interface RoomTypeAmenity {
 }
 
 /** Global room-type catalog, shared across all hotels. */
+/** Room types belong to one hotel — two hotels' "Beach Villa" are separate records. */
 export interface RoomType {
   id: number;
+  hotelId: number;
   name: string;
   description: string;
   /** Decimal as text, e.g. "120.00". */

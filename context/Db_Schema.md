@@ -77,15 +77,20 @@ These apply across every table below unless a table explicitly notes otherwise:
 
 ### room_types
 
-| Column               | Type          | Constraints   | Description              |
-| -------------------- | ------------- | ------------- | ------------------------ |
-| id                   | bigint        | PK, increment | Primary key              |
-| name                 | varchar(255)  | -             | Room type name           |
-| description          | text          | -             | Detailed description     |
-| base_price_per_night | decimal(10,2) | -             | Base price per night     |
-| max_occupancy        | tinyint       | -             | Maximum number of guests |
-| created_at           | timestamp     | -             | Record creation time     |
-| updated_at           | timestamp     | -             | Record update time       |
+> A room type belongs to **one hotel**, as in a real property management system: two hotels may both sell a "Beach Villa", but they are separate records with their own price, description and amenities.
+
+| Column               | Type          | Constraints                    | Description              |
+| -------------------- | ------------- | ------------------------------ | ------------------------ |
+| id                   | bigint        | PK, increment                  | Primary key              |
+| hotel_id             | bigint        | FK → hotels.id, cascade delete | Owning hotel             |
+| name                 | varchar(255)  | -                              | Room type name           |
+| description          | text          | -                              | Detailed description     |
+| base_price_per_night | decimal(10,2) | -                              | Base price per night     |
+| max_occupancy        | tinyint       | -                              | Maximum number of guests |
+| created_at           | timestamp     | -                              | Record creation time     |
+| updated_at           | timestamp     | -                              | Record update time       |
+
+**Note:** Unique constraint on `(hotel_id, name)` — the same type name may repeat across hotels. A room, and a booking, must reference a room type belonging to their own hotel; that cross-table rule is application-enforced.
 
 ### rooms
 
