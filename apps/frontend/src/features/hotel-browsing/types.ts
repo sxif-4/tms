@@ -29,10 +29,19 @@ export interface RoomType {
   amenities?: Amenity[];
 }
 
+/** Property-level feature (pool, gym), unlike per-room `Amenity`. */
+export interface Facility {
+  id: number;
+  name: string;
+  icon: string | null;
+  category: string;
+}
+
 export interface HotelDetail extends HotelSummary {
   maxRooms: number;
   images: string[];
   roomTypes: RoomType[];
+  facilities: Facility[];
 }
 
 export interface RoomTypeAvailability {

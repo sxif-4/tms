@@ -15,8 +15,26 @@ export interface Hotel {
   maxRooms: number;
   /** Suspended hotels are hidden from visitors and take no new bookings. */
   isActive: boolean;
+  /** Only returned by the staff/admin hotel endpoints. */
+  facilities?: Facility[];
   createdAt: string;
   updatedAt: string;
+}
+
+/** Property-level feature (pool, gym) — distinct from per-room amenities. */
+export interface Facility {
+  id: number;
+  name: string;
+  icon: string | null;
+  category: string;
+}
+
+/** A gallery image with the metadata the Media card needs to manage it. */
+export interface RoomTypeImage {
+  id: number;
+  url: string;
+  isCover: boolean;
+  sortOrder: number;
 }
 
 export interface RoomTypeAmenity {

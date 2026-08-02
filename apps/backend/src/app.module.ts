@@ -18,6 +18,8 @@ import { MapLocationsModule } from './modules/map-locations/map-locations.module
 import { ReportsModule } from './modules/reports/reports.module';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 import { HotelsModule } from './modules/hotels/hotels.module';
+import { AmenitiesModule } from './modules/amenities/amenities.module';
+import { FacilitiesModule } from './modules/facilities/facilities.module';
 import { RoomTypesModule } from './modules/room-types/room-types.module';
 import { RoomsModule } from './modules/rooms/rooms.module';
 import { HotelBookingsModule } from './modules/hotel-bookings/hotel-bookings.module';
@@ -58,6 +60,8 @@ import { PublicParkModule } from './modules/public-park/public-park.module';
     ReportsModule,
     AuditLogsModule,
     HotelsModule,
+    AmenitiesModule,
+    FacilitiesModule,
     RoomTypesModule,
     RoomsModule,
     HotelBookingsModule,

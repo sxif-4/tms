@@ -1,10 +1,12 @@
 import { z } from "zod";
 import { gbp } from "~/features/reports/constants";
-import {
-  LOCATION_TYPES,
-} from "~/features/map-locations/constants";
+import { LOCATION_TYPES } from "~/features/map-locations/constants";
 import type { LocationType } from "~/features/map-locations/types";
-import type { AvailabilityLevel, HotelBookingStatus, HotelSummary } from "./types";
+import type {
+  AvailabilityLevel,
+  HotelBookingStatus,
+  HotelSummary,
+} from "./types";
 
 export { gbp };
 

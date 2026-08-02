@@ -104,6 +104,30 @@ These apply across every table below unless a table explicitly notes otherwise:
 | created_at   | timestamp   | -                              | Record creation time         |
 | updated_at   | timestamp   | -                              | Record update time           |
 
+### facilities
+
+> Property-level features (pool, gym, restaurant), as opposed to `amenities`, which describe what's inside a room. Kept as a separate taxonomy so the room-type picker never offers "Rooftop Pool".
+
+| Column     | Type         | Constraints   | Description                                                     |
+| ---------- | ------------ | ------------- | --------------------------------------------------------------- |
+| id         | bigint       | PK, increment | Primary key                                                     |
+| name       | varchar(255) | UNIQUE        | Facility name                                                   |
+| icon       | varchar(50)  | nullable      | Lucide-style icon key                                           |
+| category   | varchar(50)  | -             | wellness, dining, services, recreation, transport               |
+| created_at | timestamp    | -             | Record creation time                                            |
+
+### hotel_facilities
+
+> Junction: which facilities a hotel offers.
+
+| Column      | Type   | Constraints                        | Description   |
+| ----------- | ------ | ---------------------------------- | ------------- |
+| id          | bigint | PK, increment                      | Primary key   |
+| hotel_id    | bigint | FK → hotels.id, cascade delete     | Owning hotel  |
+| facility_id | bigint | FK → facilities.id, cascade delete | Facility      |
+
+**Note:** Unique constraint on `(hotel_id, facility_id)`
+
 ### hotel_bookings
 
 Room-type-first: guests/staff pick a **room type** + dates at booking time; a specific room is assigned by staff afterward (`room_id` starts `NULL`), which makes "unassigned room" a real, queryable operational state. Availability is a capacity count, not a per-room overlap check: for a hotel + room type + date range, `available = (rooms of that type, status IN ('available','occupied')) − (hotel_bookings for that hotel+room type, status != 'cancelled', overlapping the range)`.
@@ -338,9 +362,11 @@ remaining(date) = capacity(date) - sold(date)
 | -------------- | ----------- | -------------- | ------------------------------- |
 | image_id       | bigint      | FK → images.id | Reference to image              |
 | imageable_id   | bigint      | -              | ID of the related entity        |
-| imageable_type | varchar(50) | -              | room, event, advertisement, etc |
+| imageable_type | varchar(50) | -              | room_type, hotel, event, etc    |
+| is_cover       | boolean     | default false  | Gallery thumbnail for this owner |
+| sort_order     | int         | default 0      | Gallery position                |
 
-**Note:** Composite Primary Key on `(image_id, imageable_id, imageable_type)`
+**Note:** Composite Primary Key on `(image_id, imageable_id, imageable_type)`. At most one row per owner should carry `is_cover`; the application clears the previous cover when a new one is set, and promotes the next image when a cover is deleted. Uploaded files are stored on disk and referenced as `/uploads/<uuid>.<ext>` in `images.url`; seeded images are absolute remote URLs.
 
 ## 👥 USER ASSIGNMENTS
 

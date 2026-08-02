@@ -32,7 +32,8 @@ export const hotelAvailabilityQueryOptions = (
 ) =>
   queryOptions({
     queryKey: ["public-hotels", id, "availability", checkIn, checkOut] as const,
-    queryFn: () => getHotelAvailabilityServerFn({ data: { id, checkIn, checkOut } }),
+    queryFn: () =>
+      getHotelAvailabilityServerFn({ data: { id, checkIn, checkOut } }),
     enabled: Boolean(checkIn && checkOut),
     staleTime: 15 * 1000,
   });

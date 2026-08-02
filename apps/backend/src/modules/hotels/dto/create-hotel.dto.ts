@@ -1,5 +1,6 @@
 import { Transform } from 'class-transformer';
 import {
+  IsArray,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -31,4 +32,11 @@ export class CreateHotelDto {
   @IsInt()
   @Min(1)
   maxRooms!: number;
+
+  /** Facilities this hotel offers. Optional — defaults to none. */
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  facilityIds?: number[];
 }

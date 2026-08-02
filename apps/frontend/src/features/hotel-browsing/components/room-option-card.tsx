@@ -6,6 +6,7 @@ import { AmenityIcon } from "~/lib/amenity-icon";
 import { cn } from "~/lib/utils";
 import { gbp } from "../constants";
 import { ImageLightbox } from "./image-lightbox";
+import { imageUrl } from "~/lib/image-url";
 
 /**
  * Common subset of `RoomType` and `RoomTypeAvailability` — `availableRooms` is
@@ -80,7 +81,7 @@ export function RoomOptionCard({
               aria-label={`View photos of ${room.name}`}
             >
               <img
-                src={mainSrc}
+                src={imageUrl(mainSrc)}
                 alt=""
                 className="size-full object-cover"
                 loading="lazy"
@@ -103,7 +104,7 @@ export function RoomOptionCard({
                       aria-current={i === safePreview}
                     >
                       <img
-                        src={src}
+                        src={imageUrl(src)}
                         alt=""
                         className="size-full object-cover"
                         loading="lazy"

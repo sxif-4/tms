@@ -26,6 +26,8 @@ export enum AuditAction {
   RoomTypeCreated = 'room_type.created',
   RoomTypeUpdated = 'room_type.updated',
   RoomTypeDeleted = 'room_type.deleted',
+  RoomTypeImageUploaded = 'room_type.image_uploaded',
+  RoomTypeImageDeleted = 'room_type.image_deleted',
   RoomCreated = 'room.created',
   RoomUpdated = 'room.updated',
   RoomDeleted = 'room.deleted',

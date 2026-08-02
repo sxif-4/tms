@@ -35,10 +35,19 @@ export interface PublicRoomType {
   amenities: PublicAmenity[];
 }
 
+export interface PublicFacility {
+  id: number;
+  name: string;
+  icon: string | null;
+  category: string;
+}
+
 export interface PublicHotelDetail extends PublicHotelSummary {
   maxRooms: number;
   images: string[];
   roomTypes: PublicRoomType[];
+  /** Property-level features (pool, gym), distinct from per-room amenities. */
+  facilities: PublicFacility[];
 }
 
 export interface RoomTypeAvailabilityRow {
@@ -107,6 +116,7 @@ export class PublicHotelsRepository {
           roomTypeIds.map((id) => sql`${id}`),
           sql`, `,
         )})
+      ORDER BY im.is_cover DESC, im.sort_order, i.id
     `);
     for (const row of rows) {
       const list = map.get(row.roomTypeId) ?? [];
@@ -138,7 +148,8 @@ export class PublicHotelsRepository {
              FROM rooms r JOIN room_types rt ON rt.id = r.room_type_id
              WHERE r.hotel_id = h.id AND r.status != 'out_of_service') AS minPrice,
           (SELECT i.url FROM imageables im JOIN images i ON i.id = im.image_id
-             WHERE im.imageable_type = 'hotel' AND im.imageable_id = h.id LIMIT 1) AS image,
+             WHERE im.imageable_type = 'hotel' AND im.imageable_id = h.id
+             ORDER BY im.is_cover DESC, im.sort_order, i.id LIMIT 1) AS image,
           (SELECT COUNT(*) FROM imageables im
              WHERE im.imageable_type = 'hotel' AND im.imageable_id = h.id) AS imageCount
         FROM hotels h LEFT JOIN map_locations ml ON ml.id = h.map_location_id
@@ -170,6 +181,7 @@ export class PublicHotelsRepository {
         sql`
         SELECT i.url FROM imageables im JOIN images i ON i.id = im.image_id
         WHERE im.imageable_type = 'hotel' AND im.imageable_id = ${hotelId}
+        ORDER BY im.is_cover DESC, im.sort_order, i.id
       `,
       )
       .map((r) => r.url);
@@ -199,12 +211,20 @@ export class PublicHotelsRepository {
       };
     });
 
+    const facilities = this.db.all<PublicFacility>(sql`
+      SELECT f.id, f.name, f.icon, f.category
+      FROM hotel_facilities hf JOIN facilities f ON f.id = hf.facility_id
+      WHERE hf.hotel_id = ${hotelId}
+      ORDER BY f.category, f.name
+    `);
+
     return {
       ...hotel,
       image: images[0] ?? null,
       imageCount: images.length,
       images,
       roomTypes,
+      facilities,
     };
   }
 

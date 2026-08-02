@@ -15,6 +15,14 @@ export const imageables = sqliteTable(
       .references(() => images.id, { onDelete: 'cascade' }),
     imageableId: integer('imageable_id').notNull(),
     imageableType: text('imageable_type').notNull(),
+    /**
+     * At most one image per owner carries this — the gallery thumbnail. The
+     * service clears the previous cover when a new one is set; SQLite can't
+     * express a partial unique constraint over a polymorphic owner.
+     */
+    isCover: integer('is_cover', { mode: 'boolean' }).notNull().default(false),
+    /** Gallery position, ties broken by image id. */
+    sortOrder: integer('sort_order').notNull().default(0),
   },
   (t) => [primaryKey({ columns: [t.imageId, t.imageableId, t.imageableType] })],
 );

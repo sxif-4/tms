@@ -14,6 +14,7 @@ import { Button } from "~/components/ui/button";
 import { Progress } from "~/components/ui/progress";
 import { Separator } from "~/components/ui/separator";
 import { AmenityIcon } from "~/lib/amenity-icon";
+import { imageUrl } from "~/lib/image-url";
 import { cn } from "~/lib/utils";
 import { gbp } from "../constants";
 import type { Room, RoomType } from "../types";
@@ -94,7 +95,11 @@ export function RoomTypeDetail({
       <div className="flex flex-col gap-2">
         <div className="aspect-video overflow-hidden rounded-xl bg-muted">
           {hero ? (
-            <img src={hero} alt="" className="size-full object-cover" />
+            <img
+              src={imageUrl(hero)}
+              alt=""
+              className="size-full object-cover"
+            />
           ) : (
             <div className="flex size-full flex-col items-center justify-center gap-2 text-muted-foreground">
               <ImageIcon className="size-6" />
@@ -115,7 +120,11 @@ export function RoomTypeDetail({
                   i === activeImage ? "border-primary" : "border-transparent",
                 )}
               >
-                <img src={url} alt="" className="size-full object-cover" />
+                <img
+                  src={imageUrl(url)}
+                  alt=""
+                  className="size-full object-cover"
+                />
               </button>
             ))}
           </div>

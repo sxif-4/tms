@@ -4,6 +4,7 @@ import { useState } from "react";
 import { cn } from "~/lib/utils";
 import { gbp, hotelImage } from "../constants";
 import type { HotelSummary } from "../types";
+import { imageUrl } from "~/lib/image-url";
 
 export function HotelCard({ hotel }: { hotel: HotelSummary }) {
   // Presentational only — there is no favourites endpoint yet.
@@ -22,7 +23,7 @@ export function HotelCard({ hotel }: { hotel: HotelSummary }) {
         className="absolute inset-0"
       >
         <img
-          src={hotelImage(hotel)}
+          src={imageUrl(hotelImage(hotel))}
           alt=""
           className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
           loading="lazy"

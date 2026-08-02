@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -35,4 +36,14 @@ export class UpdateRoomTypeDto {
   @Min(1)
   @Max(20)
   maxOccupancy?: number;
+
+  /**
+   * Full amenity selection. Omit to leave the current set untouched; send an
+   * empty array to clear it.
+   */
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  amenityIds?: number[];
 }

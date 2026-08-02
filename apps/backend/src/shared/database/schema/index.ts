@@ -12,6 +12,7 @@ import { roomTypes } from './room-types.schema';
 import { rooms } from './rooms.schema';
 import { amenities } from './amenities.schema';
 import { roomTypeAmenities } from './room-type-amenities.schema';
+import { facilities, hotelFacilities } from './facilities.schema';
 import { hotelBookings } from './hotel-bookings.schema';
 
 // Ferry domain
@@ -47,6 +48,7 @@ export * from './room-types.schema';
 export * from './rooms.schema';
 export * from './amenities.schema';
 export * from './room-type-amenities.schema';
+export * from './facilities.schema';
 export * from './hotel-bookings.schema';
 export * from './ferry-routes.schema';
 export * from './ferry-schedules.schema';
@@ -107,7 +109,26 @@ export const hotelsRelations = relations(hotels, ({ one, many }) => ({
   }),
   rooms: many(rooms),
   roomTypes: many(roomTypes),
+  hotelFacilities: many(hotelFacilities),
 }));
+
+export const facilitiesRelations = relations(facilities, ({ many }) => ({
+  hotelFacilities: many(hotelFacilities),
+}));
+
+export const hotelFacilitiesRelations = relations(
+  hotelFacilities,
+  ({ one }) => ({
+    hotel: one(hotels, {
+      fields: [hotelFacilities.hotelId],
+      references: [hotels.id],
+    }),
+    facility: one(facilities, {
+      fields: [hotelFacilities.facilityId],
+      references: [facilities.id],
+    }),
+  }),
+);
 
 export const roomTypesRelations = relations(roomTypes, ({ one, many }) => ({
   hotel: one(hotels, {

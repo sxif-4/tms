@@ -1,5 +1,6 @@
 import { BedDoubleIcon, ImageIcon, HouseIcon, UsersIcon } from "lucide-react";
 import { Badge } from "~/components/ui/badge";
+import { imageUrl } from "~/lib/image-url";
 import { cn } from "~/lib/utils";
 import { gbp } from "../constants";
 import type { RoomType } from "../types";
@@ -35,7 +36,7 @@ export function RoomTypeRow({
       <div className="size-24 shrink-0 overflow-hidden rounded-lg bg-muted sm:size-28">
         {roomType.image ? (
           <img
-            src={roomType.image}
+            src={imageUrl(roomType.image)}
             alt=""
             loading="lazy"
             className="size-full object-cover"

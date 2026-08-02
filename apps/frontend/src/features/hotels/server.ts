@@ -9,6 +9,8 @@ import type {
   RevenuePoint,
   Room,
   RoomType,
+  RoomTypeAmenity,
+  Facility,
 } from "./types";
 
 const DECIMAL = /^\d+(\.\d{1,2})?$/;
@@ -39,6 +41,7 @@ const hotelPayloadSchema = z.object({
   description: z.string().trim().max(2000).optional(),
   mapLocationId: z.number().int().positive().optional(),
   maxRooms: z.number().int().positive(),
+  facilityIds: z.array(z.number().int().positive()).optional(),
 });
 
 /** Creates a hotel (admin-only on the API). */
@@ -104,6 +107,26 @@ export const getRoomTypesServerFn = createServerFn({ method: "GET" })
     return (await res.json()) as RoomType[];
   });
 
+/** The facility catalog used by the hotel facilities picker. */
+export const getFacilitiesServerFn = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Facility[]> => {
+    const res = await apiFetch("/facilities");
+    if (!res.ok)
+      throw new Error(await errorMessage(res, "Failed to load facilities"));
+    return (await res.json()) as Facility[];
+  },
+);
+
+/** The amenity catalog used by the room-type amenity picker. */
+export const getAmenitiesServerFn = createServerFn({ method: "GET" }).handler(
+  async (): Promise<RoomTypeAmenity[]> => {
+    const res = await apiFetch("/amenities");
+    if (!res.ok)
+      throw new Error(await errorMessage(res, "Failed to load amenities"));
+    return (await res.json()) as RoomTypeAmenity[];
+  },
+);
+
 /** A single room type, so the edit page can be deep-linked by id alone. */
 export const getRoomTypeServerFn = createServerFn({ method: "GET" })
   .validator((input: unknown) =>
@@ -121,6 +144,7 @@ const roomTypeInputSchema = z.object({
   description: z.string().trim().min(1),
   basePricePerNight: z.string().regex(DECIMAL),
   maxOccupancy: z.number().int().min(1).max(20),
+  amenityIds: z.array(z.number().int().positive()).optional(),
 });
 
 export const createRoomTypeServerFn = createServerFn({ method: "POST" })

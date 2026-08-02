@@ -1,5 +1,6 @@
 import { Transform } from 'class-transformer';
 import {
+  IsArray,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -33,4 +34,11 @@ export class UpdateHotelDto {
   @IsInt()
   @Min(1)
   maxRooms?: number;
+
+  /** Facilities this hotel offers. Omit to leave unchanged; [] clears. */
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  facilityIds?: number[];
 }

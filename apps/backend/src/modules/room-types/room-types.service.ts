@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -6,6 +7,7 @@ import {
 import { AuditService } from '../../shared/audit/audit.service';
 import { AuditAction } from '../../shared/enums/audit-action.enum';
 import { HotelAccessService } from '../../shared/hotel-access/hotel-access.service';
+import { AmenitiesRepository } from '../amenities/amenities.repository';
 import type { AuthenticatedUser } from '../../shared/interfaces/authenticated-user.interface';
 import { CreateRoomTypeDto } from './dto/create-room-type.dto';
 import { UpdateRoomTypeDto } from './dto/update-room-type.dto';
@@ -23,6 +25,7 @@ import {
 export class RoomTypesService {
   constructor(
     private readonly roomTypesRepo: RoomTypesRepository,
+    private readonly amenitiesRepo: AmenitiesRepository,
     private readonly hotelAccess: HotelAccessService,
     private readonly audit: AuditService,
   ) {}
@@ -67,6 +70,10 @@ export class RoomTypesService {
       );
     }
 
+    if (dto.amenityIds?.length) {
+      await this.setAmenities(roomType.id, dto.amenityIds);
+    }
+
     await this.audit.record({
       userId: user.id,
       action: AuditAction.RoomTypeCreated,
@@ -74,7 +81,8 @@ export class RoomTypesService {
       subjectId: roomType.id,
       metadata: { name: roomType.name, hotelId: roomType.hotelId },
     });
-    return roomType;
+    // Re-read so the response carries the amenities that were just attached.
+    return (await this.roomTypesRepo.findById(roomType.id)) ?? roomType;
   }
 
   async update(
@@ -84,15 +92,22 @@ export class RoomTypesService {
   ): Promise<RoomTypeWithAmenities> {
     await this.findById(user, id); // 404 + access check
 
+    const { amenityIds, ...fields } = dto;
     let updated: RoomTypeWithAmenities | undefined;
     try {
-      updated = await this.roomTypesRepo.update(id, dto);
+      updated = await this.roomTypesRepo.update(id, fields);
     } catch {
       throw new ConflictException(
         `This hotel already has a room type named "${dto.name}"`,
       );
     }
     if (!updated) throw new NotFoundException(`Room type #${id} not found`);
+
+    // Omitted leaves the set alone; an empty array clears it.
+    if (amenityIds) {
+      await this.setAmenities(id, amenityIds);
+      updated = (await this.roomTypesRepo.findById(id)) ?? updated;
+    }
 
     await this.audit.record({
       userId: user.id,
@@ -101,6 +116,22 @@ export class RoomTypesService {
       subjectId: id,
     });
     return updated;
+  }
+
+  /** Validates every amenity id before replacing the room type's whole set. */
+  private async setAmenities(
+    roomTypeId: number,
+    amenityIds: number[],
+  ): Promise<void> {
+    const unique = [...new Set(amenityIds)];
+    const existing = await this.amenitiesRepo.findExistingIds(unique);
+    const missing = unique.filter((id) => !existing.includes(id));
+    if (missing.length > 0) {
+      throw new BadRequestException(
+        `Unknown amenity ${missing.length === 1 ? 'id' : 'ids'}: ${missing.join(', ')}`,
+      );
+    }
+    await this.roomTypesRepo.replaceAmenities(roomTypeId, unique);
   }
 
   async remove(id: number, user: AuthenticatedUser): Promise<void> {

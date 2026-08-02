@@ -1,5 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import {
+  getAmenitiesServerFn,
+  getFacilitiesServerFn,
   getHotelBookingsServerFn,
   getHotelDashboardServerFn,
   getHotelOccupancyServerFn,
@@ -24,6 +26,20 @@ export const roomTypesQueryOptions = (hotelId: number) =>
     queryFn: () => getRoomTypesServerFn({ data: { hotelId } }),
     staleTime: 30 * 1000,
   });
+
+/** Shared amenity catalog — a fixed taxonomy, so it caches for longer. */
+export const amenitiesQueryOptions = queryOptions({
+  queryKey: ["amenities"] as const,
+  queryFn: () => getAmenitiesServerFn(),
+  staleTime: 5 * 60 * 1000,
+});
+
+/** Shared facility catalog — fixed taxonomy, same caching as amenities. */
+export const facilitiesQueryOptions = queryOptions({
+  queryKey: ["facilities"] as const,
+  queryFn: () => getFacilitiesServerFn(),
+  staleTime: 5 * 60 * 1000,
+});
 
 /** A single room type — lets the edit page load from the id in the URL. */
 export const roomTypeQueryOptions = (id: number) =>

@@ -21,6 +21,8 @@ import {
   eventBookings,
   eventSchedules,
   events,
+  facilities,
+  hotelFacilities,
   ferryBookings,
   ferryRoutes,
   ferrySchedules,
@@ -355,6 +357,48 @@ export async function seedDemo(db: DemoDb): Promise<void> {
 
   const [velara, maafushi, coral, reef, thulha, bandos, kura, embudu, fulha] =
     hotelRows;
+
+  // ── Facilities catalog (property-level, unlike room amenities) ───────────
+  const facilityDefs = [
+    { name: 'Rooftop Pool', icon: 'waves', category: 'recreation' as const },
+    { name: 'Fitness Centre', icon: 'dumbbell', category: 'wellness' as const },
+    { name: 'Spa & Sauna', icon: 'flower', category: 'wellness' as const },
+    {
+      name: 'In-House Restaurant',
+      icon: 'utensils',
+      category: 'dining' as const,
+    },
+    { name: 'Beach Bar', icon: 'wine', category: 'dining' as const },
+    {
+      name: '24/7 Room Service',
+      icon: 'concierge-bell',
+      category: 'services' as const,
+    },
+    { name: 'Airport Transfer', icon: 'plane', category: 'transport' as const },
+    { name: 'Dive Centre', icon: 'fish', category: 'recreation' as const },
+    { name: 'Kids Club', icon: 'baby', category: 'recreation' as const },
+    { name: 'Laundry Service', icon: 'shirt', category: 'services' as const },
+    { name: 'Free Parking', icon: 'car', category: 'transport' as const },
+    { name: 'Yoga Pavilion', icon: 'flower', category: 'wellness' as const },
+  ];
+
+  const facilityRows = db
+    .insert(facilities)
+    .values(facilityDefs)
+    .returning()
+    .all();
+
+  // Every hotel gets a rotating slice so the demo shows variation rather than
+  // an identical list on every property.
+  db.insert(hotelFacilities)
+    .values(
+      hotelRows.flatMap((hotel, hi) =>
+        facilityRows
+          .filter((_, fi) => (fi + hi) % 3 !== 0)
+          .map((facility) => ({ hotelId: hotel.id, facilityId: facility.id })),
+      ),
+    )
+    .run();
 
   // ── Room types (one set per hotel) ───────────────────────────────────────
   // Room types belong to a hotel, so every property gets its own copies. The
@@ -1436,24 +1480,40 @@ export async function seedDemo(db: DemoDb): Promise<void> {
   const roomTypeImageStart = hotelImageCount;
   const snorkelImg = insertedImages[insertedImages.length - 1];
 
+  /**
+   * Marks the first image of each owner as its cover and numbers the rest, so
+   * seeded galleries behave exactly like uploaded ones.
+   */
+  const seenOwners = new Set<string>();
+  const withCover = <T extends { imageableId: number; imageableType: string }>(
+    row: T,
+  ) => {
+    const key = `${row.imageableType}:${row.imageableId}`;
+    const isFirst = !seenOwners.has(key);
+    seenOwners.add(key);
+    return { ...row, isCover: isFirst, sortOrder: 0 };
+  };
+
   db.insert(imageables)
-    .values([
-      ...hotelImageableRows.map((r) => ({
-        imageId: insertedImages[r.imageIndex].id,
-        imageableId: r.imageableId,
-        imageableType: 'hotel',
-      })),
-      ...roomTypeImageUrls.map((r, i) => ({
-        imageId: insertedImages[roomTypeImageStart + i].id,
-        imageableId: r.roomTypeId,
-        imageableType: 'room_type',
-      })),
-      {
-        imageId: snorkelImg.id,
-        imageableId: snorkel.id,
-        imageableType: 'event',
-      },
-    ])
+    .values(
+      [
+        ...hotelImageableRows.map((r) => ({
+          imageId: insertedImages[r.imageIndex].id,
+          imageableId: r.imageableId,
+          imageableType: 'hotel',
+        })),
+        ...roomTypeImageUrls.map((r, i) => ({
+          imageId: insertedImages[roomTypeImageStart + i].id,
+          imageableId: r.roomTypeId,
+          imageableType: 'room_type',
+        })),
+        {
+          imageId: snorkelImg.id,
+          imageableId: snorkel.id,
+          imageableType: 'event',
+        },
+      ].map(withCover),
+    )
     .run();
 
   // ── Staff assignments ────────────────────────────────────────────────────

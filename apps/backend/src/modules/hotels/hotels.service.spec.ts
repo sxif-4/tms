@@ -14,6 +14,12 @@ describe('HotelsService', () => {
     nameExists: jest.Mock;
   };
   let locationsRepo: { findById: jest.Mock };
+  let facilitiesRepo: {
+    findForHotel: jest.Mock;
+    findForHotels: jest.Mock;
+    findExistingIds: jest.Mock;
+    replaceForHotel: jest.Mock;
+  };
   let hotelAccess: { scopedHotelIds: jest.Mock; assertHotelAccess: jest.Mock };
   let audit: { record: jest.Mock };
 
@@ -30,6 +36,12 @@ describe('HotelsService', () => {
       nameExists: jest.fn().mockResolvedValue(false),
     };
     locationsRepo = { findById: jest.fn().mockResolvedValue({ id: 2 }) };
+    facilitiesRepo = {
+      findForHotel: jest.fn().mockResolvedValue([]),
+      findForHotels: jest.fn().mockResolvedValue(new Map()),
+      findExistingIds: jest.fn().mockResolvedValue([]),
+      replaceForHotel: jest.fn().mockResolvedValue(undefined),
+    };
     hotelAccess = {
       scopedHotelIds: jest.fn().mockResolvedValue('all'),
       assertHotelAccess: jest.fn().mockResolvedValue(undefined),
@@ -39,6 +51,7 @@ describe('HotelsService', () => {
     service = new HotelsService(
       hotelsRepo as never,
       locationsRepo as never,
+      facilitiesRepo as never,
       hotelAccess as never,
       audit as never,
     );
@@ -48,7 +61,7 @@ describe('HotelsService', () => {
     it('creates the hotel and audits it', async () => {
       const result = await service.create({ name: 'Velara', maxRooms: 40 }, 7);
 
-      expect(result).toBe(hotel);
+      expect(result).toMatchObject({ ...hotel, facilities: [] });
       expect(audit.record).toHaveBeenCalledWith(
         expect.objectContaining({
           userId: 7,
@@ -83,9 +96,9 @@ describe('HotelsService', () => {
   describe('update', () => {
     it('allows keeping the existing name', async () => {
       hotelsRepo.nameExists.mockResolvedValue(true);
-      await expect(service.update(1, { name: 'Velara' }, 7)).resolves.toBe(
-        hotel,
-      );
+      await expect(
+        service.update(1, { name: 'Velara' }, 7),
+      ).resolves.toMatchObject({ ...hotel, facilities: [] });
     });
 
     it('rejects renaming onto another hotel', async () => {

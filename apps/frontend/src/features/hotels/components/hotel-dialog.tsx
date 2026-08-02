@@ -22,6 +22,7 @@ import {
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { mapLocationsQueryOptions } from "~/features/map-locations/queries";
+import { FacilityPicker } from "./facility-picker";
 import { hotelsQueryOptions } from "../queries";
 import { createHotelServerFn, updateHotelServerFn } from "../server";
 import type { Hotel } from "../types";
@@ -45,6 +46,7 @@ export function HotelDialog({
   const [description, setDescription] = useState("");
   const [maxRooms, setMaxRooms] = useState("");
   const [mapLocationId, setMapLocationId] = useState<string>(NO_LOCATION);
+  const [facilityIds, setFacilityIds] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const locations = useQuery(mapLocationsQueryOptions);
@@ -58,6 +60,7 @@ export function HotelDialog({
     setMapLocationId(
       hotel?.mapLocationId != null ? String(hotel.mapLocationId) : NO_LOCATION,
     );
+    setFacilityIds(hotel?.facilities?.map((f) => f.id) ?? []);
   }, [open, hotel]);
 
   const mutation = useMutation({
@@ -68,6 +71,7 @@ export function HotelDialog({
         maxRooms: Number(maxRooms),
         mapLocationId:
           mapLocationId === NO_LOCATION ? undefined : Number(mapLocationId),
+        facilityIds,
       };
       return isEdit
         ? updateHotelServerFn({ data: { id: hotel.id, ...payload } })
@@ -88,7 +92,7 @@ export function HotelDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit hotel" : "Add hotel"}</DialogTitle>
           <DialogDescription>
@@ -151,6 +155,16 @@ export function HotelDialog({
                 </SelectGroup>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label>Facilities</Label>
+            <div className="max-h-56 overflow-y-auto rounded-lg border p-3">
+              <FacilityPicker
+                selected={facilityIds}
+                onChange={setFacilityIds}
+              />
+            </div>
           </div>
 
           {error && <p className="text-sm text-destructive">{error}</p>}

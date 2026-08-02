@@ -6,6 +6,7 @@ import {
 } from '../../shared/database/drizzle.constants';
 import {
   rooms,
+  roomTypeAmenities,
   roomTypes,
   type NewRoomType,
   type RoomType,
@@ -84,6 +85,7 @@ export class RoomTypesRepository {
           roomTypeIds.map((id) => sql`${id}`),
           sql`, `,
         )})
+      ORDER BY im.is_cover DESC, im.sort_order, i.id
     `);
     for (const row of rows) {
       const list = map.get(row.roomTypeId) ?? [];
@@ -197,6 +199,24 @@ export class RoomTypesRepository {
 
   delete(id: number): Promise<void> {
     this.db.delete(roomTypes).where(eq(roomTypes.id, id)).run();
+    return Promise.resolve();
+  }
+
+  /**
+   * Replaces the whole amenity set in one transaction — the picker submits the
+   * full selection, so diffing adds/removes would only add failure modes.
+   */
+  replaceAmenities(roomTypeId: number, amenityIds: number[]): Promise<void> {
+    this.db.transaction((tx) => {
+      tx.delete(roomTypeAmenities)
+        .where(eq(roomTypeAmenities.roomTypeId, roomTypeId))
+        .run();
+      if (amenityIds.length > 0) {
+        tx.insert(roomTypeAmenities)
+          .values(amenityIds.map((amenityId) => ({ roomTypeId, amenityId })))
+          .run();
+      }
+    });
     return Promise.resolve();
   }
 }

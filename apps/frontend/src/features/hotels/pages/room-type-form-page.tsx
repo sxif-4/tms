@@ -8,7 +8,7 @@ import {
   PoundSterlingIcon,
   SparklesIcon,
 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -28,13 +28,13 @@ import {
 } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
-import { AmenityIcon } from "~/lib/amenity-icon";
+import { AmenityPicker } from "../components/amenity-picker";
+import { RoomTypeMedia } from "../components/room-type-media";
 import { gbp } from "../constants";
 import { useCurrentHotel } from "../hooks/use-current-hotel";
 import { roomTypeQueryOptions, roomTypesQueryOptions } from "../queries";
 import { createRoomTypeServerFn, updateRoomTypeServerFn } from "../server";
 import type { RoomType } from "../types";
-import { groupAmenities } from "../utils";
 
 const DECIMAL = /^\d+(\.\d{1,2})?$/;
 
@@ -94,6 +94,9 @@ function RoomTypeForm({
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const isEdit = roomType != null;
+  const [amenityIds, setAmenityIds] = useState<number[]>(
+    () => roomType?.amenities?.map((a) => a.id) ?? [],
+  );
 
   const {
     register,
@@ -113,6 +116,7 @@ function RoomTypeForm({
 
   useEffect(() => {
     if (!roomType) return;
+    setAmenityIds(roomType.amenities?.map((a) => a.id) ?? []);
     reset({
       name: roomType.name,
       description: roomType.description,
@@ -124,8 +128,10 @@ function RoomTypeForm({
   const mutation = useMutation({
     mutationFn: (values: RoomTypeValues) =>
       isEdit
-        ? updateRoomTypeServerFn({ data: { id: roomType.id, ...values } })
-        : createRoomTypeServerFn({ data: { hotelId, ...values } }),
+        ? updateRoomTypeServerFn({
+            data: { id: roomType.id, ...values, amenityIds },
+          })
+        : createRoomTypeServerFn({ data: { hotelId, ...values, amenityIds } }),
     onSuccess: (saved) => {
       queryClient.invalidateQueries({
         queryKey: roomTypesQueryOptions(hotelId).queryKey,
@@ -141,8 +147,6 @@ function RoomTypeForm({
   });
 
   const price = watch("basePricePerNight");
-  const amenityGroups = groupAmenities(roomType?.amenities);
-  const images = roomType?.images ?? [];
 
   return (
     <form
@@ -285,35 +289,17 @@ function RoomTypeForm({
                 Shown in the gallery on the hotel's public page.
               </CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-              {images.length > 0 ? (
-                <div className="grid grid-cols-3 gap-2">
-                  {images.map((url) => (
-                    <div
-                      key={url}
-                      className="aspect-square overflow-hidden rounded-lg bg-muted"
-                    >
-                      <img
-                        src={url}
-                        alt=""
-                        loading="lazy"
-                        className="size-full object-cover"
-                      />
-                    </div>
-                  ))}
-                </div>
+            <CardContent>
+              {isEdit ? (
+                <RoomTypeMedia roomTypeId={roomType.id} hotelId={hotelId} />
               ) : (
                 <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-10 text-center">
                   <ImageIcon className="size-5 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">
-                    No photos for this room type
+                  <p className="max-w-xs text-sm text-muted-foreground">
+                    Save the room type first, then add photos to it.
                   </p>
                 </div>
               )}
-              <p className="text-xs text-muted-foreground">
-                Uploading isn't available yet — photos currently come from seed
-                data.
-              </p>
             </CardContent>
           </Card>
 
@@ -327,35 +313,8 @@ function RoomTypeForm({
                 What's included with this room type.
               </CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              {amenityGroups.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  {isEdit
-                    ? "No amenities linked to this room type."
-                    : "Amenities can't be set at creation time yet."}
-                </p>
-              ) : (
-                amenityGroups.map((group) => (
-                  <div key={group.category} className="flex flex-col gap-2">
-                    <h3 className="text-sm font-semibold">{group.label}</h3>
-                    <ul className="flex flex-wrap gap-1.5">
-                      {group.items.map((amenity) => (
-                        <li
-                          key={amenity.id}
-                          className="inline-flex items-center gap-1.5 rounded-md border bg-muted/50 px-2 py-1 text-xs text-muted-foreground"
-                        >
-                          <AmenityIcon name={amenity.icon} />
-                          {amenity.name}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))
-              )}
-              <p className="text-xs text-muted-foreground">
-                Amenities are managed through seed data and can't be edited here
-                yet.
-              </p>
+            <CardContent>
+              <AmenityPicker selected={amenityIds} onChange={setAmenityIds} />
             </CardContent>
           </Card>
         </div>

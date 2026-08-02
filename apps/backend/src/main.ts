@@ -5,21 +5,30 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './shared/filters/all-exceptions.filter';
+import {
+  UPLOADS_DIR,
+  UPLOADS_URL_PREFIX,
+} from './shared/images/image-storage.service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const config = app.get(ConfigService);
 
-  app.use(helmet());
+  // Uploaded images are served cross-origin to the SSR app and the browser,
+  // so the default same-origin resource policy would block them.
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
   app.use(cookieParser());
   app.enableCors({
     origin: config.get<string>('app.corsOrigin'),
     credentials: true,
   });
+  // Mounted before the global prefix so uploads live at /uploads, not /api.
+  app.useStaticAssets(UPLOADS_DIR, { prefix: `${UPLOADS_URL_PREFIX}/` });
   app.setGlobalPrefix('api');
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
 

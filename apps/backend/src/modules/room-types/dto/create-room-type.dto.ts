@@ -1,6 +1,8 @@
 import {
+  IsArray,
   IsInt,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Matches,
   Max,
@@ -34,4 +36,11 @@ export class CreateRoomTypeDto {
   @Min(1)
   @Max(20)
   maxOccupancy!: number;
+
+  /** Amenities to attach on creation. Optional — defaults to none. */
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  amenityIds?: number[];
 }

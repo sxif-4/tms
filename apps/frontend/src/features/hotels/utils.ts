@@ -35,3 +35,15 @@ export function groupAmenities(
     items,
   }));
 }
+
+const FACILITY_CATEGORY_LABELS: Record<string, string> = {
+  wellness: "Wellness",
+  dining: "Dining",
+  services: "Services",
+  recreation: "Recreation",
+  transport: "Transport",
+};
+
+export function facilityCategoryLabel(category: string): string {
+  return FACILITY_CATEGORY_LABELS[category] ?? category;
+}

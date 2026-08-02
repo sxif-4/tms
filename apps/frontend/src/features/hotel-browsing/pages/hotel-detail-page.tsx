@@ -5,9 +5,11 @@ import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { ImageLightbox } from "../components/image-lightbox";
+import { AmenityIcon } from "~/lib/amenity-icon";
 import { RoomOptionCard } from "../components/room-option-card";
 import { gbp, hotelImage } from "../constants";
 import { publicHotelQueryOptions } from "../queries";
+import { imageUrl } from "~/lib/image-url";
 
 export function HotelDetailPage({ hotelId }: { hotelId: number }) {
   const { data: hotel } = useSuspenseQuery(publicHotelQueryOptions(hotelId));
@@ -31,7 +33,7 @@ export function HotelDetailPage({ hotelId }: { hotelId: number }) {
           aria-label={`View photos of ${hotel.name}`}
         >
           <img
-            src={heroImage}
+            src={imageUrl(heroImage)}
             alt={hotel.name}
             className="size-full object-cover"
           />
@@ -76,7 +78,7 @@ export function HotelDetailPage({ hotelId }: { hotelId: number }) {
                   aria-label={`Open photo ${i + 1}`}
                 >
                   <img
-                    src={src}
+                    src={imageUrl(src)}
                     alt=""
                     className="size-full object-cover"
                     loading="lazy"
@@ -98,10 +100,27 @@ export function HotelDetailPage({ hotelId }: { hotelId: number }) {
                 <TabsTrigger value="policies">Policies</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="overview" className="mt-6 space-y-4">
+              <TabsContent value="overview" className="mt-6 space-y-6">
                 <p className="text-lg leading-relaxed text-muted-foreground">
                   {hotel.description ?? "No description available yet."}
                 </p>
+
+                {hotel.facilities.length > 0 && (
+                  <div className="space-y-3">
+                    <h2 className="font-semibold">Facilities</h2>
+                    <ul className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
+                      {hotel.facilities.map((facility) => (
+                        <li
+                          key={facility.id}
+                          className="flex items-center gap-2 text-sm text-muted-foreground"
+                        >
+                          <AmenityIcon name={facility.icon} />
+                          {facility.name}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="rooms" className="mt-6 space-y-4">
