@@ -1,12 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  ImageIcon,
-  Loader2Icon,
-  StarIcon,
-  Trash2Icon,
-  UploadCloudIcon,
-} from "lucide-react";
-import { useRef, useState } from "react";
+import { ImageIcon, StarIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -19,9 +12,7 @@ import {
   uploadRoomTypeImage,
 } from "../images-api";
 import { roomTypeQueryOptions, roomTypesQueryOptions } from "../queries";
-
-const ACCEPTED = "image/jpeg,image/png,image/webp";
-const MAX_BYTES = 5 * 1024 * 1024;
+import { PhotoDropzone } from "./photo-dropzone";
 
 /**
  * Gallery management for a saved room type: drag-and-drop upload, cover
@@ -36,8 +27,6 @@ export function RoomTypeMedia({
   hotelId: number;
 }) {
   const queryClient = useQueryClient();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [dragging, setDragging] = useState(false);
 
   const images = useQuery({
     queryKey: ["room-type-images", roomTypeId] as const,
@@ -62,13 +51,22 @@ export function RoomTypeMedia({
   };
 
   const upload = useMutation({
-    mutationFn: (file: File) => uploadRoomTypeImage(roomTypeId, file),
-    onSuccess: () => {
-      refresh();
-      toast.success("Photo uploaded");
+    // Sequential rather than parallel so ordering stays predictable and the
+    // first photo reliably becomes the cover.
+    mutationFn: async (files: File[]) => {
+      for (const file of files) await uploadRoomTypeImage(roomTypeId, file);
+      return files.length;
     },
-    onError: (err) =>
-      toast.error(err instanceof Error ? err.message : "Upload failed"),
+    onSuccess: (count) => {
+      refresh();
+      toast.success(
+        count === 1 ? "Photo uploaded" : `${count} photos uploaded`,
+      );
+    },
+    onError: (err) => {
+      refresh(); // some may have landed before the failure
+      toast.error(err instanceof Error ? err.message : "Upload failed");
+    },
   });
 
   const setCover = useMutation({
@@ -91,73 +89,16 @@ export function RoomTypeMedia({
       toast.error(err instanceof Error ? err.message : "Failed to delete"),
   });
 
-  /** Validates client-side too, so an oversized file never leaves the browser. */
-  const accept = (files: FileList | null) => {
-    const file = files?.[0];
-    if (!file) return;
-    if (!ACCEPTED.split(",").includes(file.type)) {
-      toast.error("Only JPG, PNG and WEBP images are accepted");
-      return;
-    }
-    if (file.size > MAX_BYTES) {
-      toast.error("Images must be 5 MB or smaller");
-      return;
-    }
-    upload.mutate(file);
-  };
-
   const busy = upload.isPending || setCover.isPending || remove.isPending;
   const list = images.data ?? [];
 
   return (
     <div className="flex flex-col gap-3">
-      <div
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragging(true);
-        }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setDragging(false);
-          accept(e.dataTransfer.files);
-        }}
-        className={cn(
-          "flex flex-col items-center gap-2 rounded-lg border border-dashed py-8 text-center transition-colors",
-          dragging && "border-primary bg-accent/50",
-        )}
-      >
-        {upload.isPending ? (
-          <Loader2Icon className="size-5 animate-spin text-muted-foreground" />
-        ) : (
-          <UploadCloudIcon className="size-5 text-muted-foreground" />
-        )}
-        <p className="text-sm text-muted-foreground">
-          Drag and drop a photo, or
-        </p>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          disabled={busy}
-          onClick={() => inputRef.current?.click()}
-        >
-          Choose file
-        </Button>
-        <input
-          ref={inputRef}
-          type="file"
-          accept={ACCEPTED}
-          className="hidden"
-          onChange={(e) => {
-            accept(e.target.files);
-            e.target.value = "";
-          }}
-        />
-        <p className="text-xs text-muted-foreground">
-          JPG, PNG or WEBP · up to 5 MB
-        </p>
-      </div>
+      <PhotoDropzone
+        onFiles={(files) => upload.mutate(files)}
+        busy={busy}
+        uploading={upload.isPending}
+      />
 
       {images.isPending ? (
         <p className="text-sm text-muted-foreground">Loading photos…</p>

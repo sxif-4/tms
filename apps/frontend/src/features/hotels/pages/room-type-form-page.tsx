@@ -29,9 +29,13 @@ import {
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { AmenityPicker } from "../components/amenity-picker";
+import { PhotoDropzone } from "../components/photo-dropzone";
 import { RoomTypeMedia } from "../components/room-type-media";
+import { StagedPhotoGrid } from "../components/staged-photo-grid";
 import { gbp } from "../constants";
 import { useCurrentHotel } from "../hooks/use-current-hotel";
+import { useStagedPhotos } from "../hooks/use-staged-photos";
+import { setRoomTypeCoverImage, uploadRoomTypeImage } from "../images-api";
 import { roomTypeQueryOptions, roomTypesQueryOptions } from "../queries";
 import { createRoomTypeServerFn, updateRoomTypeServerFn } from "../server";
 import type { RoomType } from "../types";
@@ -97,6 +101,8 @@ function RoomTypeForm({
   const [amenityIds, setAmenityIds] = useState<number[]>(
     () => roomType?.amenities?.map((a) => a.id) ?? [],
   );
+  // Photos picked before the room type exists; uploaded once it does.
+  const staged = useStagedPhotos();
 
   const {
     register,
@@ -126,20 +132,69 @@ function RoomTypeForm({
   }, [roomType, reset]);
 
   const mutation = useMutation({
-    mutationFn: (values: RoomTypeValues) =>
-      isEdit
-        ? updateRoomTypeServerFn({
-            data: { id: roomType.id, ...values, amenityIds },
-          })
-        : createRoomTypeServerFn({ data: { hotelId, ...values, amenityIds } }),
-    onSuccess: (saved) => {
+    mutationFn: async (values: RoomTypeValues) => {
+      if (isEdit) {
+        const updated = await updateRoomTypeServerFn({
+          data: { id: roomType.id, ...values, amenityIds },
+        });
+        return { saved: updated, failedPhotos: 0 };
+      }
+
+      const saved = await createRoomTypeServerFn({
+        data: { hotelId, ...values, amenityIds },
+      });
+
+      // The room type exists now, so photos can finally be attached. Each is
+      // uploaded on its own — one bad file shouldn't lose the others.
+      let coverImageId: number | null = null;
+      let failedPhotos = 0;
+      for (const photo of staged.photos) {
+        try {
+          const uploaded = await uploadRoomTypeImage(saved.id, photo.file);
+          if (photo.key === staged.coverKey) coverImageId = uploaded.id;
+        } catch {
+          failedPhotos += 1;
+        }
+      }
+      // The first upload is cover by default; only correct it if asked.
+      if (coverImageId !== null && staged.photos[0]?.key !== staged.coverKey) {
+        try {
+          await setRoomTypeCoverImage(saved.id, coverImageId);
+        } catch {
+          /* cover is cosmetic — never fail the save over it */
+        }
+      }
+
+      return { saved, failedPhotos };
+    },
+    onSuccess: ({ saved, failedPhotos }) => {
       queryClient.invalidateQueries({
         queryKey: roomTypesQueryOptions(hotelId).queryKey,
       });
       queryClient.invalidateQueries({
         queryKey: roomTypeQueryOptions(saved.id).queryKey,
       });
-      toast.success(isEdit ? "Room type updated" : "Room type created");
+
+      if (isEdit) {
+        toast.success("Room type updated");
+        void navigate({ to: "/dashboard/hotel/rooms" });
+        return;
+      }
+
+      staged.clear();
+      if (failedPhotos > 0) {
+        // Keep them on the room type so the missing photos can be retried.
+        toast.error(
+          `${saved.name} was created, but ${failedPhotos} ${failedPhotos === 1 ? "photo" : "photos"} failed to upload`,
+        );
+        void navigate({
+          to: "/dashboard/hotel/rooms/$roomTypeId",
+          params: { roomTypeId: String(saved.id) },
+        });
+        return;
+      }
+
+      toast.success("Room type created");
       void navigate({ to: "/dashboard/hotel/rooms" });
     },
     onError: (err) =>
@@ -182,7 +237,9 @@ function RoomTypeForm({
           </Button>
           <Button type="submit" disabled={mutation.isPending}>
             {mutation.isPending
-              ? "Saving…"
+              ? staged.photos.length > 0 && !isEdit
+                ? "Saving & uploading…"
+                : "Saving…"
               : isEdit
                 ? "Save changes"
                 : "Create room type"}
@@ -293,11 +350,19 @@ function RoomTypeForm({
               {isEdit ? (
                 <RoomTypeMedia roomTypeId={roomType.id} hotelId={hotelId} />
               ) : (
-                <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-10 text-center">
-                  <ImageIcon className="size-5 text-muted-foreground" />
-                  <p className="max-w-xs text-sm text-muted-foreground">
-                    Save the room type first, then add photos to it.
-                  </p>
+                <div className="flex flex-col gap-3">
+                  <PhotoDropzone
+                    onFiles={staged.add}
+                    busy={mutation.isPending}
+                    uploading={mutation.isPending}
+                  />
+                  <StagedPhotoGrid
+                    photos={staged.photos}
+                    coverKey={staged.coverKey}
+                    onSetCover={staged.setCoverKey}
+                    onRemove={staged.remove}
+                    disabled={mutation.isPending}
+                  />
                 </div>
               )}
             </CardContent>
