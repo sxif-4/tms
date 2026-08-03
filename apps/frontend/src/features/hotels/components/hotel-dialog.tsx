@@ -1,7 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { MapPinIcon } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
+import { Combobox, type ComboboxOption } from "~/components/ui/combobox";
 import {
   Dialog,
   DialogContent,
@@ -12,22 +15,15 @@ import {
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
+import { LOCATION_TYPE_LABELS } from "~/features/map-locations/constants";
 import { mapLocationsQueryOptions } from "~/features/map-locations/queries";
 import { FacilityPicker } from "./facility-picker";
 import { hotelsQueryOptions } from "../queries";
 import { createHotelServerFn, updateHotelServerFn } from "../server";
 import type { Hotel } from "../types";
 
-/** Sentinel for "no map pin" — Radix Select can't hold an empty-string value. */
+/** Sentinel for "no map pin" — the combobox can't hold an empty-string value. */
 const NO_LOCATION = "none";
 
 export function HotelDialog({
@@ -50,6 +46,18 @@ export function HotelDialog({
   const [error, setError] = useState<string | null>(null);
 
   const locations = useQuery(mapLocationsQueryOptions);
+
+  const locationOptions: ComboboxOption[] = useMemo(
+    () => [
+      { value: NO_LOCATION, label: "Not pinned to the map" },
+      ...(locations.data ?? []).map((location) => ({
+        value: String(location.id),
+        label: location.name,
+        description: LOCATION_TYPE_LABELS[location.type] ?? location.type,
+      })),
+    ],
+    [locations.data],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -92,8 +100,11 @@ export function HotelDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
+      {/* The facility catalog makes this form long, so the body is the single
+          scroll region — heading and actions stay put instead of scrolling
+          away, and the picker no longer scrolls inside its own box. */}
+      <DialogContent className="flex max-h-[85vh] flex-col gap-0 p-0 sm:max-w-3xl">
+        <DialogHeader className="border-b p-6">
           <DialogTitle>{isEdit ? "Edit hotel" : "Add hotel"}</DialogTitle>
           <DialogDescription>
             {isEdit
@@ -102,75 +113,81 @@ export function HotelDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="hotel-name">Name</Label>
-            <Input
-              id="hotel-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Velara Overwater Resort"
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="hotel-description">Description (optional)</Label>
-            <Textarea
-              id="hotel-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Overwater villas on the north reef…"
-              rows={3}
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="hotel-max-rooms">Maximum rooms</Label>
-            <Input
-              id="hotel-max-rooms"
-              type="number"
-              min={1}
-              value={maxRooms}
-              onChange={(e) => setMaxRooms(e.target.value)}
-              placeholder="40"
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="hotel-location">Map location (optional)</Label>
-            <Select value={mapLocationId} onValueChange={setMapLocationId}>
-              <SelectTrigger id="hotel-location" className="w-full">
-                <SelectValue placeholder="Not pinned to the map" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value={NO_LOCATION}>
-                    Not pinned to the map
-                  </SelectItem>
-                  {(locations.data ?? []).map((location) => (
-                    <SelectItem key={location.id} value={String(location.id)}>
-                      {location.name}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label>Facilities</Label>
-            <div className="max-h-56 overflow-y-auto rounded-lg border p-3">
-              <FacilityPicker
-                selected={facilityIds}
-                onChange={setFacilityIds}
+        <div className="flex flex-1 flex-col gap-6 overflow-y-auto p-6">
+          <Section title="Basic information">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="hotel-name">Name</Label>
+              <Input
+                id="hotel-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Velara Overwater Resort"
               />
             </div>
-          </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="hotel-description">Description (optional)</Label>
+              <Textarea
+                id="hotel-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Short description of the hotel…"
+                rows={3}
+              />
+            </div>
+          </Section>
+
+          <Section title="Location & capacity">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="hotel-location">Island map pin</Label>
+                <Combobox
+                  emptyText="No map pins found."
+                  id="hotel-location"
+                  loading={locations.isPending}
+                  onChange={setMapLocationId}
+                  options={locationOptions}
+                  placeholder="Not pinned to the map"
+                  searchPlaceholder="Search pins…"
+                  value={mapLocationId}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Where the hotel shows on the visitor map.{" "}
+                  <Link
+                    className="underline underline-offset-2 hover:text-brand"
+                    to="/dashboard/admin/map"
+                  >
+                    <MapPinIcon className="inline size-3" /> Manage pins
+                  </Link>
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="hotel-max-rooms">Room capacity</Label>
+                <Input
+                  id="hotel-max-rooms"
+                  type="number"
+                  min={1}
+                  value={maxRooms}
+                  onChange={(e) => setMaxRooms(e.target.value)}
+                  placeholder="40"
+                />
+                <p className="text-xs text-muted-foreground">
+                  How many rooms this hotel holds in total. Individual rooms are
+                  added under each room type.
+                </p>
+              </div>
+            </div>
+          </Section>
+
+          <Section title="Facilities">
+            <FacilityPicker selected={facilityIds} onChange={setFacilityIds} />
+          </Section>
 
           {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="border-t p-6">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
@@ -191,5 +208,21 @@ export function HotelDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Form section heading — a step above the facility category labels. */
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="flex flex-col gap-4">
+      <h3 className="text-sm font-semibold">{title}</h3>
+      {children}
+    </section>
   );
 }

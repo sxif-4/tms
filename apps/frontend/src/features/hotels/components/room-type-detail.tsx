@@ -11,15 +11,27 @@ import {
 import { useEffect, useState } from "react";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 import { Progress } from "~/components/ui/progress";
 import { Separator } from "~/components/ui/separator";
 import { AmenityIcon } from "~/lib/amenity-icon";
 import { imageUrl } from "~/lib/image-url";
 import { cn } from "~/lib/utils";
-import { gbp } from "../constants";
-import type { Room, RoomType } from "../types";
+import {
+  gbp,
+  ROOM_STATUS_LABELS,
+  ROOM_STATUSES,
+  roomStatusBadgeVariant,
+} from "../constants";
+import type { Room, RoomStatus, RoomType } from "../types";
 import { groupAmenities, occupancyPercent } from "../utils";
-import { RoomStatusBadge } from "./room-status-badge";
 
 /**
  * Everything known about the selected room type: gallery, live occupancy, the
@@ -191,37 +203,11 @@ export function RoomTypeDetail({
             No rooms yet — this type can't be booked until you add at least one.
           </p>
         ) : (
-          <ul className="flex flex-col divide-y rounded-lg border">
-            {rooms.map((room) => (
-              <li
-                key={room.id}
-                className="flex items-center gap-3 px-3 py-2 text-sm"
-              >
-                <span className="font-medium">{room.roomNumber}</span>
-                <RoomStatusBadge status={room.status} />
-                <div className="ml-auto flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-8"
-                    aria-label={`Edit room ${room.roomNumber}`}
-                    onClick={() => onEditRoom(room)}
-                  >
-                    <PencilIcon className="size-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-8"
-                    aria-label={`Delete room ${room.roomNumber}`}
-                    onClick={() => onDeleteRoom(room)}
-                  >
-                    <Trash2Icon className="size-4" />
-                  </Button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <RoomChipGrid
+            onDeleteRoom={onDeleteRoom}
+            onEditRoom={onEditRoom}
+            rooms={rooms}
+          />
         )}
       </div>
 
@@ -243,5 +229,126 @@ export function RoomTypeDetail({
         </Button>
       </div>
     </div>
+  );
+}
+
+/**
+ * Rooms as chips rather than rows. A room is a number and a status, so a row
+ * per room spends ~44px on data worth a chip — at 20+ rooms that buries the
+ * rest of the panel. The status counts double as filters, which is how staff
+ * actually use this list ("which rooms are down?").
+ */
+function RoomChipGrid({
+  rooms,
+  onEditRoom,
+  onDeleteRoom,
+}: {
+  rooms: Room[];
+  onEditRoom: (room: Room) => void;
+  onDeleteRoom: (room: Room) => void;
+}) {
+  const [filter, setFilter] = useState<RoomStatus | "all">("all");
+
+  const counts = ROOM_STATUSES.map((status) => ({
+    status,
+    count: rooms.filter((room) => room.status === status).length,
+  })).filter((entry) => entry.count > 0);
+
+  // A filter that no longer matches anything (last maintenance room fixed)
+  // would strand the user on an empty grid.
+  const active = counts.some((entry) => entry.status === filter)
+    ? filter
+    : "all";
+  const visible =
+    active === "all" ? rooms : rooms.filter((room) => room.status === active);
+
+  return (
+    <div className="flex flex-col gap-3">
+      {counts.length > 1 && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <FilterChip
+            active={active === "all"}
+            onClick={() => setFilter("all")}
+          >
+            All {rooms.length}
+          </FilterChip>
+          {counts.map((entry) => (
+            <FilterChip
+              active={active === entry.status}
+              key={entry.status}
+              onClick={() => setFilter(entry.status)}
+            >
+              {entry.count} {ROOM_STATUS_LABELS[entry.status].toLowerCase()}
+            </FilterChip>
+          ))}
+        </div>
+      )}
+
+      <div
+        className={cn(
+          "flex flex-wrap gap-2",
+          // Safety valve for a property with far more rooms than fit a panel.
+          visible.length > 40 && "max-h-72 overflow-y-auto pr-1",
+        )}
+      >
+        {visible.map((room) => (
+          <DropdownMenu key={room.id}>
+            <DropdownMenuTrigger asChild>
+              <Badge
+                asChild
+                className="h-8 min-w-16 cursor-pointer px-3 text-sm"
+                variant={roomStatusBadgeVariant(room.status)}
+              >
+                <button
+                  aria-label={`Room ${room.roomNumber} — ${ROOM_STATUS_LABELS[room.status]}`}
+                  title={ROOM_STATUS_LABELS[room.status]}
+                  type="button"
+                >
+                  {room.roomNumber}
+                </button>
+              </Badge>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-44">
+              <DropdownMenuLabel className="text-muted-foreground">
+                Room {room.roomNumber} · {ROOM_STATUS_LABELS[room.status]}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => onEditRoom(room)}>
+                <PencilIcon />
+                Edit room
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => onDeleteRoom(room)}
+                variant="destructive"
+              >
+                <Trash2Icon />
+                Delete room
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FilterChip({
+  active,
+  children,
+  onClick,
+}: {
+  active: boolean;
+  children: React.ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <Button
+      aria-pressed={active}
+      onClick={onClick}
+      size="sm"
+      variant={active ? "default" : "outline"}
+    >
+      {children}
+    </Button>
   );
 }
