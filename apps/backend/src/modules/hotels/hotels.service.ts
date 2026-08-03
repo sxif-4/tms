@@ -8,6 +8,7 @@ import { AuditService } from '../../shared/audit/audit.service';
 import { type Facility, type Hotel } from '../../shared/database/schema';
 import { AuditAction } from '../../shared/enums/audit-action.enum';
 import { HotelAccessService } from '../../shared/hotel-access/hotel-access.service';
+import { ImagesRepository } from '../../shared/images/images.repository';
 import type { AuthenticatedUser } from '../../shared/interfaces/authenticated-user.interface';
 import { FacilitiesRepository } from '../facilities/facilities.repository';
 import { MapLocationsRepository } from '../map-locations/map-locations.repository';
@@ -15,8 +16,16 @@ import { CreateHotelDto } from './dto/create-hotel.dto';
 import { UpdateHotelDto } from './dto/update-hotel.dto';
 import { HotelsRepository } from './hotels.repository';
 
-/** A hotel plus the property-level facilities it offers. */
-export type HotelWithFacilities = Hotel & { facilities: Facility[] };
+/** `imageables.imageable_type` for hotel photo galleries. */
+const IMAGE_OWNER_TYPE = 'hotel';
+
+/** A hotel plus the property-level facilities it offers and its photo gallery. */
+export type HotelWithFacilities = Hotel & {
+  facilities: Facility[];
+  /** Cover photo, or `null` until one's uploaded. */
+  image: string | null;
+  images: string[];
+};
 
 @Injectable()
 export class HotelsService {
@@ -26,6 +35,7 @@ export class HotelsService {
     private readonly facilitiesRepo: FacilitiesRepository,
     private readonly hotelAccess: HotelAccessService,
     private readonly audit: AuditService,
+    private readonly imagesRepo: ImagesRepository,
   ) {}
 
   /**
@@ -40,13 +50,18 @@ export class HotelsService {
         ? await this.hotelsRepo.findAll()
         : await this.hotelsRepo.findByIds(scope);
 
-    const byHotel = await this.facilitiesRepo.findForHotels(
-      hotels.map((h) => h.id),
-    );
-    return hotels.map((h) => ({
-      ...h,
-      facilities: byHotel.get(h.id) ?? [],
-    }));
+    const ids = hotels.map((h) => h.id);
+    const byHotel = await this.facilitiesRepo.findForHotels(ids);
+    const imagesByHotel = this.imagesRepo.findForOwners(IMAGE_OWNER_TYPE, ids);
+    return hotels.map((h) => {
+      const imgs = imagesByHotel.get(h.id) ?? [];
+      return {
+        ...h,
+        facilities: byHotel.get(h.id) ?? [],
+        image: imgs[0]?.url ?? null,
+        images: imgs.map((i) => i.url),
+      };
+    });
   }
 
   async getById(
@@ -56,7 +71,7 @@ export class HotelsService {
     await this.hotelAccess.assertHotelAccess(user, id);
     const hotel = await this.hotelsRepo.findById(id);
     if (!hotel) throw new NotFoundException(`Hotel #${id} not found`);
-    return this.withFacilities(hotel);
+    return this.withDetails(hotel);
   }
 
   async create(dto: CreateHotelDto, actorId: number): Promise<Hotel> {
@@ -83,7 +98,7 @@ export class HotelsService {
       subjectId: hotel.id,
       metadata: { name: hotel.name, maxRooms: hotel.maxRooms },
     });
-    return this.withFacilities(hotel);
+    return this.withDetails(hotel);
   }
 
   async update(
@@ -121,7 +136,7 @@ export class HotelsService {
       subjectId: id,
       metadata: { name: updated.name },
     });
-    return this.withFacilities(updated);
+    return this.withDetails(updated);
   }
 
   activate(id: number, actorId: number): Promise<HotelWithFacilities> {
@@ -152,13 +167,19 @@ export class HotelsService {
 
     const hotel = await this.hotelsRepo.findById(id);
     if (!hotel) throw new NotFoundException(`Hotel #${id} not found`);
-    return this.withFacilities(hotel);
+    return this.withDetails(hotel);
   }
 
-  private async withFacilities(hotel: Hotel): Promise<HotelWithFacilities> {
+  private async withDetails(hotel: Hotel): Promise<HotelWithFacilities> {
+    const images = await this.imagesRepo.findForOwner(
+      IMAGE_OWNER_TYPE,
+      hotel.id,
+    );
     return {
       ...hotel,
       facilities: await this.facilitiesRepo.findForHotel(hotel.id),
+      image: images[0]?.url ?? null,
+      images: images.map((i) => i.url),
     };
   }
 
@@ -179,7 +200,9 @@ export class HotelsService {
   }
 
   /** Foreign keys are enforced, so an unknown id would surface as a raw 500. */
-  private async assertLocationExists(mapLocationId?: number): Promise<void> {
+  private async assertLocationExists(
+    mapLocationId?: number | null,
+  ): Promise<void> {
     if (mapLocationId == null) return;
     const location = await this.locationsRepo.findById(mapLocationId);
     if (!location) {

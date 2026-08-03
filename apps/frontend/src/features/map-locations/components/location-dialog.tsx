@@ -1,7 +1,8 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
+import { Combobox, type ComboboxOption } from "~/components/ui/combobox";
 import {
   Dialog,
   DialogContent,
@@ -20,6 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { hotelsQueryOptions } from "~/features/hotels/queries";
+import { setHotelMapLocationServerFn } from "~/features/hotels/server";
 import { LOCATION_TYPES, LOCATION_TYPE_LABELS } from "../constants";
 import { mapLocationsQueryOptions } from "../queries";
 import {
@@ -27,6 +30,9 @@ import {
   updateMapLocationServerFn,
 } from "../server";
 import type { LocationType, MapLocation } from "../types";
+
+/** Sentinel for "no hotel linked" — the combobox can't hold an empty-string value. */
+const NO_HOTEL = "none";
 
 export function LocationDialog({
   open,
@@ -47,7 +53,16 @@ export function LocationDialog({
   const [type, setType] = useState<LocationType>("landmark");
   const [positionTop, setPositionTop] = useState("");
   const [positionLeft, setPositionLeft] = useState("");
+  const [linkedHotelId, setLinkedHotelId] = useState<string>(NO_HOTEL);
   const [error, setError] = useState<string | null>(null);
+
+  const hotels = useQuery(hotelsQueryOptions);
+
+  // The value `linkedHotelId` started at for this open — so the save step can
+  // tell "nothing changed" from "explicitly re-picked the same hotel" and skip
+  // a no-op write (every hotel PATCH leaves an audit-log entry).
+  const initialLinkedHotelId = useRef(NO_HOTEL);
+  const didInitLinkedHotel = useRef(false);
 
   useEffect(() => {
     if (!open) return;
@@ -61,10 +76,41 @@ export function LocationDialog({
     setPositionLeft(
       location ? location.positionLeft : (prefill?.left.toFixed(2) ?? ""),
     );
+    setLinkedHotelId(NO_HOTEL);
+    initialLinkedHotelId.current = NO_HOTEL;
+    didInitLinkedHotel.current = false;
   }, [open, location, prefill]);
 
+  // Runs once the hotel list resolves, so a slow first load doesn't clobber
+  // whatever the admin's already picked in the combobox.
+  useEffect(() => {
+    if (!open || !location || didInitLinkedHotel.current || !hotels.data) {
+      return;
+    }
+    didInitLinkedHotel.current = true;
+    const match = hotels.data.find((h) => h.mapLocationId === location.id);
+    const id = match ? String(match.id) : NO_HOTEL;
+    setLinkedHotelId(id);
+    initialLinkedHotelId.current = id;
+  }, [open, location, hotels.data]);
+
+  const hotelOptions: ComboboxOption[] = useMemo(
+    () => [
+      { value: NO_HOTEL, label: "No hotel linked" },
+      ...(hotels.data ?? []).map((h) => ({
+        value: String(h.id),
+        label: h.name,
+        description:
+          h.mapLocationId != null && h.mapLocationId !== location?.id
+            ? "Already linked to another pin"
+            : undefined,
+      })),
+    ],
+    [hotels.data, location],
+  );
+
   const mutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const payload = {
         name: name.trim(),
         description: description.trim(),
@@ -72,14 +118,48 @@ export function LocationDialog({
         positionTop: Number(positionTop),
         positionLeft: Number(positionLeft),
       };
-      return isEdit
-        ? updateMapLocationServerFn({ data: { id: location.id, ...payload } })
-        : createMapLocationServerFn({ data: payload });
+      const saved = isEdit
+        ? await updateMapLocationServerFn({
+            data: { id: location.id, ...payload },
+          })
+        : await createMapLocationServerFn({ data: payload });
+
+      if (type === "hotel") {
+        if (linkedHotelId !== initialLinkedHotelId.current) {
+          // Whichever hotel currently claims this pin gets unlinked first —
+          // a pin should only ever represent one hotel at a time.
+          const stale = hotels.data?.find(
+            (h) =>
+              h.mapLocationId === saved.id && String(h.id) !== linkedHotelId,
+          );
+          if (stale) {
+            await setHotelMapLocationServerFn({
+              data: { id: stale.id, mapLocationId: null },
+            });
+          }
+          if (linkedHotelId !== NO_HOTEL) {
+            await setHotelMapLocationServerFn({
+              data: { id: Number(linkedHotelId), mapLocationId: saved.id },
+            });
+          }
+        }
+      } else {
+        // Reclassified away from "hotel" — drop a link that no longer makes sense.
+        const stale = hotels.data?.find((h) => h.mapLocationId === saved.id);
+        if (stale) {
+          await setHotelMapLocationServerFn({
+            data: { id: stale.id, mapLocationId: null },
+          });
+        }
+      }
+
+      return saved;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: mapLocationsQueryOptions.queryKey,
       });
+      queryClient.invalidateQueries({ queryKey: hotelsQueryOptions.queryKey });
       toast.success(isEdit ? "Location updated" : "Location added");
       onOpenChange(false);
     },
@@ -146,6 +226,26 @@ export function LocationDialog({
               </SelectContent>
             </Select>
           </div>
+
+          {type === "hotel" && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="loc-hotel">Linked hotel</Label>
+              <Combobox
+                emptyText="No hotels found."
+                id="loc-hotel"
+                loading={hotels.isPending}
+                onChange={setLinkedHotelId}
+                options={hotelOptions}
+                placeholder="No hotel linked"
+                searchPlaceholder="Search hotels…"
+                value={linkedHotelId}
+              />
+              <p className="text-xs text-muted-foreground">
+                Which hotel this pin represents on the visitor map.
+              </p>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="loc-top">Top (%)</Label>

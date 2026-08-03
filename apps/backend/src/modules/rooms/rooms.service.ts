@@ -9,6 +9,7 @@ import { AuditAction } from '../../shared/enums/audit-action.enum';
 import { HotelAccessService } from '../../shared/hotel-access/hotel-access.service';
 import { type Room } from '../../shared/database/schema';
 import type { AuthenticatedUser } from '../../shared/interfaces/authenticated-user.interface';
+import { HotelsRepository } from '../hotels/hotels.repository';
 import { RoomTypesRepository } from '../room-types/room-types.repository';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
@@ -19,6 +20,7 @@ export class RoomsService {
   constructor(
     private readonly roomsRepo: RoomsRepository,
     private readonly roomTypesRepo: RoomTypesRepository,
+    private readonly hotelsRepo: HotelsRepository,
     private readonly hotelAccess: HotelAccessService,
     private readonly audit: AuditService,
   ) {}
@@ -38,6 +40,7 @@ export class RoomsService {
   async create(dto: CreateRoomDto, user: AuthenticatedUser): Promise<Room> {
     await this.hotelAccess.assertHotelAccess(user, dto.hotelId);
     await this.assertRoomTypeBelongsToHotel(dto.roomTypeId, dto.hotelId);
+    await this.assertWithinRoomCapacity(dto.hotelId);
 
     let room: Room;
     try {
@@ -107,6 +110,23 @@ export class RoomsService {
       subjectId: id,
       metadata: { hotelId: room.hotelId, roomNumber: room.roomNumber },
     });
+  }
+
+  /**
+   * `hotels.max_rooms` is the hotel's stated capacity — enforced here rather
+   * than left as an unchecked number, so it can't drift from what's actually
+   * been stocked.
+   */
+  private async assertWithinRoomCapacity(hotelId: number): Promise<void> {
+    const hotel = await this.hotelsRepo.findById(hotelId);
+    if (!hotel) throw new NotFoundException(`Hotel #${hotelId} not found`);
+
+    const current = await this.roomsRepo.countByHotel(hotelId);
+    if (current >= hotel.maxRooms) {
+      throw new BadRequestException(
+        `${hotel.name} is already at its room capacity (${hotel.maxRooms}). Raise the capacity to add more rooms.`,
+      );
+    }
   }
 
   /**

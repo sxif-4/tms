@@ -77,6 +77,31 @@ export const updateHotelServerFn = createServerFn({ method: "POST" })
     return (await res.json()) as Hotel;
   });
 
+const setHotelMapLocationSchema = z.object({
+  id: z.number().int().positive(),
+  /** `null` unpins the hotel from the map. */
+  mapLocationId: z.number().int().positive().nullable(),
+});
+
+/**
+ * Narrow patch for the map pin only — used from the Map & Locations page,
+ * which links a pin to a hotel rather than the other way around.
+ */
+export const setHotelMapLocationServerFn = createServerFn({ method: "POST" })
+  .validator((input: unknown) => setHotelMapLocationSchema.parse(input))
+  .handler(async ({ data }): Promise<Hotel> => {
+    const res = await apiFetch(`/hotels/${data.id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ mapLocationId: data.mapLocationId }),
+    });
+    if (!res.ok)
+      throw new Error(
+        await errorMessage(res, "Failed to update hotel's map pin"),
+      );
+    return (await res.json()) as Hotel;
+  });
+
 const setHotelActiveSchema = z.object({
   id: z.number().int().positive(),
   isActive: z.boolean(),

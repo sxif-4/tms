@@ -2,48 +2,42 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
-  deleteRoomTypeImage,
-  listRoomTypeImages,
-  setRoomTypeCoverImage,
-  uploadRoomTypeImage,
+  deleteHotelImage,
+  listHotelImages,
+  setHotelCoverImage,
+  uploadHotelImage,
 } from "../images-api";
-import { roomTypeQueryOptions, roomTypesQueryOptions } from "../queries";
+import { hotelsQueryOptions } from "../queries";
 import { PhotoDropzone } from "./photo-dropzone";
 import { SavedPhotoGrid } from "./saved-photo-grid";
 
+export const hotelImagesQueryKey = (hotelId: number) =>
+  ["hotel-images", hotelId] as const;
+
 /**
- * Gallery management for a saved room type: drag-and-drop upload, cover
- * selection and deletion. Only rendered in edit mode — a room type has to
- * exist before photos can be attached to it.
+ * Photo management for a saved hotel: upload, cover selection and deletion.
+ * Only rendered when editing — a hotel has to exist before photos can be
+ * attached, so the create flow stages them instead (see `HotelDialog`).
  */
-export function RoomTypeMedia({
-  roomTypeId,
-  hotelId,
-}: {
-  roomTypeId: number;
-  hotelId: number;
-}) {
+export function HotelMedia({ hotelId }: { hotelId: number }) {
   const queryClient = useQueryClient();
 
   const images = useQuery({
-    queryKey: ["room-type-images", roomTypeId] as const,
-    queryFn: () => listRoomTypeImages(roomTypeId),
+    queryKey: hotelImagesQueryKey(hotelId),
+    queryFn: () => listHotelImages(hotelId),
   });
 
   const refresh = (next?: unknown) => {
     if (next !== undefined) {
-      queryClient.setQueryData(["room-type-images", roomTypeId], next);
+      queryClient.setQueryData(hotelImagesQueryKey(hotelId), next);
     } else {
       void queryClient.invalidateQueries({
-        queryKey: ["room-type-images", roomTypeId],
+        queryKey: hotelImagesQueryKey(hotelId),
       });
     }
-    // The list row thumbnail and detail gallery read from these.
+    // The hotels list carries `image`/`images`, so its thumbnails go stale too.
     void queryClient.invalidateQueries({
-      queryKey: roomTypesQueryOptions(hotelId).queryKey,
-    });
-    void queryClient.invalidateQueries({
-      queryKey: roomTypeQueryOptions(roomTypeId).queryKey,
+      queryKey: hotelsQueryOptions.queryKey,
     });
   };
 
@@ -51,7 +45,7 @@ export function RoomTypeMedia({
     // Sequential rather than parallel so ordering stays predictable and the
     // first photo reliably becomes the cover.
     mutationFn: async (files: File[]) => {
-      for (const file of files) await uploadRoomTypeImage(roomTypeId, file);
+      for (const file of files) await uploadHotelImage(hotelId, file);
       return files.length;
     },
     onSuccess: (count) => {
@@ -67,7 +61,7 @@ export function RoomTypeMedia({
   });
 
   const setCover = useMutation({
-    mutationFn: (imageId: number) => setRoomTypeCoverImage(roomTypeId, imageId),
+    mutationFn: (imageId: number) => setHotelCoverImage(hotelId, imageId),
     onSuccess: (next) => {
       refresh(next);
       toast.success("Cover updated");
@@ -77,7 +71,7 @@ export function RoomTypeMedia({
   });
 
   const remove = useMutation({
-    mutationFn: (imageId: number) => deleteRoomTypeImage(roomTypeId, imageId),
+    mutationFn: (imageId: number) => deleteHotelImage(hotelId, imageId),
     onSuccess: (next) => {
       refresh(next);
       toast.success("Photo deleted");
@@ -107,7 +101,7 @@ export function RoomTypeMedia({
       ) : (
         <>
           <p className="text-xs text-muted-foreground">
-            The cover photo is used as the thumbnail everywhere else.
+            The cover photo represents this hotel everywhere else.
           </p>
           <SavedPhotoGrid
             busy={busy}

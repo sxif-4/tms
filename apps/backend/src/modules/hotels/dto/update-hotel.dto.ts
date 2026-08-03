@@ -25,10 +25,11 @@ export class UpdateHotelDto {
   @MaxLength(2000)
   description?: string;
 
+  /** `null` unpins the hotel from the map; omit to leave it unchanged. */
   @IsOptional()
   @IsInt()
   @Min(1)
-  mapLocationId?: number;
+  mapLocationId?: number | null;
 
   @IsOptional()
   @IsInt()

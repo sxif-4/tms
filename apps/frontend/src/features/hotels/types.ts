@@ -17,6 +17,9 @@ export interface Hotel {
   isActive: boolean;
   /** Only returned by the staff/admin hotel endpoints. */
   facilities?: Facility[];
+  /** Cover photo, or `null` until one's uploaded. */
+  image?: string | null;
+  images?: string[];
   createdAt: string;
   updatedAt: string;
 }

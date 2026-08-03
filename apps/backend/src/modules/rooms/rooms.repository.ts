@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, asc, eq, ne } from 'drizzle-orm';
+import { and, asc, eq, ne, sql } from 'drizzle-orm';
 import {
   DRIZZLE,
   type DrizzleDB,
@@ -53,6 +53,16 @@ export class RoomsRepository {
   delete(id: number): Promise<void> {
     this.db.delete(rooms).where(eq(rooms.id, id)).run();
     return Promise.resolve();
+  }
+
+  /** Physical rooms currently stocked for a hotel, across every room type — what `hotels.max_rooms` caps. */
+  countByHotel(hotelId: number): Promise<number> {
+    const row = this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(rooms)
+      .where(eq(rooms.hotelId, hotelId))
+      .get();
+    return Promise.resolve(row?.count ?? 0);
   }
 
   /** True if this room is assigned to an active (non-cancelled/completed) booking. */

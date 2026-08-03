@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, asc, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 import { DRIZZLE, type DrizzleDB } from '../database/drizzle.constants';
 import { imageables, images } from '../database/schema';
 
@@ -42,6 +42,48 @@ export class ImagesRepository {
       )
       .all();
     return Promise.resolve(rows);
+  }
+
+  /**
+   * Batched `findForOwner`, keyed by owner id — avoids one query per row when
+   * a list view needs every owner's images at once.
+   */
+  findForOwners(
+    ownerType: string,
+    ownerIds: number[],
+  ): Map<number, OwnedImage[]> {
+    const map = new Map<number, OwnedImage[]>();
+    if (ownerIds.length === 0) return map;
+
+    const rows = this.db
+      .select({
+        ownerId: imageables.imageableId,
+        id: images.id,
+        url: images.url,
+        isCover: imageables.isCover,
+        sortOrder: imageables.sortOrder,
+      })
+      .from(imageables)
+      .innerJoin(images, eq(images.id, imageables.imageId))
+      .where(
+        and(
+          eq(imageables.imageableType, ownerType),
+          inArray(imageables.imageableId, ownerIds),
+        ),
+      )
+      .orderBy(
+        desc(imageables.isCover),
+        asc(imageables.sortOrder),
+        asc(images.id),
+      )
+      .all();
+
+    for (const { ownerId, ...image } of rows) {
+      const list = map.get(ownerId) ?? [];
+      list.push(image);
+      map.set(ownerId, list);
+    }
+    return map;
   }
 
   /** Adds an image and links it, becoming the cover when it's the first one. */

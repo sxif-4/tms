@@ -19,8 +19,8 @@ export function AuthLayout({ children }: { children: ReactNode }) {
       </div>
       <div className="relative hidden lg:block">
         <img
-          src="/images/rose-red-wall.png"
-          alt="an abstract background"
+          src="/images/loginPageHero.webp"
+          alt="Aerial view of an overwater bungalow resort"
           className="absolute inset-0 h-full w-full object-cover"
         />
       </div>

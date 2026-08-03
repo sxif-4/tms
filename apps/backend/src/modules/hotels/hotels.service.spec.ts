@@ -22,6 +22,7 @@ describe('HotelsService', () => {
   };
   let hotelAccess: { scopedHotelIds: jest.Mock; assertHotelAccess: jest.Mock };
   let audit: { record: jest.Mock };
+  let imagesRepo: { findForOwner: jest.Mock; findForOwners: jest.Mock };
 
   const hotel = { id: 1, name: 'Velara', maxRooms: 40, isActive: true };
 
@@ -47,6 +48,10 @@ describe('HotelsService', () => {
       assertHotelAccess: jest.fn().mockResolvedValue(undefined),
     };
     audit = { record: jest.fn().mockResolvedValue(undefined) };
+    imagesRepo = {
+      findForOwner: jest.fn().mockResolvedValue([]),
+      findForOwners: jest.fn().mockReturnValue(new Map()),
+    };
 
     service = new HotelsService(
       hotelsRepo as never,
@@ -54,6 +59,7 @@ describe('HotelsService', () => {
       facilitiesRepo as never,
       hotelAccess as never,
       audit as never,
+      imagesRepo as never,
     );
   });
 

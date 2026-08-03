@@ -1,5 +1,6 @@
 import {
   useMutation,
+  useQuery,
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query";
@@ -9,6 +10,7 @@ import { toast } from "sonner";
 import { ConfirmDialog } from "~/components/confirm-dialog";
 import { Button } from "~/components/ui/button";
 import { PageHeading } from "~/components/page-heading";
+import { hotelsQueryOptions } from "~/features/hotels/queries";
 import { IslandMapCanvas } from "../components/island-map-canvas";
 import { LocationDialog } from "../components/location-dialog";
 import { LOCATION_TYPE_COLORS, LOCATION_TYPE_LABELS } from "../constants";
@@ -22,6 +24,9 @@ import type { MapLocation } from "../types";
 export function MapLocationsPage() {
   const queryClient = useQueryClient();
   const { data: locations } = useSuspenseQuery(mapLocationsQueryOptions);
+  // Only used to show which hotel a `type: hotel` pin represents — that link
+  // lives on the hotel record (`hotels.map_location_id`), not on the pin.
+  const hotels = useQuery(hotelsQueryOptions);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<MapLocation | null>(null);
@@ -118,8 +123,15 @@ export function MapLocationsPage() {
                     {loc.name}
                   </span>
                   <span className="truncate text-xs text-muted-foreground">
-                    {LOCATION_TYPE_LABELS[loc.type]} ·{" "}
-                    {Number(loc.positionTop).toFixed(1)}%,{" "}
+                    {LOCATION_TYPE_LABELS[loc.type]}
+                    {loc.type === "hotel" &&
+                      (() => {
+                        const linked = hotels.data?.find(
+                          (h) => h.mapLocationId === loc.id,
+                        );
+                        return linked ? ` · ${linked.name}` : " · Unlinked";
+                      })()}{" "}
+                    · {Number(loc.positionTop).toFixed(1)}%,{" "}
                     {Number(loc.positionLeft).toFixed(1)}%
                   </span>
                 </div>

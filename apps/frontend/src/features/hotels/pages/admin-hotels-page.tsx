@@ -6,6 +6,7 @@ import {
 import {
   BanIcon,
   HotelIcon,
+  ImageIcon,
   MoreVerticalIcon,
   PencilIcon,
   PlusIcon,
@@ -31,6 +32,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { PageHeading } from "~/components/page-heading";
+import { imageUrl } from "~/lib/image-url";
 import { EmptyState } from "../components/empty-state";
 import { HotelDialog } from "../components/hotel-dialog";
 import { hotelsQueryOptions } from "../queries";
@@ -147,13 +149,31 @@ function HotelRow({ hotel, onEdit }: { hotel: Hotel; onEdit: () => void }) {
   return (
     <TableRow className={hotel.isActive ? undefined : "opacity-60"}>
       <TableCell>
-        <div className="flex flex-col">
-          <span className="font-medium">{hotel.name}</span>
-          {hotel.description && (
-            <span className="line-clamp-1 text-sm text-muted-foreground">
-              {hotel.description}
+        <div className="flex items-center gap-3">
+          {hotel.image ? (
+            <img
+              alt=""
+              aria-hidden
+              className="h-12 w-16 shrink-0 rounded-lg object-cover"
+              loading="lazy"
+              src={imageUrl(hotel.image)}
+            />
+          ) : (
+            <span
+              aria-hidden
+              className="flex h-12 w-16 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground"
+            >
+              <ImageIcon className="size-4" />
             </span>
           )}
+          <div className="flex min-w-0 flex-col">
+            <span className="font-medium">{hotel.name}</span>
+            {hotel.description && (
+              <span className="line-clamp-1 text-sm text-muted-foreground">
+                {hotel.description}
+              </span>
+            )}
+          </div>
         </div>
       </TableCell>
       <TableCell className="text-right tabular-nums">

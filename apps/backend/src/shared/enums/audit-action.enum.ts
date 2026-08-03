@@ -23,6 +23,8 @@ export enum AuditAction {
   HotelUpdated = 'hotel.updated',
   HotelActivated = 'hotel.activated',
   HotelDeactivated = 'hotel.deactivated',
+  HotelImageUploaded = 'hotel.image_uploaded',
+  HotelImageDeleted = 'hotel.image_deleted',
   RoomTypeCreated = 'room_type.created',
   RoomTypeUpdated = 'room_type.updated',
   RoomTypeDeleted = 'room_type.deleted',
