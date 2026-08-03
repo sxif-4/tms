@@ -1,51 +1,19 @@
-import { useLocation } from "@tanstack/react-router";
-import { cn } from "~/lib/utils";
-import { Button } from "~/components/ui/button";
-import { Separator } from "~/components/ui/separator";
-import { DecorIcon } from "~/components/decor-icon";
-import { AppBreadcrumbs } from "~/components/app-breadcrumbs";
-import { getNavLinks, isNavPathActive } from "~/components/app-shared";
+import { AppSearch } from "~/components/app-search";
 import { CustomSidebarTrigger } from "~/components/custom-sidebar-trigger";
 import { ModeToggle } from "~/components/mode-toggle";
 import { NavUser } from "~/components/nav-user";
-import { useCurrentUser } from "~/features/auth";
-import { SendIcon, BellIcon } from "lucide-react";
 
+/**
+ * Top bar: chrome only. The page's own title lives in the content area — see
+ * `PageHeading` — so this stays a slim strip of global controls.
+ */
 export function AppHeader() {
-  const user = useCurrentUser();
-  const { pathname } = useLocation();
-  const activeItem = getNavLinks(user?.role).find((item) =>
-    isNavPathActive(pathname, item.path),
-  );
-
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-50 flex h-14 shrink-0 items-center justify-between gap-2 border-b px-4 md:px-6",
-        "bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/50",
-      )}
-    >
-      <DecorIcon className="hidden md:block" position="bottom-left" />
-      <div className="flex items-center gap-3">
-        <CustomSidebarTrigger />
-        <Separator
-          className="mr-2 h-4 data-[orientation=vertical]:self-center"
-          orientation="vertical"
-        />
-        <AppBreadcrumbs page={activeItem} />
-      </div>
-      <div className="flex items-center gap-3">
-        <Button size="icon-sm" variant="outline">
-          <SendIcon />
-        </Button>
-        <Button aria-label="Notifications" size="icon-sm" variant="outline">
-          <BellIcon />
-        </Button>
-        <ModeToggle />
-        <Separator
-          className="h-4 data-[orientation=vertical]:self-center"
-          orientation="vertical"
-        />
+    <header className="sticky top-0 z-50 flex shrink-0 items-center justify-between gap-3 border-b bg-surface px-4 py-2.5 md:px-6">
+      <CustomSidebarTrigger />
+      <div className="flex shrink-0 items-center gap-2 md:gap-3">
+        <AppSearch />
+        <ModeToggle className="size-10 rounded-full bg-background hover:bg-muted" />
         <NavUser />
       </div>
     </header>

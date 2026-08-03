@@ -118,7 +118,7 @@ export function RoomTypeMedia({
                 key={image.id}
                 className={cn(
                   "group relative aspect-square overflow-hidden rounded-lg border-2 bg-muted",
-                  image.isCover ? "border-primary" : "border-transparent",
+                  image.isCover ? "border-brand" : "border-transparent",
                 )}
               >
                 <img

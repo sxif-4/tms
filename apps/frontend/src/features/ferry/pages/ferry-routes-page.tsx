@@ -26,6 +26,7 @@ import {
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { PageHeading } from "~/components/page-heading";
 import { ferryRoutesQueryOptions } from "~/features/ferry/queries";
 import { createFerryRouteServerFn } from "~/features/ferry/server";
 
@@ -75,7 +76,8 @@ export function FerryRoutesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-muted/30 p-6">
+      <PageHeading />
+      <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card p-4">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary" className="gap-1.5">
             <CompassIcon className="size-3.5" />
@@ -83,20 +85,9 @@ export function FerryRoutesPage() {
           </Badge>
           <Badge variant="outline">{routes.length} active services</Badge>
         </div>
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <h1 className="font-heading text-2xl font-semibold">
-              Ferry routes
-            </h1>
-            <p className="max-w-2xl text-sm text-muted-foreground">
-              Monitor island routes, service frequency, and passenger capacity
-              from one place.
-            </p>
-          </div>
-          <Button className="w-fit" onClick={() => setOpen(true)}>
-            Add new route
-          </Button>
-        </div>
+        <Button className="w-fit" onClick={() => setOpen(true)}>
+          Add new route
+        </Button>
       </header>
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_0.8fr]">

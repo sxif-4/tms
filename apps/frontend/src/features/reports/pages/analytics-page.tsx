@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import { PageHeading } from "~/components/page-heading";
 import {
   RevenueByDomainChart,
   type DomainTotal,
@@ -39,13 +40,7 @@ export function AnalyticsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-1">
-        <h1 className="font-heading text-2xl font-semibold">Analytics</h1>
-        <p className="text-sm text-muted-foreground">
-          Sales and usage across every domain.
-        </p>
-      </header>
-
+      <PageHeading />
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Total users"
@@ -105,7 +100,7 @@ export function AnalyticsPage() {
               <CardContent className="flex flex-col gap-2">
                 <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                   <div
-                    className="h-full rounded-full bg-primary"
+                    className="h-full rounded-full bg-brand"
                     style={{ width: `${Math.min(u.utilization, 100)}%` }}
                   />
                 </div>

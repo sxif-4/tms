@@ -8,6 +8,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "~/components/confirm-dialog";
 import { Button } from "~/components/ui/button";
+import { PageHeading } from "~/components/page-heading";
 import { IslandMapCanvas } from "../components/island-map-canvas";
 import { LocationDialog } from "../components/location-dialog";
 import { LOCATION_TYPE_COLORS, LOCATION_TYPE_LABELS } from "../constants";
@@ -79,14 +80,7 @@ export function MapLocationsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="font-heading text-2xl font-semibold">
-            Map &amp; locations
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Click the map to drop a pin, or drag a pin to reposition it.
-          </p>
-        </div>
+        <PageHeading />
         <Button onClick={openCreate}>
           <PlusIcon data-icon="inline-start" />
           New location

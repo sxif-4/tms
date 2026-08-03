@@ -46,7 +46,7 @@ export function BookingSummaryPanel({
       <CardContent className="space-y-4 p-5">
         <div className="space-y-1">
           <p className="flex items-center gap-2 font-medium">
-            <HotelIcon className="size-4 text-primary" />
+            <HotelIcon className="size-4 text-brand" />
             {summary.hotelName}
           </p>
           {summary.roomTypeName && (

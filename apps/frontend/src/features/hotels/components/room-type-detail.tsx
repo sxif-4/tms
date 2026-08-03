@@ -117,7 +117,7 @@ export function RoomTypeDetail({
                 aria-label={`Show photo ${i + 1}`}
                 className={cn(
                   "size-16 shrink-0 overflow-hidden rounded-lg border-2 transition-colors",
-                  i === activeImage ? "border-primary" : "border-transparent",
+                  i === activeImage ? "border-brand" : "border-transparent",
                 )}
               >
                 <img
@@ -157,7 +157,7 @@ export function RoomTypeDetail({
                       key={amenity.id}
                       className="flex items-center gap-2 text-sm text-muted-foreground"
                     >
-                      <CheckIcon className="size-3.5 shrink-0 text-primary" />
+                      <CheckIcon className="size-3.5 shrink-0 text-brand" />
                       <AmenityIcon name={amenity.icon} />
                       {amenity.name}
                     </li>

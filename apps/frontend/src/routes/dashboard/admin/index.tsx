@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import { PageHeading } from "~/components/page-heading";
 import { ActiveEventsCard } from "~/features/dashboard/components/active-events-card";
 import { CustomerRequestsCard } from "~/features/dashboard/components/customer-requests-card";
 import { ParkMapCard } from "~/features/dashboard/components/park-map-card";
@@ -41,6 +42,7 @@ function AdminDashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      <PageHeading />
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Total users"

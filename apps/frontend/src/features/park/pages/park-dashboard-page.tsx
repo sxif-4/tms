@@ -25,6 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { PageHeading } from "~/components/page-heading";
 import { EmptyState } from "~/features/hotels/components/empty-state";
 import { StatCard } from "~/features/reports/components/stat-card";
 import { CapacityBar } from "../components/capacity-bar";
@@ -63,14 +64,7 @@ export function ParkDashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="font-heading text-2xl font-semibold">
-            Theme park dashboard
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Today at a glance across tickets, revenue and the gate.
-          </p>
-        </div>
+        <PageHeading />
         <Button asChild>
           <Link to="/dashboard/park/gate">
             <ScanLineIcon data-icon="inline-start" />

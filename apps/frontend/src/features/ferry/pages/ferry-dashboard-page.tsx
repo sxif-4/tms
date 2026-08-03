@@ -19,6 +19,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
+import { PageHeading } from "~/components/page-heading";
 import { cn } from "~/lib/utils";
 import { useState } from "react";
 
@@ -101,7 +102,8 @@ export function FerryDashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-gradient-to-br from-sky-500/10 via-background to-cyan-500/10 p-6">
+      <PageHeading />
+      <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/60 bg-linear-to-br from-sky-500/10 via-card to-cyan-500/10 p-4">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary" className="gap-1.5">
             <ShipWheelIcon className="size-3.5" />
@@ -109,23 +111,9 @@ export function FerryDashboardPage() {
           </Badge>
           <Badge variant="outline">Hotel-booking validation enabled</Badge>
         </div>
-        <div className="flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <h1 className="font-heading text-2xl font-semibold">
-              Ferry control center
-            </h1>
-            <p className="max-w-2xl text-sm text-muted-foreground">
-              Validate ticket requests, review sailings, and keep passenger flow
-              smooth for the island’s busiest routes.
-            </p>
-          </div>
-          <Button
-            asChild
-            className="w-fit bg-cyan-700 text-white hover:bg-cyan-800"
-          >
-            <Link to="/dashboard/ferry/schedules">Create new schedule</Link>
-          </Button>
-        </div>
+        <Button asChild className="w-fit">
+          <Link to="/dashboard/ferry/schedules">Create new schedule</Link>
+        </Button>
       </header>
 
       <section className="grid grid-cols-1 gap-4 md:grid-cols-3">

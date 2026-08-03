@@ -27,6 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { PageHeading } from "~/components/page-heading";
 import { StatCard } from "~/features/reports/components/stat-card";
 import { EmptyState } from "../components/empty-state";
 import { HotelSwitcher } from "../components/hotel-switcher";
@@ -69,19 +70,10 @@ function HotelDashboardContent({
   onHotelChange: (id: number) => void;
 }) {
   const { data } = useSuspenseQuery(hotelDashboardQueryOptions(hotelId));
-  const hotelName = hotels.find((h) => h.id === hotelId)?.name;
-
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="font-heading text-2xl font-semibold">
-            {hotelName ?? "Hotel"} dashboard
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            An overview of occupancy, bookings, and revenue.
-          </p>
-        </div>
+        <PageHeading />
         <HotelSwitcher
           hotels={hotels}
           value={hotelId}

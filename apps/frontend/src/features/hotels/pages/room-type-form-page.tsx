@@ -222,10 +222,12 @@ function RoomTypeForm({
               Back to rooms
             </Link>
           </Button>
-          <h1 className="font-heading text-2xl font-semibold">
+          {/* Written out rather than a <PageHeading />: the title is the room
+              type's own name, which only exists once the data has loaded. */}
+          <h1 className="font-heading text-2xl font-semibold tracking-tight">
             {isEdit ? roomType.name : "New room type"}
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="max-w-2xl text-sm text-muted-foreground">
             {isEdit
               ? "Update this room type's details and pricing."
               : `Add a room type to ${hotelName ?? "this hotel"}, then stock it with rooms.`}

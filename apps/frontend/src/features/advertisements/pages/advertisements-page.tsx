@@ -8,6 +8,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "~/components/confirm-dialog";
 import { Button } from "~/components/ui/button";
+import { PageHeading } from "~/components/page-heading";
 import { AdvertisementCard } from "../components/advertisement-card";
 import { AdvertisementDialog } from "../components/advertisement-dialog";
 import { advertisementsQueryOptions } from "../queries";
@@ -46,14 +47,7 @@ export function AdvertisementsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="font-heading text-2xl font-semibold">
-            Advertisements
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Manage promotional banners shown across the site.
-          </p>
-        </div>
+        <PageHeading />
         <Button onClick={openCreate}>
           <PlusIcon data-icon="inline-start" />
           New advertisement

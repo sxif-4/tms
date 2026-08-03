@@ -5,7 +5,7 @@ export function PaymentTrustBadges() {
   return (
     <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
       <span className="flex items-center gap-1.5">
-        <ShieldCheck className="size-4 text-primary" />
+        <ShieldCheck className="size-4 text-brand" />
         Secure checkout
       </span>
       <Badge variant="outline" className="font-normal">

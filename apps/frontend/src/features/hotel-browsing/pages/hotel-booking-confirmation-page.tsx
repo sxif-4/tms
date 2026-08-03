@@ -38,8 +38,8 @@ export function HotelBookingConfirmationPage({
   return (
     <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
       <div className="text-center">
-        <span className="mx-auto flex size-16 items-center justify-center rounded-full bg-primary/10">
-          <CheckCircle2 className="size-9 text-primary" />
+        <span className="mx-auto flex size-16 items-center justify-center rounded-full bg-brand/10">
+          <CheckCircle2 className="size-9 text-brand" />
         </span>
         <h1 className="mt-6 text-3xl font-bold tracking-tight">
           Booking confirmed!
@@ -54,7 +54,7 @@ export function HotelBookingConfirmationPage({
         <CardHeader className="border-b bg-transparent">
           <CardTitle className="flex items-center justify-between text-base">
             <span>Booking reference</span>
-            <span className="font-mono text-lg tracking-wide text-primary">
+            <span className="font-mono text-lg tracking-wide text-brand">
               {reference ?? booking?.bookingReference ?? "—"}
             </span>
           </CardTitle>
@@ -64,7 +64,7 @@ export function HotelBookingConfirmationPage({
             <>
               <div className="space-y-1">
                 <p className="flex items-center gap-2 font-medium">
-                  <HotelIcon className="size-4 text-primary" />
+                  <HotelIcon className="size-4 text-brand" />
                   {booking.hotelName}
                 </p>
                 <p className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -107,7 +107,7 @@ export function HotelBookingConfirmationPage({
                 </div>
               </div>
               <div className="flex items-start gap-2 rounded-lg bg-muted/50 p-3 text-sm">
-                <Mail className="mt-0.5 size-4 shrink-0 text-primary" />
+                <Mail className="mt-0.5 size-4 shrink-0 text-brand" />
                 <p>
                   We&apos;ve sent a confirmation to{" "}
                   <span className="font-medium">{booking.guestEmail}</span>.

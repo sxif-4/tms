@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { PageHeading } from "~/components/page-heading";
 import { useCurrentUser } from "~/features/auth";
 import type { Role, User } from "~/features/auth";
 import { ChangeRoleDialog } from "../components/change-role-dialog";
@@ -44,12 +45,7 @@ export function UsersListPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="font-heading text-2xl font-semibold">Users</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage accounts, roles, and access for everyone in the system.
-          </p>
-        </div>
+        <PageHeading />
         <Button onClick={() => setShowCreate(true)}>
           <PlusIcon data-icon="inline-start" />
           Add account

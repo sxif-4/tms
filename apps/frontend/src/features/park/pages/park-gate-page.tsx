@@ -19,6 +19,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
+import { PageHeading } from "~/components/page-heading";
 import { GateSaleDialog } from "../components/gate-sale-dialog";
 import { ChannelBadge } from "../components/park-badges";
 import { gbp } from "../constants";
@@ -87,12 +88,7 @@ export function ParkGatePage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="font-heading text-2xl font-semibold">Gate</h1>
-          <p className="text-sm text-muted-foreground">
-            Check visitors in, or sell a ticket on the spot.
-          </p>
-        </div>
+        <PageHeading />
         <Button variant="outline" onClick={() => setSaleOpen(true)}>
           <ShoppingCartIcon data-icon="inline-start" />
           Walk-up sale

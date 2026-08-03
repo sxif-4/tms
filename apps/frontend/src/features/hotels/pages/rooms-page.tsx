@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { PageHeading } from "~/components/page-heading";
 import { EmptyState } from "../components/empty-state";
 import { HotelSwitcher } from "../components/hotel-switcher";
 import { RoomDialog } from "../components/room-dialog";
@@ -148,12 +149,7 @@ function RoomsPageContent({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="font-heading text-2xl font-semibold">Rooms</h1>
-          <p className="text-sm text-muted-foreground">
-            This hotel's room types, their pricing and live inventory.
-          </p>
-        </div>
+        <PageHeading />
         <div className="flex items-center gap-2">
           <HotelSwitcher
             hotels={hotels}

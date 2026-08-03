@@ -8,6 +8,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "~/components/confirm-dialog";
 import { Button } from "~/components/ui/button";
+import { PageHeading } from "~/components/page-heading";
 import { PromotionCard } from "../components/promotion-card";
 import { PromotionDialog } from "../components/promotion-dialog";
 import { PromotionUsagesDialog } from "../components/promotion-usages-dialog";
@@ -17,17 +18,12 @@ import type { Promotion, PromotionTargetType } from "../types";
 
 /**
  * Shared by admin, hotel and park. `targetType` narrows the list to one
- * domain's promotions; `title`/`description` let each page say what it owns.
- * Without them it behaves exactly as before.
+ * domain's promotions; the heading each route shows lives in `page-meta`.
  */
 export function PromotionsPage({
   targetType,
-  title = "Promotions",
-  description = "Manage discount campaigns and view their redemptions.",
 }: {
   targetType?: PromotionTargetType;
-  title?: string;
-  description?: string;
 } = {}) {
   const queryClient = useQueryClient();
   const { data: promotions } = useSuspenseQuery(
@@ -62,10 +58,7 @@ export function PromotionsPage({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="font-heading text-2xl font-semibold">{title}</h1>
-          <p className="text-sm text-muted-foreground">{description}</p>
-        </div>
+        <PageHeading />
         <Button onClick={openCreate}>
           <PlusIcon data-icon="inline-start" />
           New promotion

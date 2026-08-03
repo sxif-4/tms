@@ -33,6 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { PageHeading } from "~/components/page-heading";
 import { EmptyState } from "~/features/hotels/components/empty-state";
 import { CapacityBar } from "../components/capacity-bar";
 import { EventDialog } from "../components/event-dialog";
@@ -81,12 +82,7 @@ export function ParkEventsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="font-heading text-2xl font-semibold">Events</h1>
-          <p className="text-sm text-muted-foreground">
-            Rides, shows and beach events, and when each one runs.
-          </p>
-        </div>
+        <PageHeading />
         <Button
           size="sm"
           onClick={() => {

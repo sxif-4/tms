@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocation } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { cn } from "~/lib/utils";
 import { LogoIcon } from "~/components/logo";
 import {
@@ -17,9 +17,8 @@ import {
   getNavGroups,
   isNavPathActive,
 } from "~/components/app-shared";
-import { LatestChange } from "~/components/latest-change";
 import { NavGroup } from "~/components/nav-group";
-import { useCurrentUser } from "~/features/auth";
+import { useCurrentUser, landingPathForRole } from "~/features/auth";
 
 export function AppSidebar() {
   const user = useCurrentUser();
@@ -29,28 +28,36 @@ export function AppSidebar() {
   return (
     <Sidebar
       className={cn(
-        "*:data-[slot=sidebar-inner]:bg-background",
-        "*:data-[slot=sidebar-inner]:dark:bg-[radial-gradient(60%_18%_at_10%_0%,--theme(--color-foreground/.08),transparent)]",
-        "**:data-[slot=sidebar-menu-button]:[&>span]:text-foreground/75",
+        // Active destination reads as a filled tint of the action colour.
+        "**:data-[slot=sidebar-menu-button]:data-active:bg-primary/35",
+        "**:data-[slot=sidebar-menu-button]:data-active:text-foreground",
       )}
       collapsible="icon"
       variant="sidebar"
     >
-      <SidebarHeader className="h-14 justify-center border-b px-2">
-        <SidebarMenuButton asChild>
-          <a href="#link">
-            <LogoIcon />
-            <span className="font-medium text-foreground!">FUNISLAND</span>
-          </a>
+      <SidebarHeader className="h-16 justify-center px-4">
+        <SidebarMenuButton
+          asChild
+          size="lg"
+          className="gap-3 group-data-[collapsible=icon]:justify-center"
+        >
+          <Link to={user ? landingPathForRole(user.role) : "/"}>
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground group-data-[collapsible=icon]:size-8">
+              <LogoIcon className="size-4.5" />
+            </span>
+            <span className="font-heading text-lg font-bold tracking-tight">
+              FUNISLAND
+            </span>
+          </Link>
         </SidebarMenuButton>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="gap-0 px-2">
         {navGroups.map((group, index) => (
           <NavGroup key={`sidebar-group-${index}`} {...group} />
         ))}
       </SidebarContent>
       <SidebarFooter className="gap-0 p-0">
-        <SidebarMenu className="border-t p-2">
+        <SidebarMenu className="gap-1 px-4 py-2">
           {footerNavLinks.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
@@ -58,6 +65,7 @@ export function AppSidebar() {
                 className="text-muted-foreground"
                 isActive={isNavPathActive(pathname, item.path)}
                 size="sm"
+                tooltip={item.title}
               >
                 <a href={item.path}>
                   {item.icon}
@@ -67,8 +75,8 @@ export function AppSidebar() {
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
-        <div className="px-4 pt-4 pb-2 transition-opacity group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:opacity-0">
-          <p className="text-nowrap text-[9px] text-muted-foreground">
+        <div className="px-4 pt-1 pb-3 transition-opacity group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:opacity-0">
+          <p className="text-nowrap text-[10px] text-muted-foreground">
             © {new Date().getFullYear()} FUNISLAND LLC
           </p>
         </div>

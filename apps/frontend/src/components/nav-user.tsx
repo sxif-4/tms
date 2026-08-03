@@ -17,6 +17,8 @@ import {
   LogOutIcon,
 } from "lucide-react";
 import { useCurrentUser, useLogout } from "~/features/auth";
+import { ROLE_LABELS } from "~/features/users/constants";
+import { initials } from "~/features/users/utils";
 
 const AVATAR_URL = "https://github.com/shabanhr.png";
 
@@ -29,22 +31,33 @@ export function NavUser() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Avatar className="size-8">
-          <AvatarImage src={AVATAR_URL} />
-          <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-        </Avatar>
+        <button
+          className="flex items-center gap-2.5 rounded-full pr-1 pl-0.5 text-left outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+          type="button"
+        >
+          <Avatar className="size-9">
+            <AvatarImage src={AVATAR_URL} />
+            <AvatarFallback>{initials(user.name)}</AvatarFallback>
+          </Avatar>
+          <span className="hidden min-w-0 flex-col leading-tight sm:flex">
+            <span className="truncate text-sm font-semibold">{user.name}</span>
+            <span className="truncate text-xs text-muted-foreground">
+              {ROLE_LABELS[user.role]}
+            </span>
+          </span>
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-60">
         <DropdownMenuItem className="flex items-center justify-start gap-2">
           <DropdownMenuLabel className="flex items-center gap-3">
             <Avatar className="size-10">
               <AvatarImage src={AVATAR_URL} />
-              <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+              <AvatarFallback>{initials(user.name)}</AvatarFallback>
             </Avatar>
             <div>
               <span className="font-medium text-foreground">{user.name}</span>{" "}
               <br />
-              <div className="max-w-full overflow-hidden overflow-ellipsis whitespace-nowrap text-muted-foreground text-xs">
+              <div className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-muted-foreground text-xs">
                 {user.email}
               </div>
             </div>

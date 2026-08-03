@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import { PageHeading } from "~/components/page-heading";
 import { EmptyState } from "../components/empty-state";
 import { HotelSwitcher } from "../components/hotel-switcher";
 import { OccupancyTrendChart } from "../components/occupancy-trend-chart";
@@ -56,13 +57,7 @@ function HotelReportsContent({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="font-heading text-2xl font-semibold">Reports</h1>
-          <p className="text-sm text-muted-foreground">
-            Revenue and occupancy trends for this hotel, last 30 to next 30
-            days.
-          </p>
-        </div>
+        <PageHeading />
         <HotelSwitcher
           hotels={hotels}
           value={hotelId}

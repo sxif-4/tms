@@ -38,7 +38,7 @@ export function StagedPhotoGrid({
               key={photo.key}
               className={cn(
                 "group relative aspect-square overflow-hidden rounded-lg border-2 bg-muted",
-                isCover ? "border-primary" : "border-transparent",
+                isCover ? "border-brand" : "border-transparent",
               )}
             >
               <img

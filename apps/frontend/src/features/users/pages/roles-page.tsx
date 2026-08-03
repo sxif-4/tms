@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import { PageHeading } from "~/components/page-heading";
 import type { Role } from "~/features/auth";
 import { ALL_ROLES, ROLE_DESCRIPTIONS, ROLE_LABELS } from "../constants";
 import { usersQueryOptions } from "../queries";
@@ -23,13 +24,7 @@ export function RolesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-1">
-        <h1 className="font-heading text-2xl font-semibold">Roles</h1>
-        <p className="text-sm text-muted-foreground">
-          The system uses one role per user. Assign roles from the Users page.
-        </p>
-      </header>
-
+      <PageHeading />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {ALL_ROLES.map((role: Role) => (
           <Card key={role}>

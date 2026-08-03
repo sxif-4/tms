@@ -61,8 +61,8 @@ export function RoomOptionCard({
     <Card
       className={cn(
         "overflow-hidden p-0 transition-all",
-        selected && "border-primary ring-2 ring-primary/30",
-        interactive && !selected && "hover:border-primary/40",
+        selected && "border-brand ring-2 ring-brand/30",
+        interactive && !selected && "hover:border-brand/40",
         soldOut && "opacity-80",
       )}
     >
@@ -97,7 +97,7 @@ export function RoomOptionCard({
                       className={cn(
                         "size-11 overflow-hidden rounded border-2 transition",
                         i === safePreview
-                          ? "border-primary"
+                          ? "border-brand"
                           : "border-transparent opacity-80 hover:opacity-100",
                       )}
                       aria-label={`Show photo ${i + 1}`}

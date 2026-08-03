@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { PageHeading } from "~/components/page-heading";
 import {
   ferryBookingsQueryOptions,
   ferryHotelBookingsForUserQueryOptions,
@@ -246,7 +247,8 @@ export function FerryBookingsPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-muted/30 p-6">
+      <PageHeading />
+      <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card p-4">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary" className="gap-1.5">
             <TicketIcon className="size-3.5" />
@@ -254,20 +256,9 @@ export function FerryBookingsPage({
           </Badge>
           <Badge variant="outline">{bookings.length} requests</Badge>
         </div>
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <h1 className="font-heading text-2xl font-semibold">
-              Ferry bookings
-            </h1>
-            <p className="max-w-2xl text-sm text-muted-foreground">
-              Review ferry reservations, confirm eligibility, and issue passes
-              without interruption.
-            </p>
-          </div>
-          <Button className="w-fit" onClick={() => setOpen(true)}>
-            Create booking
-          </Button>
-        </div>
+        <Button className="w-fit" onClick={() => setOpen(true)}>
+          Create booking
+        </Button>
       </header>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_0.8fr]">

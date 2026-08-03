@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { PageHeading } from "~/components/page-heading";
 import { auditActionsQueryOptions, auditLogsQueryOptions } from "../queries";
 
 const fmt = (iso: string) => new Date(iso).toLocaleString();
@@ -33,13 +34,7 @@ export function AuditLogsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-1">
-        <h1 className="font-heading text-2xl font-semibold">Audit logs</h1>
-        <p className="text-sm text-muted-foreground">
-          A record of privileged actions across the system.
-        </p>
-      </header>
-
+      <PageHeading />
       <div className="flex flex-wrap items-center gap-2">
         <Select
           value={action}
@@ -67,7 +62,7 @@ export function AuditLogsPage() {
         </span>
       </div>
 
-      <div className="overflow-x-auto rounded-xl ring-1 ring-foreground/10">
+      <div className="overflow-x-auto rounded-xl bg-card ring-1 ring-foreground/10">
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
             <tr>

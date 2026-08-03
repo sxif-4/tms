@@ -17,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { PageHeading } from "~/components/page-heading";
 import { EmptyState } from "~/features/hotels/components/empty-state";
 import { CapacityBar } from "../components/capacity-bar";
 import { ParkSalesChart } from "../components/park-sales-chart";
@@ -62,13 +63,7 @@ export function ParkReportsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="font-heading text-2xl font-semibold">Reports</h1>
-          <p className="text-sm text-muted-foreground">
-            Sales, visitors and event performance. Defaults to the last 30 days
-            through the next 30.
-          </p>
-        </div>
+        <PageHeading />
         <div className="flex items-end gap-3">
           <div className="flex flex-col gap-1">
             <label htmlFor="r-from" className="text-xs font-medium">

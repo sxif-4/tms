@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { ModeToggle } from "~/components/mode-toggle";
+import { PageHeading } from "~/components/page-heading";
 import { useCurrentUser } from "~/features/auth";
 import { ROLE_LABELS } from "~/features/users/constants";
 import { initials } from "~/features/users/utils";
@@ -17,13 +18,7 @@ export function SettingsPage() {
 
   return (
     <div className="flex max-w-2xl flex-col gap-6">
-      <header className="flex flex-col gap-1">
-        <h1 className="font-heading text-2xl font-semibold">Settings</h1>
-        <p className="text-sm text-muted-foreground">
-          Your account and workspace preferences.
-        </p>
-      </header>
-
+      <PageHeading />
       <Card>
         <CardHeader>
           <CardTitle>Profile</CardTitle>

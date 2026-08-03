@@ -31,6 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { PageHeading } from "~/components/page-heading";
 import { EmptyState } from "~/features/hotels/components/empty-state";
 import { ChannelBadge, TicketStatusBadge } from "../components/park-badges";
 import { TicketTypeDialog } from "../components/ticket-type-dialog";
@@ -125,13 +126,7 @@ export function ParkTicketsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="font-heading text-2xl font-semibold">Ticket sales</h1>
-        <p className="text-sm text-muted-foreground">
-          The priced catalog, and every ticket sold across both channels.
-        </p>
-      </div>
-
+      <PageHeading />
       <Card>
         <CardHeader className="flex flex-row items-start justify-between gap-4">
           <div>

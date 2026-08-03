@@ -213,9 +213,9 @@ export function HotelBookPage({ hotelId }: { hotelId: number }) {
               className={cn(
                 "flex size-8 items-center justify-center rounded-full border-2 text-sm font-semibold",
                 i < step
-                  ? "border-primary bg-primary text-primary-foreground"
+                  ? "border-brand bg-brand text-primary-foreground"
                   : i === step
-                    ? "border-primary text-primary"
+                    ? "border-brand text-brand"
                     : "border-border text-muted-foreground",
               )}
             >

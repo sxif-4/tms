@@ -49,7 +49,7 @@ export function PhotoDropzone({
       }}
       className={cn(
         "flex flex-col items-center gap-2 rounded-lg border border-dashed py-8 text-center transition-colors",
-        dragging && "border-primary bg-accent/50",
+        dragging && "border-brand bg-accent/50",
       )}
     >
       {uploading ? (

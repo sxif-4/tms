@@ -30,7 +30,7 @@ export function RoomTypeRow({
       className={cn(
         "flex w-full gap-4 rounded-xl border p-3 text-left transition-colors",
         "hover:bg-accent/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-        selected ? "border-primary/40 bg-accent/60" : "bg-card",
+        selected ? "border-brand/40 bg-accent/60" : "bg-card",
       )}
     >
       <div className="size-24 shrink-0 overflow-hidden rounded-lg bg-muted sm:size-28">

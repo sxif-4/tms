@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import { PageHeading } from "~/components/page-heading";
 import { cn } from "~/lib/utils";
 import { ParkDayDialog } from "../components/park-day-dialog";
 import { NEAR_CAPACITY_THRESHOLD, toDateKey } from "../constants";
@@ -62,14 +63,7 @@ export function ParkAvailabilityPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="font-heading text-2xl font-semibold">Availability</h1>
-        <p className="text-sm text-muted-foreground">
-          How many tickets each day can sell. Click a day to cap it or close the
-          park.
-        </p>
-      </div>
-
+      <PageHeading />
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-4">
           <div>
@@ -169,7 +163,7 @@ function DayCell({
       <span
         className={cn(
           "text-sm font-medium tabular-nums",
-          isToday && "text-primary",
+          isToday && "text-brand",
         )}
       >
         {dayNum}

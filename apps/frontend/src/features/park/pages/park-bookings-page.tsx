@@ -30,6 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { PageHeading } from "~/components/page-heading";
 import { EmptyState } from "~/features/hotels/components/empty-state";
 import { EventBookingStatusBadge } from "../components/park-badges";
 import {
@@ -92,13 +93,7 @@ export function ParkBookingsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="font-heading text-2xl font-semibold">Event bookings</h1>
-        <p className="text-sm text-muted-foreground">
-          Seats visitors have booked on rides, shows and beach events.
-        </p>
-      </div>
-
+      <PageHeading />
       <Card>
         <CardHeader>
           <CardTitle>Bookings</CardTitle>

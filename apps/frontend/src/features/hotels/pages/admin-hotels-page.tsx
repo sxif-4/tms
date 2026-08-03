@@ -30,6 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { PageHeading } from "~/components/page-heading";
 import { EmptyState } from "../components/empty-state";
 import { HotelDialog } from "../components/hotel-dialog";
 import { hotelsQueryOptions } from "../queries";
@@ -56,13 +57,7 @@ export function AdminHotelsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="font-heading text-2xl font-semibold">Hotels</h1>
-          <p className="text-sm text-muted-foreground">
-            Add hotels, edit their details, and suspend any that shouldn't take
-            bookings right now.
-          </p>
-        </div>
+        <PageHeading />
         <Button onClick={openCreate}>
           <PlusIcon data-icon="inline-start" />
           Add hotel
