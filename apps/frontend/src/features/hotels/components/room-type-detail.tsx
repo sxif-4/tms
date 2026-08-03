@@ -56,15 +56,16 @@ export function RoomTypeDetail({
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <h2 className="font-heading text-xl font-semibold">
+          <h2 className="font-heading text-2xl font-semibold tracking-tight">
             {roomType.name}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {gbp(Number(roomType.basePricePerNight))} per night ·{" "}
             {roomType.maxOccupancy} guests max
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        {/* Same ranking as the list rows: rate is a headline number, not a
+            line of muted copy. */}
+        <div className="flex flex-col items-end gap-2">
           {totalRooms === 0 ? (
             <Badge variant="outline">No rooms</Badge>
           ) : availableRooms === 0 ? (
@@ -72,6 +73,12 @@ export function RoomTypeDetail({
           ) : (
             <Badge variant="secondary">{availableRooms} available</Badge>
           )}
+          <span className="text-2xl font-semibold tracking-tight tabular-nums">
+            {gbp(Number(roomType.basePricePerNight))}
+            <span className="text-xs font-normal text-muted-foreground">
+              /night
+            </span>
+          </span>
         </div>
       </div>
 

@@ -3,12 +3,24 @@ import {
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query";
-import { CalendarCheckIcon, DoorOpenIcon } from "lucide-react";
+import {
+  CalendarCheckIcon,
+  DoorOpenIcon,
+  EyeIcon,
+  MoreHorizontalIcon,
+} from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "~/components/confirm-dialog";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -17,7 +29,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { Switch } from "~/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -100,7 +111,6 @@ function HotelBookingsContent({
 }) {
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [showGuestDetails, setShowGuestDetails] = useState(false);
   const [assigning, setAssigning] = useState<HotelBooking | null>(null);
   const [pendingAction, setPendingAction] = useState<{
     booking: HotelBooking;
@@ -162,15 +172,6 @@ function HotelBookingsContent({
             </SelectGroup>
           </SelectContent>
         </Select>
-
-        <label className="flex items-center gap-2 text-sm">
-          <Switch
-            checked={showGuestDetails}
-            onCheckedChange={setShowGuestDetails}
-            aria-label="Show guest details"
-          />
-          Show guest details
-        </label>
       </div>
 
       {bookings.length === 0 ? (
@@ -184,12 +185,11 @@ function HotelBookingsContent({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Reference</TableHead>
                 <TableHead>Guest</TableHead>
                 <TableHead>Room type</TableHead>
                 <TableHead>Room</TableHead>
                 <TableHead>Dates</TableHead>
-                <TableHead>Guests</TableHead>
+                <TableHead>Party size</TableHead>
                 <TableHead>Total</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -198,24 +198,23 @@ function HotelBookingsContent({
             <TableBody>
               {bookings.map((booking) => {
                 const actions = actionsFor(booking.status);
+                const canAssign =
+                  booking.roomId == null && booking.status !== "cancelled";
                 return (
                   <TableRow key={booking.id}>
-                    <TableCell className="font-medium">
-                      {booking.bookingReference}
-                    </TableCell>
                     <TableCell>
-                      {showGuestDetails ? (
-                        <div className="flex flex-col">
-                          <span>{booking.guestName}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {booking.guestEmail}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">
-                          Guest ••••
+                      {/* The reference moved to the detail page, so the guest
+                          name is the way into it. */}
+                      <Link
+                        className="flex flex-col hover:text-brand"
+                        params={{ bookingId: String(booking.id) }}
+                        to="/dashboard/hotel/bookings/$bookingId"
+                      >
+                        <span className="font-medium">{booking.guestName}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {booking.guestEmail}
                         </span>
-                      )}
+                      </Link>
                     </TableCell>
                     <TableCell>{booking.roomTypeName}</TableCell>
                     <TableCell>
@@ -234,29 +233,58 @@ function HotelBookingsContent({
                       <BookingStatusBadge status={booking.status} />
                     </TableCell>
                     <TableCell>
-                      <div className="flex justify-end gap-2">
-                        {booking.roomId == null && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setAssigning(booking)}
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          aria-label={`View booking ${booking.bookingReference}`}
+                          asChild
+                          size="icon-sm"
+                          variant="ghost"
+                        >
+                          <Link
+                            params={{ bookingId: String(booking.id) }}
+                            to="/dashboard/hotel/bookings/$bookingId"
                           >
-                            <DoorOpenIcon data-icon="inline-start" />
-                            Assign room
-                          </Button>
-                        )}
-                        {actions.map((action) => (
-                          <Button
-                            key={action.to}
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              setPendingAction({ booking, action })
-                            }
-                          >
-                            {action.label}
-                          </Button>
-                        ))}
+                            <EyeIcon />
+                          </Link>
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              aria-label={`Actions for booking ${booking.bookingReference}`}
+                              // Cancelled and completed bookings have nothing
+                              // left to do, so the trigger goes inert rather
+                              // than opening an empty menu.
+                              disabled={!canAssign && actions.length === 0}
+                              size="icon-sm"
+                              variant="ghost"
+                            >
+                              <MoreHorizontalIcon />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-44">
+                            {canAssign && (
+                              <DropdownMenuItem
+                                onSelect={() => setAssigning(booking)}
+                              >
+                                <DoorOpenIcon />
+                                Assign room
+                              </DropdownMenuItem>
+                            )}
+                            {actions.map((action) => (
+                              <DropdownMenuItem
+                                key={action.to}
+                                onSelect={() =>
+                                  setPendingAction({ booking, action })
+                                }
+                                variant={
+                                  action.destructive ? "destructive" : undefined
+                                }
+                              >
+                                {action.label}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </TableCell>
                   </TableRow>

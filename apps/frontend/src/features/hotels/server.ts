@@ -270,6 +270,19 @@ export const getHotelBookingsServerFn = createServerFn({ method: "GET" })
     return (await res.json()) as HotelBooking[];
   });
 
+export const getHotelBookingServerFn = createServerFn({ method: "GET" })
+  .validator((input: unknown) =>
+    z.object({ id: z.number().int().positive() }).parse(input),
+  )
+  .handler(async ({ data }): Promise<HotelBooking> => {
+    // The API scopes this to the caller's assigned hotels, so a booking at
+    // someone else's hotel comes back as a 403 rather than a row.
+    const res = await apiFetch(`/hotel-bookings/${data.id}`);
+    if (!res.ok)
+      throw new Error(await errorMessage(res, "Failed to load booking"));
+    return (await res.json()) as HotelBooking;
+  });
+
 export const assignRoomServerFn = createServerFn({ method: "POST" })
   .validator((input: unknown) =>
     z

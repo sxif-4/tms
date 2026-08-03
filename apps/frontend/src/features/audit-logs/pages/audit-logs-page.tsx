@@ -66,11 +66,11 @@ export function AuditLogsPage() {
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
             <tr>
-              <th className="p-3 font-medium">When</th>
-              <th className="p-3 font-medium">Who</th>
-              <th className="p-3 font-medium">Action</th>
-              <th className="p-3 font-medium">Subject</th>
-              <th className="p-3 font-medium">Details</th>
+              <th className="px-4 py-3 font-medium">When</th>
+              <th className="px-4 py-3 font-medium">Who</th>
+              <th className="px-4 py-3 font-medium">Action</th>
+              <th className="px-4 py-3 font-medium">Subject</th>
+              <th className="px-4 py-3 font-medium">Details</th>
             </tr>
           </thead>
           <tbody>
@@ -86,17 +86,17 @@ export function AuditLogsPage() {
             ) : (
               items.map((log) => (
                 <tr key={log.id} className="border-t">
-                  <td className="whitespace-nowrap p-3 text-muted-foreground tabular-nums">
+                  <td className="whitespace-nowrap px-4 py-3 text-muted-foreground tabular-nums">
                     {fmt(log.createdAt)}
                   </td>
                   <td className="whitespace-nowrap p-3">{log.userName}</td>
-                  <td className="p-3">
+                  <td className="px-4 py-3">
                     <Badge variant="secondary">{log.action}</Badge>
                   </td>
-                  <td className="whitespace-nowrap p-3 text-muted-foreground">
+                  <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
                     {log.subjectType} #{log.subjectId}
                   </td>
-                  <td className="max-w-xs truncate p-3 font-mono text-xs text-muted-foreground">
+                  <td className="max-w-xs truncate px-4 py-3 font-mono text-xs text-muted-foreground">
                     {log.metadata ? JSON.stringify(log.metadata) : "—"}
                   </td>
                 </tr>

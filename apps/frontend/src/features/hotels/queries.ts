@@ -2,6 +2,7 @@ import { queryOptions } from "@tanstack/react-query";
 import {
   getAmenitiesServerFn,
   getFacilitiesServerFn,
+  getHotelBookingServerFn,
   getHotelBookingsServerFn,
   getHotelDashboardServerFn,
   getHotelOccupancyServerFn,
@@ -60,6 +61,14 @@ export const hotelBookingsQueryOptions = (hotelId: number, status?: string) =>
   queryOptions({
     queryKey: ["hotel-bookings", hotelId, status] as const,
     queryFn: () => getHotelBookingsServerFn({ data: { hotelId, status } }),
+    staleTime: 15 * 1000,
+  });
+
+/** One booking, for the detail page. Keyed under the list so both invalidate together. */
+export const hotelBookingQueryOptions = (id: number) =>
+  queryOptions({
+    queryKey: ["hotel-bookings", "detail", id] as const,
+    queryFn: () => getHotelBookingServerFn({ data: { id } }),
     staleTime: 15 * 1000,
   });
 

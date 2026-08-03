@@ -50,7 +50,7 @@ export function RoomTypeRow({
 
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
-          <h3 className="font-heading text-base font-semibold">
+          <h3 className="font-heading text-lg font-semibold tracking-tight">
             {roomType.name}
           </h3>
           <div className="flex items-center gap-2">
@@ -73,23 +73,28 @@ export function RoomTypeRow({
           {roomType.description}
         </p>
 
-        <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1.5">
-            <UsersIcon className="size-3.5" />
-            {roomType.maxOccupancy} guests
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <BedDoubleIcon className="size-3.5" />
-            {totalRooms} {totalRooms === 1 ? "room" : "rooms"}
-          </span>
-          {totalRooms > 0 && (
+        {/* Inventory figures are reference detail, the nightly rate is a
+            headline — so the rate sits outside the muted metadata run and
+            carries the largest type in the row. */}
+        <div className="mt-auto flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
-              <HouseIcon className="size-3.5" />
-              {occupiedRooms} / {totalRooms} —{" "}
-              {occupancyPercent(occupiedRooms, totalRooms)}%
+              <UsersIcon className="size-3.5" />
+              {roomType.maxOccupancy} guests
             </span>
-          )}
-          <span className="ml-auto text-base font-semibold text-foreground tabular-nums">
+            <span className="inline-flex items-center gap-1.5">
+              <BedDoubleIcon className="size-3.5" />
+              {totalRooms} {totalRooms === 1 ? "room" : "rooms"}
+            </span>
+            {totalRooms > 0 && (
+              <span className="inline-flex items-center gap-1.5">
+                <HouseIcon className="size-3.5" />
+                {occupiedRooms} / {totalRooms} —{" "}
+                {occupancyPercent(occupiedRooms, totalRooms)}%
+              </span>
+            )}
+          </div>
+          <span className="text-2xl font-semibold tracking-tight tabular-nums">
             {gbp(Number(roomType.basePricePerNight))}
             <span className="text-xs font-normal text-muted-foreground">
               /night
