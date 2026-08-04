@@ -20,6 +20,7 @@ const BOOK_LINKS = [
   { label: "Hotels & rooms", to: "/hotels" },
   { label: "Ferry crossings", to: "/ferry" },
   { label: "Theme park", to: "/theme-park" },
+  { label: "Park tickets", to: "/theme-park/tickets" },
   { label: "Island map", to: "/map" },
 ] as const;
 

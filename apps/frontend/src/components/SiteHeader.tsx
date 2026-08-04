@@ -18,6 +18,7 @@ const NAV_LINKS = [
   { to: "/hotels", label: "Destinations" },
   { to: "/hotels", label: "Hotels" },
   { to: "/theme-park", label: "Theme Park" },
+  { to: "/theme-park/tickets", label: "Park Tickets" },
   { to: "/theme-park", label: "Beach Events" },
   { to: "/map", label: "Island Map" },
 ] as const;

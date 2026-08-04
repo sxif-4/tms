@@ -19,6 +19,8 @@ import { Route as MyBookingsIndexRouteImport } from './routes/my-bookings/index'
 import { Route as MapIndexRouteImport } from './routes/map/index'
 import { Route as HotelsIndexRouteImport } from './routes/hotels/index'
 import { Route as FerryIndexRouteImport } from './routes/ferry/index'
+import { Route as ThemeParkTicketsRouteImport } from './routes/theme-park/tickets'
+import { Route as ThemeParkConfirmationRouteImport } from './routes/theme-park/confirmation'
 import { Route as DashboardParkRouteRouteImport } from './routes/dashboard/park/route'
 import { Route as DashboardHotelRouteRouteImport } from './routes/dashboard/hotel/route'
 import { Route as DashboardAdminRouteRouteImport } from './routes/dashboard/admin/route'
@@ -106,6 +108,16 @@ const HotelsIndexRoute = HotelsIndexRouteImport.update({
 const FerryIndexRoute = FerryIndexRouteImport.update({
   id: '/ferry/',
   path: '/ferry/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ThemeParkTicketsRoute = ThemeParkTicketsRouteImport.update({
+  id: '/theme-park/tickets',
+  path: '/theme-park/tickets',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ThemeParkConfirmationRoute = ThemeParkConfirmationRouteImport.update({
+  id: '/theme-park/confirmation',
+  path: '/theme-park/confirmation',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardParkRouteRoute = DashboardParkRouteRouteImport.update({
@@ -333,6 +345,8 @@ export interface FileRoutesByFullPath {
   '/dashboard/admin': typeof DashboardAdminRouteRouteWithChildren
   '/dashboard/hotel': typeof DashboardHotelRouteRouteWithChildren
   '/dashboard/park': typeof DashboardParkRouteRouteWithChildren
+  '/theme-park/confirmation': typeof ThemeParkConfirmationRoute
+  '/theme-park/tickets': typeof ThemeParkTicketsRoute
   '/ferry/': typeof FerryIndexRoute
   '/hotels/': typeof HotelsIndexRoute
   '/map/': typeof MapIndexRoute
@@ -380,6 +394,8 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/theme-park/confirmation': typeof ThemeParkConfirmationRoute
+  '/theme-park/tickets': typeof ThemeParkTicketsRoute
   '/ferry': typeof FerryIndexRoute
   '/hotels': typeof HotelsIndexRoute
   '/map': typeof MapIndexRoute
@@ -431,6 +447,8 @@ export interface FileRoutesById {
   '/dashboard/admin': typeof DashboardAdminRouteRouteWithChildren
   '/dashboard/hotel': typeof DashboardHotelRouteRouteWithChildren
   '/dashboard/park': typeof DashboardParkRouteRouteWithChildren
+  '/theme-park/confirmation': typeof ThemeParkConfirmationRoute
+  '/theme-park/tickets': typeof ThemeParkTicketsRoute
   '/ferry/': typeof FerryIndexRoute
   '/hotels/': typeof HotelsIndexRoute
   '/map/': typeof MapIndexRoute
@@ -483,6 +501,8 @@ export interface FileRouteTypes {
     | '/dashboard/admin'
     | '/dashboard/hotel'
     | '/dashboard/park'
+    | '/theme-park/confirmation'
+    | '/theme-park/tickets'
     | '/ferry/'
     | '/hotels/'
     | '/map/'
@@ -530,6 +550,8 @@ export interface FileRouteTypes {
     | '/about'
     | '/login'
     | '/signup'
+    | '/theme-park/confirmation'
+    | '/theme-park/tickets'
     | '/ferry'
     | '/hotels'
     | '/map'
@@ -580,6 +602,8 @@ export interface FileRouteTypes {
     | '/dashboard/admin'
     | '/dashboard/hotel'
     | '/dashboard/park'
+    | '/theme-park/confirmation'
+    | '/theme-park/tickets'
     | '/ferry/'
     | '/hotels/'
     | '/map/'
@@ -628,6 +652,8 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
+  ThemeParkConfirmationRoute: typeof ThemeParkConfirmationRoute
+  ThemeParkTicketsRoute: typeof ThemeParkTicketsRoute
   FerryIndexRoute: typeof FerryIndexRoute
   HotelsIndexRoute: typeof HotelsIndexRoute
   MapIndexRoute: typeof MapIndexRoute
@@ -708,6 +734,20 @@ declare module '@tanstack/react-router' {
       path: '/ferry'
       fullPath: '/ferry/'
       preLoaderRoute: typeof FerryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/theme-park/tickets': {
+      id: '/theme-park/tickets'
+      path: '/theme-park/tickets'
+      fullPath: '/theme-park/tickets'
+      preLoaderRoute: typeof ThemeParkTicketsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/theme-park/confirmation': {
+      id: '/theme-park/confirmation'
+      path: '/theme-park/confirmation'
+      fullPath: '/theme-park/confirmation'
+      preLoaderRoute: typeof ThemeParkConfirmationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/park': {
@@ -1092,6 +1132,8 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
+  ThemeParkConfirmationRoute: ThemeParkConfirmationRoute,
+  ThemeParkTicketsRoute: ThemeParkTicketsRoute,
   FerryIndexRoute: FerryIndexRoute,
   HotelsIndexRoute: HotelsIndexRoute,
   MapIndexRoute: MapIndexRoute,
