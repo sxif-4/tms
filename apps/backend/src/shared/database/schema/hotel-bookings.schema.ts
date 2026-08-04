@@ -28,6 +28,24 @@ export const hotelBookings = sqliteTable(
     guests: integer('guests').notNull(),
     // decimal(10,2) as text — price snapshot at booking time, never float.
     totalAmount: text('total_amount').notNull(),
+    // How the booking was made. Defaults to 'online' so rows predating the
+    // staff desk flow keep their original meaning.
+    channel: text('channel', { enum: ['online', 'staff'] })
+      .notNull()
+      .default('online'),
+    // Staff who took the booking at the desk; null when booked online.
+    soldByUserId: integer('sold_by_user_id').references(() => users.id),
+    // Where a desk booking came from. Null for online bookings — the channel
+    // already says that; a source only distinguishes between desk bookings.
+    source: text('source', {
+      enum: ['walk_in', 'phone', 'email', 'corporate', 'ota'],
+    }),
+    /** Expected arrival as `HH:MM`, for the day sheet. */
+    arrivalTime: text('arrival_time'),
+    /** What the guest asked for — travels with the booking to housekeeping. */
+    specialRequests: text('special_requests'),
+    /** Staff-only. Never shown to the guest or on a receipt. */
+    internalNotes: text('internal_notes'),
     status: text('status', {
       enum: ['pending', 'confirmed', 'cancelled', 'completed'],
     }).notNull(),

@@ -132,6 +132,8 @@ These apply across every table below unless a table explicitly notes otherwise:
 
 Room-type-first: guests/staff pick a **room type** + dates at booking time; a specific room is assigned by staff afterward (`room_id` starts `NULL`), which makes "unassigned room" a real, queryable operational state. Availability is a capacity count, not a per-room overlap check: for a hotel + room type + date range, `available = (rooms of that type, status IN ('available','occupied')) − (hotel_bookings for that hotel+room type, status != 'cancelled', overlapping the range)`.
 
+Bookings arrive through two channels, mirroring `park_tickets`: a visitor booking online, or hotel staff taking one at the front desk. A desk booking is still attached to the **guest's** `user_id` (found-or-created from a name/email), never the staff member's — `sold_by_user_id` is what records who took it. `source`, `arrival_time`, `special_requests` and `internal_notes` are desk-entered context and stay null for online bookings.
+
 | Column            | Type          | Constraints              | Description                                               |
 | ----------------- | ------------- | ------------------------- | ---------------------------------------------------------- |
 | id                | bigint        | PK, increment             | Primary key                                                |
@@ -144,6 +146,12 @@ Room-type-first: guests/staff pick a **room type** + dates at booking time; a sp
 | check_out         | date          | -                          | Check-out date                                              |
 | guests            | tinyint       | -                          | Number of guests                                            |
 | total_amount      | decimal(10,2) | -                          | Price snapshot at booking time                              |
+| channel           | varchar(20)   | default 'online'           | Booking channel: online / staff (front desk)                |
+| sold_by_user_id   | bigint        | FK → users.id, nullable    | Staff who took a desk booking; null if booked online        |
+| source            | varchar(20)   | nullable                   | Desk bookings only: walk_in / phone / email / corporate / ota |
+| arrival_time      | varchar(5)    | nullable                   | Expected arrival `HH:MM`, for the day sheet                 |
+| special_requests  | text          | nullable                   | Guest's requests — travels to housekeeping                  |
+| internal_notes    | text          | nullable                   | Staff-only note; never shown to the guest                   |
 | status            | varchar(50)   | -                          | Booking status (pending, confirmed, cancelled, completed)  |
 | created_at        | timestamp     | -                          | Record creation time                                        |
 | updated_at        | timestamp     | -                          | Record update time                                          |

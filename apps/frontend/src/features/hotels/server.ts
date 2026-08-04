@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { apiFetch, errorMessage } from "~/lib/server-api";
 import type {
+  GuestSearchResult,
   Hotel,
   HotelBooking,
   HotelDashboardResponse,
@@ -10,6 +11,7 @@ import type {
   Room,
   RoomType,
   RoomTypeAmenity,
+  RoomTypeAvailability,
   Facility,
 } from "./types";
 
@@ -305,6 +307,81 @@ export const getHotelBookingServerFn = createServerFn({ method: "GET" })
     const res = await apiFetch(`/hotel-bookings/${data.id}`);
     if (!res.ok)
       throw new Error(await errorMessage(res, "Failed to load booking"));
+    return (await res.json()) as HotelBooking;
+  });
+
+export const getAvailabilityServerFn = createServerFn({ method: "GET" })
+  .validator((input: unknown) =>
+    z
+      .object({
+        hotelId: z.number().int().positive(),
+        checkIn: z.string().min(1),
+        checkOut: z.string().min(1),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }): Promise<RoomTypeAvailability[]> => {
+    const params = new URLSearchParams({
+      hotelId: String(data.hotelId),
+      checkIn: data.checkIn,
+      checkOut: data.checkOut,
+    });
+    const res = await apiFetch(`/hotel-bookings/availability?${params}`);
+    if (!res.ok)
+      throw new Error(await errorMessage(res, "Failed to load availability"));
+    return (await res.json()) as RoomTypeAvailability[];
+  });
+
+export const searchGuestsServerFn = createServerFn({ method: "GET" })
+  .validator((input: unknown) =>
+    z
+      .object({
+        hotelId: z.number().int().positive(),
+        q: z.string().trim().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }): Promise<GuestSearchResult[]> => {
+    const params = new URLSearchParams({ hotelId: String(data.hotelId) });
+    if (data.q) params.set("q", data.q);
+    const res = await apiFetch(`/hotel-bookings/guests?${params}`);
+    if (!res.ok)
+      throw new Error(await errorMessage(res, "Failed to search guests"));
+    return (await res.json()) as GuestSearchResult[];
+  });
+
+/** Mirrors CreateManualBookingDto — the API re-validates all of it. */
+const manualBookingSchema = z.object({
+  hotelId: z.number().int().positive(),
+  roomTypeId: z.number().int().positive(),
+  checkIn: z.string().min(1),
+  checkOut: z.string().min(1),
+  guests: z.number().int().min(1).max(20),
+  name: z.string().trim().min(1).max(255),
+  email: z.string().trim().email().max(255),
+  phone: z.string().trim().max(30).optional(),
+  roomId: z.number().int().positive().optional(),
+  status: z.enum(["pending", "confirmed"]),
+  paymentMethod: z.enum(["cash", "card", "bank_transfer"]).optional(),
+  source: z.enum(["walk_in", "phone", "email", "corporate", "ota"]).optional(),
+  arrivalTime: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+    .optional(),
+  specialRequests: z.string().trim().max(1000).optional(),
+  internalNotes: z.string().trim().max(1000).optional(),
+});
+
+export const createManualBookingServerFn = createServerFn({ method: "POST" })
+  .validator((input: unknown) => manualBookingSchema.parse(input))
+  .handler(async ({ data }): Promise<HotelBooking> => {
+    const res = await apiFetch("/hotel-bookings/manual", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok)
+      throw new Error(await errorMessage(res, "Failed to create booking"));
     return (await res.json()) as HotelBooking;
   });
 

@@ -17,7 +17,6 @@ import {
 import { PageHeading } from "~/components/page-heading";
 import { ActiveEventsCard } from "~/features/dashboard/components/active-events-card";
 import { CustomerRequestsCard } from "~/features/dashboard/components/customer-requests-card";
-import { ParkMapCard } from "~/features/dashboard/components/park-map-card";
 import { RevenueBySourceCard } from "~/features/dashboard/components/revenue-by-source-card";
 import { TopHotelsCard } from "~/features/dashboard/components/top-hotels-card";
 import { StatCard } from "~/features/reports/components/stat-card";
@@ -66,10 +65,7 @@ function AdminDashboardPage() {
         />
       </section>
 
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <RevenueBySourceCard data={sales} />
-        <ParkMapCard />
-      </section>
+      <RevenueBySourceCard data={sales} />
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <TopHotelsCard />

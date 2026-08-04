@@ -1,6 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import {
   getAmenitiesServerFn,
+  getAvailabilityServerFn,
   getFacilitiesServerFn,
   getHotelBookingServerFn,
   getHotelBookingsServerFn,
@@ -19,6 +20,22 @@ export const hotelsQueryOptions = queryOptions({
   queryFn: () => getHotelsServerFn(),
   staleTime: 30 * 1000,
 });
+
+/**
+ * Room-type inventory for a stay. Short `staleTime`: the desk is quoting
+ * against live inventory, and two receptionists can be selling the same night.
+ */
+export const availabilityQueryOptions = (
+  hotelId: number,
+  checkIn: string,
+  checkOut: string,
+) =>
+  queryOptions({
+    queryKey: ["hotel-availability", hotelId, checkIn, checkOut] as const,
+    queryFn: () =>
+      getAvailabilityServerFn({ data: { hotelId, checkIn, checkOut } }),
+    staleTime: 5 * 1000,
+  });
 
 /** One hotel's room types. */
 export const roomTypesQueryOptions = (hotelId: number) =>

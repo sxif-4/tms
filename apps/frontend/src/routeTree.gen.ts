@@ -55,6 +55,7 @@ import { Route as DashboardAdminAnalyticsIndexRouteImport } from './routes/dashb
 import { Route as DashboardAdminAdsIndexRouteImport } from './routes/dashboard/admin/ads/index'
 import { Route as DashboardHotelRoomsNewRouteImport } from './routes/dashboard/hotel/rooms/new'
 import { Route as DashboardHotelRoomsRoomTypeIdRouteImport } from './routes/dashboard/hotel/rooms/$roomTypeId'
+import { Route as DashboardHotelBookingsNewRouteImport } from './routes/dashboard/hotel/bookings/new'
 import { Route as DashboardHotelBookingsBookingIdRouteImport } from './routes/dashboard/hotel/bookings/$bookingId'
 
 const SignupRoute = SignupRouteImport.update({
@@ -310,6 +311,12 @@ const DashboardHotelRoomsRoomTypeIdRoute =
     path: '/rooms/$roomTypeId',
     getParentRoute: () => DashboardHotelRouteRoute,
   } as any)
+const DashboardHotelBookingsNewRoute =
+  DashboardHotelBookingsNewRouteImport.update({
+    id: '/bookings/new',
+    path: '/bookings/new',
+    getParentRoute: () => DashboardHotelRouteRoute,
+  } as any)
 const DashboardHotelBookingsBookingIdRoute =
   DashboardHotelBookingsBookingIdRouteImport.update({
     id: '/bookings/$bookingId',
@@ -339,6 +346,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/park/': typeof DashboardParkIndexRoute
   '/hotels/$hotelId/': typeof HotelsHotelIdIndexRoute
   '/dashboard/hotel/bookings/$bookingId': typeof DashboardHotelBookingsBookingIdRoute
+  '/dashboard/hotel/bookings/new': typeof DashboardHotelBookingsNewRoute
   '/dashboard/hotel/rooms/$roomTypeId': typeof DashboardHotelRoomsRoomTypeIdRoute
   '/dashboard/hotel/rooms/new': typeof DashboardHotelRoomsNewRoute
   '/dashboard/admin/ads/': typeof DashboardAdminAdsIndexRoute
@@ -385,6 +393,7 @@ export interface FileRoutesByTo {
   '/dashboard/park': typeof DashboardParkIndexRoute
   '/hotels/$hotelId': typeof HotelsHotelIdIndexRoute
   '/dashboard/hotel/bookings/$bookingId': typeof DashboardHotelBookingsBookingIdRoute
+  '/dashboard/hotel/bookings/new': typeof DashboardHotelBookingsNewRoute
   '/dashboard/hotel/rooms/$roomTypeId': typeof DashboardHotelRoomsRoomTypeIdRoute
   '/dashboard/hotel/rooms/new': typeof DashboardHotelRoomsNewRoute
   '/dashboard/admin/ads': typeof DashboardAdminAdsIndexRoute
@@ -435,6 +444,7 @@ export interface FileRoutesById {
   '/dashboard/park/': typeof DashboardParkIndexRoute
   '/hotels/$hotelId/': typeof HotelsHotelIdIndexRoute
   '/dashboard/hotel/bookings/$bookingId': typeof DashboardHotelBookingsBookingIdRoute
+  '/dashboard/hotel/bookings/new': typeof DashboardHotelBookingsNewRoute
   '/dashboard/hotel/rooms/$roomTypeId': typeof DashboardHotelRoomsRoomTypeIdRoute
   '/dashboard/hotel/rooms/new': typeof DashboardHotelRoomsNewRoute
   '/dashboard/admin/ads/': typeof DashboardAdminAdsIndexRoute
@@ -486,6 +496,7 @@ export interface FileRouteTypes {
     | '/dashboard/park/'
     | '/hotels/$hotelId/'
     | '/dashboard/hotel/bookings/$bookingId'
+    | '/dashboard/hotel/bookings/new'
     | '/dashboard/hotel/rooms/$roomTypeId'
     | '/dashboard/hotel/rooms/new'
     | '/dashboard/admin/ads/'
@@ -532,6 +543,7 @@ export interface FileRouteTypes {
     | '/dashboard/park'
     | '/hotels/$hotelId'
     | '/dashboard/hotel/bookings/$bookingId'
+    | '/dashboard/hotel/bookings/new'
     | '/dashboard/hotel/rooms/$roomTypeId'
     | '/dashboard/hotel/rooms/new'
     | '/dashboard/admin/ads'
@@ -581,6 +593,7 @@ export interface FileRouteTypes {
     | '/dashboard/park/'
     | '/hotels/$hotelId/'
     | '/dashboard/hotel/bookings/$bookingId'
+    | '/dashboard/hotel/bookings/new'
     | '/dashboard/hotel/rooms/$roomTypeId'
     | '/dashboard/hotel/rooms/new'
     | '/dashboard/admin/ads/'
@@ -949,6 +962,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardHotelRoomsRoomTypeIdRouteImport
       parentRoute: typeof DashboardHotelRouteRoute
     }
+    '/dashboard/hotel/bookings/new': {
+      id: '/dashboard/hotel/bookings/new'
+      path: '/bookings/new'
+      fullPath: '/dashboard/hotel/bookings/new'
+      preLoaderRoute: typeof DashboardHotelBookingsNewRouteImport
+      parentRoute: typeof DashboardHotelRouteRoute
+    }
     '/dashboard/hotel/bookings/$bookingId': {
       id: '/dashboard/hotel/bookings/$bookingId'
       path: '/bookings/$bookingId'
@@ -991,6 +1011,7 @@ const DashboardAdminRouteRouteWithChildren =
 interface DashboardHotelRouteRouteChildren {
   DashboardHotelIndexRoute: typeof DashboardHotelIndexRoute
   DashboardHotelBookingsBookingIdRoute: typeof DashboardHotelBookingsBookingIdRoute
+  DashboardHotelBookingsNewRoute: typeof DashboardHotelBookingsNewRoute
   DashboardHotelRoomsRoomTypeIdRoute: typeof DashboardHotelRoomsRoomTypeIdRoute
   DashboardHotelRoomsNewRoute: typeof DashboardHotelRoomsNewRoute
   DashboardHotelBookingsIndexRoute: typeof DashboardHotelBookingsIndexRoute
@@ -1003,6 +1024,7 @@ interface DashboardHotelRouteRouteChildren {
 const DashboardHotelRouteRouteChildren: DashboardHotelRouteRouteChildren = {
   DashboardHotelIndexRoute: DashboardHotelIndexRoute,
   DashboardHotelBookingsBookingIdRoute: DashboardHotelBookingsBookingIdRoute,
+  DashboardHotelBookingsNewRoute: DashboardHotelBookingsNewRoute,
   DashboardHotelRoomsRoomTypeIdRoute: DashboardHotelRoomsRoomTypeIdRoute,
   DashboardHotelRoomsNewRoute: DashboardHotelRoomsNewRoute,
   DashboardHotelBookingsIndexRoute: DashboardHotelBookingsIndexRoute,

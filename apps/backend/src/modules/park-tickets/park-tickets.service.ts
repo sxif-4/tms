@@ -4,8 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
-import { randomBytes, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { AuditService } from '../../shared/audit/audit.service';
 import { AuditAction } from '../../shared/enums/audit-action.enum';
 import type { AuthenticatedUser } from '../../shared/interfaces/authenticated-user.interface';
@@ -27,7 +26,6 @@ import {
   type ParkTicketRow,
 } from './park-tickets.repository';
 
-const BCRYPT_ROUNDS = 12;
 const ref = () => `PT-${randomUUID().slice(0, 8).toUpperCase()}`;
 
 interface SellTicketInput {
@@ -89,7 +87,7 @@ export class ParkTicketsService {
     staff: AuthenticatedUser,
     dto: GateSaleDto,
   ): Promise<ParkTicketRow> {
-    const buyerId = await this.findOrCreateVisitor(dto.name, dto.email);
+    const buyerId = await this.users.findOrCreateVisitor(dto.name, dto.email);
 
     return this.sellTicket({
       buyerId,
@@ -253,29 +251,5 @@ export class ParkTicketsService {
     });
 
     return this.findById(ticket.id);
-  }
-
-  /**
-   * Gate customers may not have an account. Reuse one if the email is known,
-   * otherwise create a visitor with an unguessable password — they can claim
-   * the account later via a password reset.
-   */
-  private async findOrCreateVisitor(
-    name: string,
-    email: string,
-  ): Promise<number> {
-    const existing = await this.users.findByEmailWithRole(email);
-    if (existing) return existing.id;
-
-    const passwordHash = await bcrypt.hash(
-      randomBytes(32).toString('hex'),
-      BCRYPT_ROUNDS,
-    );
-    const created = await this.users.createVisitor({
-      name,
-      email,
-      passwordHash,
-    });
-    return created.id;
   }
 }

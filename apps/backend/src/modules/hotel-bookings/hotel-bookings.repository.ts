@@ -33,8 +33,41 @@ export interface HotelBookingRow {
   guests: number;
   totalAmount: string;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  /** How it was booked — `staff` for a front-desk booking. */
+  channel: 'online' | 'staff';
+  soldByUserId: number | null;
+  source: 'walk_in' | 'phone' | 'email' | 'corporate' | 'ota' | null;
+  arrivalTime: string | null;
+  specialRequests: string | null;
+  internalNotes: string | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+/** One room type's inventory position for a specific date range. */
+export interface RoomTypeAvailabilityRow {
+  roomTypeId: number;
+  name: string;
+  basePricePerNight: string;
+  maxOccupancy: number;
+  /** Cover photo — staff recognise a room type by sight faster than by name. */
+  image: string | null;
+  /** Physical rooms of this type that could be sold (excludes out-of-service). */
+  totalRooms: number;
+  /** Overlapping non-cancelled bookings — the ones already spoken for. */
+  bookedRooms: number;
+  /** Rooms free for the whole range and safe to pre-assign. */
+  freeRooms: { id: number; roomNumber: string }[];
+}
+
+/** A guest the desk can attach a booking to, with their history here. */
+export interface GuestSearchRow {
+  id: number;
+  name: string;
+  email: string;
+  phone: string | null;
+  /** Non-cancelled bookings this guest has had at this hotel. */
+  stays: number;
 }
 
 const rowSelection = {
@@ -54,6 +87,12 @@ const rowSelection = {
   guests: hotelBookings.guests,
   totalAmount: hotelBookings.totalAmount,
   status: hotelBookings.status,
+  channel: hotelBookings.channel,
+  soldByUserId: hotelBookings.soldByUserId,
+  source: hotelBookings.source,
+  arrivalTime: hotelBookings.arrivalTime,
+  specialRequests: hotelBookings.specialRequests,
+  internalNotes: hotelBookings.internalNotes,
   createdAt: hotelBookings.createdAt,
   updatedAt: hotelBookings.updatedAt,
 } as const;
@@ -186,11 +225,126 @@ export class HotelBookingsRepository {
     return Promise.resolve(rows.length);
   }
 
+  /**
+   * Per-room-type availability for one hotel over a date range — the numbers
+   * the front desk needs before it can quote anything. Uses exactly the same
+   * definition as the create path (`countRoomsOfType` / `countOverlapping`) so
+   * a room the desk is shown as free can't be rejected on submit.
+   */
+  availabilityByRoomType(
+    hotelId: number,
+    checkInSec: number,
+    checkOutSec: number,
+  ): Promise<RoomTypeAvailabilityRow[]> {
+    const types = this.db.all<{
+      roomTypeId: number;
+      name: string;
+      basePricePerNight: string;
+      maxOccupancy: number;
+      image: string | null;
+      totalRooms: number;
+    }>(sql`
+      SELECT rt.id AS roomTypeId, rt.name, rt.base_price_per_night AS basePricePerNight,
+        rt.max_occupancy AS maxOccupancy,
+        (SELECT COUNT(*) FROM rooms r
+          WHERE r.room_type_id = rt.id AND r.hotel_id = ${hotelId}
+            AND r.status != 'out_of_service') AS totalRooms,
+        (SELECT i.url FROM imageables im
+          JOIN images i ON i.id = im.image_id
+          WHERE im.imageable_type = 'room_type' AND im.imageable_id = rt.id
+          ORDER BY im.is_cover DESC, im.sort_order, i.id
+          LIMIT 1) AS image
+      FROM room_types rt
+      WHERE rt.hotel_id = ${hotelId}
+      ORDER BY rt.base_price_per_night
+    `);
+
+    // A booking holds a room of its type whether or not a specific room has
+    // been assigned yet, so this counts bookings — not assigned room ids.
+    const booked = this.db.all<{ roomTypeId: number; bookedRooms: number }>(sql`
+      SELECT room_type_id AS roomTypeId, COUNT(*) AS bookedRooms
+      FROM hotel_bookings
+      WHERE hotel_id = ${hotelId} AND status != 'cancelled'
+        AND check_in < ${checkOutSec} AND check_out > ${checkInSec}
+      GROUP BY room_type_id
+    `);
+    const bookedByType = new Map(
+      booked.map((b) => [b.roomTypeId, b.bookedRooms]),
+    );
+
+    // Rooms with no overlapping assignment. A room can be free here while its
+    // type has none left overall — unassigned bookings still hold inventory.
+    const free = this.db.all<{
+      roomTypeId: number;
+      id: number;
+      roomNumber: string;
+    }>(sql`
+      SELECT r.room_type_id AS roomTypeId, r.id, r.room_number AS roomNumber
+      FROM rooms r
+      WHERE r.hotel_id = ${hotelId} AND r.status != 'out_of_service'
+        AND NOT EXISTS (
+          SELECT 1 FROM hotel_bookings hb
+          WHERE hb.room_id = r.id AND hb.status != 'cancelled'
+            AND hb.check_in < ${checkOutSec} AND hb.check_out > ${checkInSec}
+        )
+      ORDER BY r.room_number
+    `);
+    const freeByType = new Map<number, { id: number; roomNumber: string }[]>();
+    for (const room of free) {
+      const list = freeByType.get(room.roomTypeId) ?? [];
+      list.push({ id: room.id, roomNumber: room.roomNumber });
+      freeByType.set(room.roomTypeId, list);
+    }
+
+    return Promise.resolve(
+      types.map((t) => ({
+        roomTypeId: t.roomTypeId,
+        name: t.name,
+        basePricePerNight: t.basePricePerNight,
+        maxOccupancy: t.maxOccupancy,
+        image: t.image,
+        totalRooms: t.totalRooms,
+        bookedRooms: bookedByType.get(t.roomTypeId) ?? 0,
+        freeRooms: freeByType.get(t.roomTypeId) ?? [],
+      })),
+    );
+  }
+
+  /**
+   * Visitor accounts matched on name, email or phone, with their stay count at
+   * this hotel. Capped — this backs a type-ahead, not a report.
+   */
+  searchGuests(hotelId: number, query?: string): Promise<GuestSearchRow[]> {
+    const trimmed = query?.trim();
+    const like = `%${trimmed ?? ''}%`;
+    const rows = this.db.all<GuestSearchRow>(sql`
+      SELECT u.id, u.name, u.email, u.phone,
+        (SELECT COUNT(*) FROM hotel_bookings hb
+          WHERE hb.user_id = u.id AND hb.hotel_id = ${hotelId}
+            AND hb.status != 'cancelled') AS stays
+      FROM users u
+      JOIN roles r ON r.id = u.role_id
+      WHERE r.slug = 'visitor' AND u.is_active = 1
+        ${
+          trimmed
+            ? sql`AND (u.name LIKE ${like} OR u.email LIKE ${like} OR u.phone LIKE ${like})`
+            : sql``
+        }
+      -- Guests who've stayed here before surface first: the desk is usually
+      -- looking for one of them.
+      ORDER BY stays DESC, u.name
+      LIMIT 20
+    `);
+    return Promise.resolve(rows);
+  }
+
   /** Inserts a completed mock payment for a freshly created booking. No real processor is wired up. */
   recordMockPayment(input: {
     userId: number;
     payableId: number;
     amount: string;
+    /** Card online; whatever the desk actually took otherwise. */
+    method?: 'card' | 'cash' | 'bank_transfer';
   }): Promise<void> {
     this.db
       .insert(payments)
@@ -200,7 +354,7 @@ export class HotelBookingsRepository {
         payableId: input.payableId,
         amount: input.amount,
         status: 'completed',
-        method: 'card',
+        method: input.method ?? 'card',
         paymentReference: randomUUID(),
         paidAt: new Date(),
       })

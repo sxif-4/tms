@@ -33,6 +33,26 @@ export function roomStatusBadgeVariant(status: RoomStatus): BadgeVariant {
   }
 }
 
+/** `2026-07-15` — the whole-day key the booking API speaks in. */
+export function toDateKey(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+const DAY_MS = 86_400_000;
+
+/**
+ * The stay the desk screen opens on: tonight, one night. The route loader and
+ * the page derive their dates from here so the prefetched availability lands on
+ * the same query key and the room list is there on first paint.
+ */
+export function defaultStay(): { checkIn: string; checkOut: string } {
+  const now = Date.now();
+  return {
+    checkIn: toDateKey(new Date(now)),
+    checkOut: toDateKey(new Date(now + DAY_MS)),
+  };
+}
+
 export const BOOKING_STATUSES: BookingStatus[] = [
   "pending",
   "confirmed",

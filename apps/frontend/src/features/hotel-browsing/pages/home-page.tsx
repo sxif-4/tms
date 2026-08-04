@@ -1,6 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Star } from "lucide-react";
+import { SiteFooter } from "~/components/SiteFooter";
 import { Button } from "~/components/ui/button";
 import { activeAdvertisementsQueryOptions } from "~/features/advertisements/queries";
 import { HeroSearch } from "~/features/hotel-browsing/components/hero-search";
@@ -124,6 +125,8 @@ export function HomePage() {
           </div>
         </section>
       )}
+
+      <SiteFooter />
     </div>
   );
 }

@@ -50,6 +50,20 @@
       "when": 1785692457288,
       "tag": "0006_unique_payback",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1785775882714,
+      "tag": "0007_panoramic_slapstick",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1785858998031,
+      "tag": "0008_living_cargill",
+      "breakpoints": true
     }
   ]
 }

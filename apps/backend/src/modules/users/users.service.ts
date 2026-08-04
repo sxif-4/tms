@@ -19,6 +19,7 @@ interface CreateVisitorInput {
   name: string;
   email: string;
   passwordHash: string;
+  phone?: string;
 }
 
 interface CreateStaffInput {
@@ -90,8 +91,39 @@ export class UsersService {
       email: input.email,
       passwordHash: input.passwordHash,
       roleId: role.id,
+      phone: input.phone,
     });
     return { ...created, role: Role.Visitor };
+  }
+
+  /**
+   * Resolves a walk-up customer to a user id. Counter staff take a name and an
+   * email, not a login — reuse the account if that email is already known,
+   * otherwise create a visitor with an unguessable password they can claim
+   * later via a password reset. Shared by the park gate and the hotel desk so
+   * both channels attach bookings to a real guest, never to the staff member.
+   */
+  async findOrCreateVisitor(
+    name: string,
+    email: string,
+    phone?: string,
+  ): Promise<number> {
+    // A returning guest keeps the details on their own account — the desk
+    // typing a name into a booking form shouldn't rewrite their profile.
+    const existing = await this.findByEmailWithRole(email);
+    if (existing) return existing.id;
+
+    const passwordHash = await bcrypt.hash(
+      randomBytes(32).toString('hex'),
+      BCRYPT_ROUNDS,
+    );
+    const created = await this.createVisitor({
+      name,
+      email,
+      passwordHash,
+      phone,
+    });
+    return created.id;
   }
 
   /**

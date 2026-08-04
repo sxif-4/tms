@@ -6,6 +6,11 @@ export type RoomStatus =
 
 export type BookingStatus = "pending" | "confirmed" | "cancelled" | "completed";
 
+export type BookingChannel = "online" | "staff";
+
+/** Staff open a desk booking either unpaid or paid on the spot. */
+export type ManualBookingStatus = "pending" | "confirmed";
+
 /** Staff-facing hotel access, scoped to the caller's assigned hotels. */
 export interface Hotel {
   id: number;
@@ -98,8 +103,66 @@ export interface HotelBooking {
   guests: number;
   totalAmount: string;
   status: BookingStatus;
+  /** `staff` when taken at the front desk, `online` when the guest booked it. */
+  channel: BookingChannel;
+  /** Staff member who took a desk booking; null for online ones. */
+  soldByUserId: number | null;
+  source: BookingSource | null;
+  arrivalTime: string | null;
+  specialRequests: string | null;
+  /** Staff-only — never shown to the guest. */
+  internalNotes: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+/** Fields the desk collects that the visitor flow gets from the session. */
+export interface ManualBookingInput {
+  hotelId: number;
+  roomTypeId: number;
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+  name: string;
+  email: string;
+  phone?: string;
+  roomId?: number;
+  status: ManualBookingStatus;
+  paymentMethod?: PaymentMethod;
+  source?: BookingSource;
+  arrivalTime?: string;
+  specialRequests?: string;
+  internalNotes?: string;
+}
+
+export type PaymentMethod = "cash" | "card" | "bank_transfer";
+
+export type BookingSource = "walk_in" | "phone" | "email" | "corporate" | "ota";
+
+/** One room type's inventory position for the stay the desk is quoting. */
+export interface RoomTypeAvailability {
+  roomTypeId: number;
+  name: string;
+  basePricePerNight: string;
+  maxOccupancy: number;
+  /** Cover photo, or null if the room type has none. */
+  image: string | null;
+  /** Sellable rooms of this type — out-of-service ones are already excluded. */
+  totalRooms: number;
+  /** Held by overlapping bookings, whether or not a room was assigned yet. */
+  bookedRooms: number;
+  /** Rooms free for the whole stay, safe to hand out at check-in. */
+  freeRooms: { id: number; roomNumber: string }[];
+}
+
+/** A guest the desk can attach a booking to, with their history at this hotel. */
+export interface GuestSearchResult {
+  id: number;
+  name: string;
+  email: string;
+  phone: string | null;
+  /** Non-cancelled stays here — how the desk spots a regular. */
+  stays: number;
 }
 
 export interface RevenuePoint {

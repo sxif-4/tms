@@ -8,6 +8,7 @@ import {
   DoorOpenIcon,
   EyeIcon,
   MoreHorizontalIcon,
+  PlusIcon,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
@@ -172,6 +173,13 @@ function HotelBookingsContent({
             </SelectGroup>
           </SelectContent>
         </Select>
+
+        <Button asChild>
+          <Link to="/dashboard/hotel/bookings/new">
+            <PlusIcon />
+            New booking
+          </Link>
+        </Button>
       </div>
 
       {bookings.length === 0 ? (

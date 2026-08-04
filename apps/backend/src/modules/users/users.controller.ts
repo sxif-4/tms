@@ -46,9 +46,9 @@ export class UsersController {
     );
   }
 
-  /** Name/email search for staff-facing pickers (e.g. the ferry booking form). Must stay above `:id` — Nest matches routes in declaration order per method. */
+  /** Name/email search for staff-facing pickers (the ferry and front-desk booking forms). Must stay above `:id` — Nest matches routes in declaration order per method. */
   @Get('search')
-  @Roles(Role.Admin, Role.FerryStaff)
+  @Roles(Role.Admin, Role.FerryStaff, Role.HotelStaff)
   async search(@Query('q') q?: string): Promise<UserResponseDto[]> {
     const users = await this.usersService.search(q);
     return users.map((u) => new UserResponseDto(u));

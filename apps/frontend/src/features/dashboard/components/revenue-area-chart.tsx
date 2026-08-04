@@ -25,9 +25,16 @@ const fmtDate = (value: string | number) =>
 export function RevenueAreaChart({ data }: { data: SalesPoint[] }) {
   return (
     <ClientOnly
-      fallback={<div className="h-72 animate-pulse rounded-lg bg-muted" />}
+      fallback={
+        <div className="h-72 animate-pulse rounded-lg bg-muted lg:h-96" />
+      }
     >
-      <ChartContainer config={chartConfig} className="aspect-auto h-72 w-full">
+      {/* Taller on wide screens: the card spans the full grid, so the old
+          half-width height left the series squashed into a flat band. */}
+      <ChartContainer
+        config={chartConfig}
+        className="aspect-auto h-72 w-full lg:h-96"
+      >
         <AreaChart data={data} margin={{ left: -8, right: 8, top: 8 }}>
           <defs>
             {DOMAINS.map((d) => (
