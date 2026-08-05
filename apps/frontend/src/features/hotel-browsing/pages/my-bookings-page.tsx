@@ -190,7 +190,11 @@ function EmptyState({
 }
 
 /** Tab label with its count, so the badge markup isn't repeated eight times. */
-function CountTab({ value, label, count }: {
+function CountTab({
+  value,
+  label,
+  count,
+}: {
   value: string;
   label: string;
   count: number;
@@ -243,7 +247,8 @@ export function MyBookingsPage() {
   });
 
   const hotelCounts: Record<HotelFilter, number> = {
-    upcoming: bookings.filter((b) => visitorTab(b.status) === "upcoming").length,
+    upcoming: bookings.filter((b) => visitorTab(b.status) === "upcoming")
+      .length,
     completed: bookings.filter((b) => visitorTab(b.status) === "completed")
       .length,
     cancelled: bookings.filter((b) => visitorTab(b.status) === "cancelled")
@@ -334,11 +339,7 @@ export function MyBookingsPage() {
                 and two sets of counts that contradicted each other. */}
             <TabsList className="flex-wrap">
               <CountTab value="all" label="All" count={items.length} />
-              <CountTab
-                value="hotels"
-                label="Hotels"
-                count={bookings.length}
-              />
+              <CountTab value="hotels" label="Hotels" count={bookings.length} />
               <CountTab value="ferry" label="Ferry" count={ferry.length} />
               <CountTab
                 value="park-tickets"

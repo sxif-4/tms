@@ -35,6 +35,7 @@ import { Route as DashboardFerryIndexRouteImport } from './routes/dashboard/ferr
 import { Route as DashboardAdminIndexRouteImport } from './routes/dashboard/admin/index'
 import { Route as ThemeParkEventsEventIdRouteImport } from './routes/theme-park/events/$eventId'
 import { Route as HotelsHotelIdConfirmationRouteImport } from './routes/hotels/$hotelId/confirmation'
+import { Route as HotelsHotelIdCheckoutRouteImport } from './routes/hotels/$hotelId/checkout'
 import { Route as HotelsHotelIdBookRouteImport } from './routes/hotels/$hotelId/book'
 import { Route as DashboardParkTicketsIndexRouteImport } from './routes/dashboard/park/tickets/index'
 import { Route as DashboardParkReportsIndexRouteImport } from './routes/dashboard/park/reports/index'
@@ -199,6 +200,11 @@ const HotelsHotelIdConfirmationRoute =
     path: '/hotels/$hotelId/confirmation',
     getParentRoute: () => rootRouteImport,
   } as any)
+const HotelsHotelIdCheckoutRoute = HotelsHotelIdCheckoutRouteImport.update({
+  id: '/hotels/$hotelId/checkout',
+  path: '/hotels/$hotelId/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HotelsHotelIdBookRoute = HotelsHotelIdBookRouteImport.update({
   id: '/hotels/$hotelId/book',
   path: '/hotels/$hotelId/book',
@@ -407,6 +413,7 @@ export interface FileRoutesByFullPath {
   '/my-bookings/': typeof MyBookingsIndexRoute
   '/theme-park/': typeof ThemeParkIndexRoute
   '/hotels/$hotelId/book': typeof HotelsHotelIdBookRoute
+  '/hotels/$hotelId/checkout': typeof HotelsHotelIdCheckoutRoute
   '/hotels/$hotelId/confirmation': typeof HotelsHotelIdConfirmationRoute
   '/theme-park/events/$eventId': typeof ThemeParkEventsEventIdRoute
   '/dashboard/admin/': typeof DashboardAdminIndexRoute
@@ -463,6 +470,7 @@ export interface FileRoutesByTo {
   '/my-bookings': typeof MyBookingsIndexRoute
   '/theme-park': typeof ThemeParkIndexRoute
   '/hotels/$hotelId/book': typeof HotelsHotelIdBookRoute
+  '/hotels/$hotelId/checkout': typeof HotelsHotelIdCheckoutRoute
   '/hotels/$hotelId/confirmation': typeof HotelsHotelIdConfirmationRoute
   '/theme-park/events/$eventId': typeof ThemeParkEventsEventIdRoute
   '/dashboard/admin': typeof DashboardAdminIndexRoute
@@ -524,6 +532,7 @@ export interface FileRoutesById {
   '/my-bookings/': typeof MyBookingsIndexRoute
   '/theme-park/': typeof ThemeParkIndexRoute
   '/hotels/$hotelId/book': typeof HotelsHotelIdBookRoute
+  '/hotels/$hotelId/checkout': typeof HotelsHotelIdCheckoutRoute
   '/hotels/$hotelId/confirmation': typeof HotelsHotelIdConfirmationRoute
   '/theme-park/events/$eventId': typeof ThemeParkEventsEventIdRoute
   '/dashboard/admin/': typeof DashboardAdminIndexRoute
@@ -586,6 +595,7 @@ export interface FileRouteTypes {
     | '/my-bookings/'
     | '/theme-park/'
     | '/hotels/$hotelId/book'
+    | '/hotels/$hotelId/checkout'
     | '/hotels/$hotelId/confirmation'
     | '/theme-park/events/$eventId'
     | '/dashboard/admin/'
@@ -642,6 +652,7 @@ export interface FileRouteTypes {
     | '/my-bookings'
     | '/theme-park'
     | '/hotels/$hotelId/book'
+    | '/hotels/$hotelId/checkout'
     | '/hotels/$hotelId/confirmation'
     | '/theme-park/events/$eventId'
     | '/dashboard/admin'
@@ -702,6 +713,7 @@ export interface FileRouteTypes {
     | '/my-bookings/'
     | '/theme-park/'
     | '/hotels/$hotelId/book'
+    | '/hotels/$hotelId/checkout'
     | '/hotels/$hotelId/confirmation'
     | '/theme-park/events/$eventId'
     | '/dashboard/admin/'
@@ -759,6 +771,7 @@ export interface RootRouteChildren {
   MyBookingsIndexRoute: typeof MyBookingsIndexRoute
   ThemeParkIndexRoute: typeof ThemeParkIndexRoute
   HotelsHotelIdBookRoute: typeof HotelsHotelIdBookRoute
+  HotelsHotelIdCheckoutRoute: typeof HotelsHotelIdCheckoutRoute
   HotelsHotelIdConfirmationRoute: typeof HotelsHotelIdConfirmationRoute
   ThemeParkEventsEventIdRoute: typeof ThemeParkEventsEventIdRoute
   HotelsHotelIdIndexRoute: typeof HotelsHotelIdIndexRoute
@@ -947,6 +960,13 @@ declare module '@tanstack/react-router' {
       path: '/hotels/$hotelId/confirmation'
       fullPath: '/hotels/$hotelId/confirmation'
       preLoaderRoute: typeof HotelsHotelIdConfirmationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hotels/$hotelId/checkout': {
+      id: '/hotels/$hotelId/checkout'
+      path: '/hotels/$hotelId/checkout'
+      fullPath: '/hotels/$hotelId/checkout'
+      preLoaderRoute: typeof HotelsHotelIdCheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hotels/$hotelId/book': {
@@ -1317,6 +1337,7 @@ const rootRouteChildren: RootRouteChildren = {
   MyBookingsIndexRoute: MyBookingsIndexRoute,
   ThemeParkIndexRoute: ThemeParkIndexRoute,
   HotelsHotelIdBookRoute: HotelsHotelIdBookRoute,
+  HotelsHotelIdCheckoutRoute: HotelsHotelIdCheckoutRoute,
   HotelsHotelIdConfirmationRoute: HotelsHotelIdConfirmationRoute,
   ThemeParkEventsEventIdRoute: ThemeParkEventsEventIdRoute,
   HotelsHotelIdIndexRoute: HotelsHotelIdIndexRoute,

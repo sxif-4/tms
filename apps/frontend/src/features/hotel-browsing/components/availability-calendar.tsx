@@ -1,6 +1,10 @@
 import * as React from "react";
 import { format } from "date-fns";
-import type { DateRange, DayButton } from "react-day-picker";
+import {
+  getDefaultClassNames,
+  type DateRange,
+  type DayButton,
+} from "react-day-picker";
 import { Button } from "~/components/ui/button";
 import { Calendar } from "~/components/ui/calendar";
 import { cn } from "~/lib/utils";
@@ -8,6 +12,8 @@ import { AVAILABILITY_TIER_CLASS, AVAILABILITY_TIER_LABEL } from "../constants";
 import type { DayAvailability } from "../types";
 
 const TIERS = ["high", "medium", "low", "none"] as const;
+
+const defaultClassNames = getDefaultClassNames();
 
 function AvailabilityDayButton({
   className,
@@ -54,7 +60,7 @@ function AvailabilityDayButton({
         availabilityLabel ? `${dateLabel}, ${availabilityLabel}` : dateLabel
       }
       className={cn(
-        "relative isolate z-10 flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 border-0 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-ring/50 data-[range-end=true]:rounded-(--cell-radius) data-[range-end=true]:bg-brand data-[range-end=true]:text-brand-foreground data-[range-middle=true]:rounded-none data-[range-middle=true]:bg-muted data-[range-middle=true]:text-foreground data-[range-start=true]:rounded-(--cell-radius) data-[range-start=true]:bg-brand data-[range-start=true]:text-brand-foreground data-[selected-single=true]:bg-brand data-[selected-single=true]:text-brand-foreground dark:hover:text-foreground [&>span]:text-xs [&>span]:opacity-70",
+        "relative isolate z-10 flex size-full flex-col gap-1 border-0 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-ring/50 data-[range-end=true]:rounded-(--cell-radius) data-[range-end=true]:bg-brand data-[range-end=true]:text-brand-foreground data-[range-middle=true]:rounded-none data-[range-middle=true]:bg-muted data-[range-middle=true]:text-foreground data-[range-start=true]:rounded-(--cell-radius) data-[range-start=true]:bg-brand data-[range-start=true]:text-brand-foreground data-[selected-single=true]:bg-brand data-[selected-single=true]:text-brand-foreground dark:hover:text-foreground [&>span]:text-xs [&>span]:opacity-70",
         className,
       )}
       {...props}
@@ -105,7 +111,20 @@ export function AvailabilityCalendar({
         numberOfMonths={numberOfMonths}
         disabled={disabled}
         onMonthChange={onMonthChange}
-        className="mx-auto w-fit [--cell-size:--spacing(10)]"
+        className="w-full [--cell-size:--spacing(10)]"
+        /*
+         * The shared Calendar is `w-fit` with square cells, which leaves a
+         * postage-stamp widget floating in a full-width card. Stretching it
+         * means the cells can't stay square — at this width that would make
+         * each row ~110px tall — so they get a fixed height and fill instead.
+         */
+        classNames={{
+          root: "w-full",
+          day: cn(
+            "group/day relative h-12 w-full rounded-(--cell-radius) p-0 text-center select-none sm:h-14 [&:first-child[data-selected=true]_button]:rounded-l-(--cell-radius) [&:last-child[data-selected=true]_button]:rounded-r-(--cell-radius)",
+            defaultClassNames.day,
+          ),
+        }}
         components={{
           DayButton: (dayButtonProps) => (
             <AvailabilityDayButton

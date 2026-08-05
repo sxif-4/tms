@@ -1,6 +1,5 @@
-import { BedDouble, Users } from "lucide-react";
-import { useState } from "react";
-import { Button } from "~/components/ui/button";
+import { BedDouble, Check, Users } from "lucide-react";
+import { useState, type KeyboardEvent } from "react";
 import { Card, CardContent } from "~/components/ui/card";
 import { AmenityIcon } from "~/lib/amenity-icon";
 import { cn } from "~/lib/utils";
@@ -56,16 +55,45 @@ export function RoomOptionCard({
       ? ((previewIndex % gallery.length) + gallery.length) % gallery.length
       : 0;
   const mainSrc = gallery[safePreview];
+  const selectable = interactive && !soldOut;
+
+  /*
+   * The card is the control, so it can't be a <button> — it already contains
+   * the photo and thumbnail buttons, and nesting those is invalid. `role=radio`
+   * inside the page's radiogroup gives the same semantics without the nesting.
+   */
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!selectable || (event.key !== " " && event.key !== "Enter")) return;
+    event.preventDefault();
+    onSelect?.();
+  };
 
   return (
     <Card
+      role={interactive ? "radio" : undefined}
+      aria-checked={interactive ? selected : undefined}
+      aria-disabled={interactive && soldOut ? true : undefined}
+      tabIndex={selectable ? 0 : undefined}
+      onClick={selectable ? onSelect : undefined}
+      onKeyDown={interactive ? handleKeyDown : undefined}
       className={cn(
-        "overflow-hidden p-0 transition-all",
-        selected && "border-brand ring-2 ring-brand/30",
-        interactive && !selected && "hover:border-brand/40",
+        "relative overflow-hidden p-0 transition-all",
+        selectable &&
+          "cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+        selected
+          ? "border-brand ring-2 ring-brand/30"
+          : selectable && "hover:border-brand/40",
         soldOut && "opacity-80",
       )}
     >
+      {selected && (
+        <span
+          className="absolute top-3 right-3 z-20 flex size-6 items-center justify-center rounded-full bg-brand text-brand-foreground shadow-sm"
+          aria-hidden
+        >
+          <Check className="size-3.5" />
+        </span>
+      )}
       <CardContent className="flex flex-col gap-0 p-0 sm:flex-row">
         {mainSrc ? (
           <div
@@ -77,7 +105,11 @@ export function RoomOptionCard({
             <button
               type="button"
               className="relative aspect-4/3 w-full overflow-hidden rounded-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-              onClick={() => setLightboxOpen(true)}
+              onClick={(e) => {
+                // Viewing the gallery isn't choosing the room.
+                e.stopPropagation();
+                setLightboxOpen(true);
+              }}
               aria-label={`View photos of ${room.name}`}
             >
               <img
@@ -93,7 +125,10 @@ export function RoomOptionCard({
                   <li key={`${src}-${i}`} className="shrink-0">
                     <button
                       type="button"
-                      onClick={() => setPreviewIndex(i)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPreviewIndex(i);
+                      }}
                       className={cn(
                         "size-11 overflow-hidden rounded border-2 transition",
                         i === safePreview
@@ -164,16 +199,10 @@ export function RoomOptionCard({
                 /night
               </span>
             </p>
-            {interactive && (
-              <Button
-                type="button"
-                size="sm"
-                variant={selected ? "default" : "outline"}
-                disabled={soldOut}
-                onClick={onSelect}
-              >
-                {selected ? "Selected" : soldOut ? "Sold out" : "Select"}
-              </Button>
+            {interactive && soldOut && (
+              <span className="text-xs font-medium text-muted-foreground">
+                Sold out
+              </span>
             )}
           </div>
         </div>

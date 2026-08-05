@@ -65,6 +65,18 @@ export const HOTEL_FALLBACK_IMAGES = [
   "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1200&q=80",
 ];
 
+/**
+ * Cover photo for a room type. Rooms carry their own gallery, so a booking
+ * summary should show the room being booked rather than the hotel's hero shot —
+ * callers fall back to `hotelImage` when a room has no photos of its own.
+ */
+export function roomCoverImage(
+  room: { image?: string | null; images?: string[] | null } | undefined | null,
+): string | null {
+  if (!room) return null;
+  return room.images?.[0] ?? room.image ?? null;
+}
+
 export function hotelImage(hotel: Pick<HotelSummary, "id" | "image">): string {
   return (
     hotel.image ??

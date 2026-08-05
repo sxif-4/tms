@@ -27,4 +27,14 @@ declare module "@tanstack/react-router" {
   interface Register {
     router: ReturnType<typeof getRouter>;
   }
+
+  /**
+   * Routes that own the whole viewport — checkout, where every nav link is an
+   * exit from a funnel — opt out of the site header with
+   * `staticData: { chrome: "minimal" }`. `__root` reads it off the active
+   * matches rather than matching on pathnames.
+   */
+  interface StaticDataRouteOption {
+    chrome?: "minimal";
+  }
 }

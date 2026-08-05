@@ -19,7 +19,14 @@ import { landingPathForRole } from "../redirects";
 import { signupSchema, type SignupValues } from "../schemas";
 import { SocialLogins } from "./social-logins";
 
-export function SignupForm({ className }: { className?: string }) {
+export function SignupForm({
+  className,
+  redirectTo,
+}: {
+  className?: string;
+  /** Where to land after signing up — carries a mid-checkout URL back to the funnel. */
+  redirectTo?: string;
+}) {
   const router = useRouter();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -41,7 +48,7 @@ export function SignupForm({ className }: { className?: string }) {
       queryClient.setQueryData(meQueryOptions.queryKey, user);
       await router.invalidate();
       toast.success(`Welcome, ${user.name}!`);
-      await navigate({ to: landingPathForRole(user.role) });
+      await navigate({ to: redirectTo || landingPathForRole(user.role) });
     },
     onError: (err) =>
       toast.error(
@@ -108,7 +115,11 @@ export function SignupForm({ className }: { className?: string }) {
         <SocialLogins />
         <FieldDescription className="text-center">
           Already have an account?{" "}
-          <Link to="/login" className="underline underline-offset-4">
+          <Link
+            to="/login"
+            search={{ redirect: redirectTo }}
+            className="underline underline-offset-4"
+          >
             Sign in
           </Link>
         </FieldDescription>

@@ -34,7 +34,12 @@ export const hotelAvailabilityQueryOptions = (
     queryKey: ["public-hotels", id, "availability", checkIn, checkOut] as const,
     queryFn: () =>
       getHotelAvailabilityServerFn({ data: { id, checkIn, checkOut } }),
-    enabled: Boolean(checkIn && checkOut),
+    /*
+     * The API rejects a zero-night stay, which is exactly what a half-picked
+     * calendar range looks like — guard on the ordering, not just on both
+     * fields being set, or the first click of every range fires a 400.
+     */
+    enabled: Boolean(checkIn && checkOut && checkIn < checkOut),
     staleTime: 15 * 1000,
   });
 

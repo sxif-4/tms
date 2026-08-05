@@ -1,19 +1,28 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { AuthLayout, SignupForm, landingPathForRole } from "~/features/auth";
+import {
+  AuthLayout,
+  SignupForm,
+  landingPathForRole,
+  loginSearchSchema,
+} from "~/features/auth";
 
 export const Route = createFileRoute("/signup")({
-  beforeLoad: ({ context }) => {
+  validateSearch: loginSearchSchema,
+  beforeLoad: ({ context, search }) => {
     if (context.user) {
-      throw redirect({ to: landingPathForRole(context.user.role) });
+      throw redirect({
+        to: search.redirect || landingPathForRole(context.user.role),
+      });
     }
   },
   component: SignupPage,
 });
 
 function SignupPage() {
+  const search = Route.useSearch();
   return (
     <AuthLayout>
-      <SignupForm />
+      <SignupForm redirectTo={search.redirect} />
     </AuthLayout>
   );
 }

@@ -4,6 +4,7 @@ import {
   Outlet,
   Scripts,
   createRootRouteWithContext,
+  useRouterState,
 } from "@tanstack/react-router";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
@@ -68,9 +69,14 @@ export const Route = createRootRouteWithContext<{
 });
 
 function RootComponent() {
+  const minimalChrome = useRouterState({
+    select: (state) =>
+      state.matches.some((match) => match.staticData.chrome === "minimal"),
+  });
+
   return (
     <RootDocument>
-      <SiteHeader />
+      {!minimalChrome && <SiteHeader />}
       <Outlet />
     </RootDocument>
   );
