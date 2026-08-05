@@ -42,6 +42,8 @@ export interface PublicEvent {
   eventType: EventType;
   locationType: LocationType;
   basePrice: string;
+  /** Cover photo, or `null` until staff upload one. */
+  image: string | null;
 }
 
 /** One upcoming run of an event. `remaining` is computed, never stored. */
@@ -55,6 +57,8 @@ export interface PublicSchedule {
 /** `GET /public/park/events/:id` */
 export interface PublicEventDetail extends PublicEvent {
   schedules: PublicSchedule[];
+  /** The full gallery, cover first. `image` is its first entry. */
+  images: string[];
 }
 
 /**

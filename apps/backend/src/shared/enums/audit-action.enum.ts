@@ -58,6 +58,8 @@ export enum AuditAction {
   EventCreated = 'event.created',
   EventUpdated = 'event.updated',
   EventDeleted = 'event.deleted',
+  EventImageUploaded = 'event.image_uploaded',
+  EventImageDeleted = 'event.image_deleted',
   EventScheduleCreated = 'event_schedule.created',
   EventScheduleUpdated = 'event_schedule.updated',
   EventScheduleDeleted = 'event_schedule.deleted',

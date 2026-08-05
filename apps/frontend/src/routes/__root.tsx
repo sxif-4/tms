@@ -12,6 +12,7 @@ import * as React from "react";
 import type { QueryClient } from "@tanstack/react-query";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
+import { SiteFooter } from "~/components/SiteFooter";
 import { SiteHeader } from "~/components/SiteHeader";
 import { Toaster } from "~/components/ui/sonner";
 import { meQueryOptions } from "~/features/auth";
@@ -68,16 +69,42 @@ export const Route = createRootRouteWithContext<{
   component: RootComponent,
 });
 
+/**
+ * Screens that bring their own full-height chrome and must not be wrapped in
+ * the marketing header/footer: the auth pages, and the whole staff dashboard,
+ * which runs inside `AppShell`'s sidebar layout.
+ */
+function isChromeless(pathname: string) {
+  return (
+    pathname === "/login" ||
+    pathname === "/signup" ||
+    pathname.startsWith("/dashboard")
+  );
+}
+
 function RootComponent() {
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
   const minimalChrome = useRouterState({
     select: (state) =>
       state.matches.some((match) => match.staticData.chrome === "minimal"),
   });
 
+  // Header and footer are mounted once, here, and share a single visibility
+  // rule — so a new visitor page gets both for free, and neither can drift
+  // onto a dashboard page that already has its own shell.
+  const showChrome = !minimalChrome && !isChromeless(pathname);
+
   return (
     <RootDocument>
-      {!minimalChrome && <SiteHeader />}
-      <Outlet />
+      {showChrome && <SiteHeader />}
+      {/* Takes up the slack on short pages so the footer sits at the bottom of
+          the viewport rather than halfway up it. */}
+      <div className="flex-1">
+        <Outlet />
+      </div>
+      {showChrome && <SiteFooter />}
     </RootDocument>
   );
 }
@@ -94,7 +121,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           }}
         />
       </head>
-      <body className="bg-background text-foreground min-h-svh">
+      <body className="bg-background text-foreground flex min-h-svh flex-col">
         {children}
         <Toaster richColors />
         <TanStackRouterDevtools position="bottom-right" />

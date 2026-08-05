@@ -195,8 +195,9 @@ export function ParkConfirmationPage({ reference }: { reference?: string }) {
           </p>
           <Button asChild className="mt-4">
             <Link
-              to="/theme-park/events"
+              to="/theme-park"
               search={{ date: utcDateKey(ticket.visitDate) }}
+              hash="whats-on"
             >
               <FerrisWheel className="size-4" />
               Browse what&apos;s on

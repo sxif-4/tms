@@ -20,7 +20,11 @@ import type { AuthenticatedUser } from '../../shared/interfaces/authenticated-us
 import { CreateEventDto, type EventType } from './dto/create-event.dto';
 import { type LocationType } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { EventsService, type EventDetail } from './events.service';
+import {
+  EventsService,
+  type EventDetail,
+  type EventWithImages,
+} from './events.service';
 
 /** Park-wide event management — any park staff manages every event. */
 @Controller('events')
@@ -34,7 +38,7 @@ export class EventsController {
     @Query('locationType') locationType?: LocationType,
     @Query('isActive', new ParseBoolPipe({ optional: true }))
     isActive?: boolean,
-  ): Promise<Event[]> {
+  ): Promise<EventWithImages[]> {
     return this.eventsService.listAll({ eventType, locationType, isActive });
   }
 

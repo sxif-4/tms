@@ -6,11 +6,21 @@ import {
 import { AuditService } from '../../shared/audit/audit.service';
 import { type Event } from '../../shared/database/schema';
 import { AuditAction } from '../../shared/enums/audit-action.enum';
+import { ImagesRepository } from '../../shared/images/images.repository';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { EventsRepository, type EventFilters } from './events.repository';
 
-export interface EventDetail extends Event {
+/** `imageables.imageable_type` for event photo galleries. */
+const IMAGE_OWNER_TYPE = 'event';
+
+/** An event plus its gallery — `image` is the cover, or `null` until one exists. */
+export type EventWithImages = Event & {
+  image: string | null;
+  images: string[];
+};
+
+export interface EventDetail extends EventWithImages {
   scheduleCount: number;
 }
 
@@ -20,17 +30,36 @@ export class EventsService {
   constructor(
     private readonly eventsRepo: EventsRepository,
     private readonly audit: AuditService,
+    private readonly imagesRepo: ImagesRepository,
   ) {}
 
-  listAll(filters: EventFilters): Promise<Event[]> {
-    return this.eventsRepo.findAll(filters);
+  async listAll(filters: EventFilters): Promise<EventWithImages[]> {
+    const events = await this.eventsRepo.findAll(filters);
+    const byEvent = this.imagesRepo.findForOwners(
+      IMAGE_OWNER_TYPE,
+      events.map((e) => e.id),
+    );
+    return events.map((e) => {
+      const imgs = byEvent.get(e.id) ?? [];
+      return {
+        ...e,
+        image: imgs[0]?.url ?? null,
+        images: imgs.map((i) => i.url),
+      };
+    });
   }
 
   async findById(id: number): Promise<EventDetail> {
     const event = await this.eventsRepo.findById(id);
     if (!event) throw new NotFoundException(`Event #${id} not found`);
     const scheduleCount = await this.eventsRepo.countSchedules(id);
-    return { ...event, scheduleCount };
+    const imgs = await this.imagesRepo.findForOwner(IMAGE_OWNER_TYPE, id);
+    return {
+      ...event,
+      scheduleCount,
+      image: imgs[0]?.url ?? null,
+      images: imgs.map((i) => i.url),
+    };
   }
 
   async create(dto: CreateEventDto, actorId: number): Promise<Event> {

@@ -5,8 +5,14 @@ import { publicHotelsQueryOptions } from "~/features/hotel-browsing/queries";
 
 export const Route = createFileRoute("/hotels/")({
   validateSearch: hotelSearchSchema,
-  loader: ({ context }) =>
-    context.queryClient.ensureQueryData(publicHotelsQueryOptions()),
+  // Guests filters server-side, so the loader has to prefetch the *filtered*
+  // list — otherwise landing on /hotels?guests=2 server-renders the empty state
+  // and only corrects itself after hydration.
+  loaderDeps: ({ search }) => ({ guests: search.guests }),
+  loader: ({ context, deps }) =>
+    context.queryClient.ensureQueryData(
+      publicHotelsQueryOptions({ guests: deps.guests }),
+    ),
   component: HotelsBrowseRoute,
 });
 
@@ -18,7 +24,13 @@ function HotelsBrowseRoute() {
     <HotelsBrowsePage
       search={search}
       onSearchChange={(next) =>
-        navigate({ search: (prev) => ({ ...prev, ...next }) })
+        navigate({
+          search: (prev) => ({ ...prev, ...next }),
+          // Filtering is one continuous action, not a series of destinations:
+          // don't stack history entries and don't yank the page back to the top.
+          replace: true,
+          resetScroll: false,
+        })
       }
     />
   );

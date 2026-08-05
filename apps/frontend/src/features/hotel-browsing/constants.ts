@@ -52,6 +52,11 @@ export const AVAILABILITY_TIER_LABEL: Record<AvailabilityLevel, string> = {
   none: "Fully booked",
 };
 
+/** Banner art for the hotels index. Fixed rather than data-derived so the hero
+ *  doesn't change every time the first hotel's photo does. */
+export const HOTELS_HERO_IMAGE =
+  "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=2000&q=80";
+
 /** Deterministic fallback images for hotels the API returns with `image: null`. */
 export const HOTEL_FALLBACK_IMAGES = [
   "https://images.unsplash.com/photo-1578922746465-3a80a228f223?auto=format&fit=crop&w=1200&q=80",

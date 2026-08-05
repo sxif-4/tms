@@ -128,7 +128,7 @@ export function ParkEventDetailPage({
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 pb-28 sm:px-6 lg:px-8 lg:pb-10">
       <Button asChild variant="ghost" size="sm" className="mb-4">
-        <Link to="/theme-park/events">
+        <Link to="/theme-park" hash="whats-on">
           <ArrowLeft className="size-4" />
           All experiences
         </Link>

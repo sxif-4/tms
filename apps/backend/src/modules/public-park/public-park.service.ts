@@ -19,6 +19,8 @@ const DEFAULT_UPCOMING = 6;
 
 export interface PublicEventDetail extends PublicEvent {
   schedules: PublicSchedule[];
+  /** The full gallery, cover first. `image` is its first entry. */
+  images: string[];
 }
 
 /** What the date picker needs — and nothing else. Capacity/sold stay internal. */
@@ -56,7 +58,8 @@ export class PublicParkService {
     const event = await this.parkRepo.activeEventById(id);
     if (!event) throw new NotFoundException(`Event #${id} not found`);
     const schedules = await this.parkRepo.upcomingSchedules(id);
-    return { ...event, schedules };
+    const images = await this.parkRepo.eventGallery(id);
+    return { ...event, schedules, images };
   }
 
   /**

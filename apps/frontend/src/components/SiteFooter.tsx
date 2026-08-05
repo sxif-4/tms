@@ -1,20 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, ShieldCheck, Ship } from "lucide-react";
-import { useEffect, useState } from "react";
-import { ClientOnly } from "~/components/client-only";
+import { ArrowRight, ShieldCheck } from "lucide-react";
 import { ModeToggle } from "~/components/mode-toggle";
 import { cn } from "~/lib/utils";
-
-/**
- * Mirrors the planned timetable on the ferry page. Both should read from the
- * ferry schedules domain once a public endpoint exists.
- */
-const CROSSINGS = [
-  { time: "08:00", from: "Mainland", to: "Island" },
-  { time: "11:00", from: "Island", to: "Mainland" },
-  { time: "14:00", from: "Mainland", to: "Island" },
-  { time: "17:00", from: "Island", to: "Mainland" },
-] as const;
 
 const BOOK_LINKS = [
   { label: "Hotels & rooms", to: "/hotels" },
@@ -41,93 +28,116 @@ export function SiteFooter() {
     // The page always ends on night, in either theme, so everything inside is
     // painted with the white/alpha ramp rather than the light/dark tokens.
     <footer className="bg-footer text-white">
-      <CrossingsBoard />
-
-      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 pt-14 sm:px-6 sm:pt-16 lg:px-8">
         <div className="grid gap-12 lg:grid-cols-12 lg:gap-8">
+          {/* The desk: who you'd call, and where the boat leaves from. */}
           <div className="lg:col-span-4">
             <Link
               to="/"
-              className="text-2xl font-extrabold tracking-tight"
+              className="text-xl font-extrabold tracking-tight"
               aria-label="FUNISLAND home"
             >
               FUNISLAND
             </Link>
-            <p className="mt-4 max-w-sm text-sm text-pretty text-white/60">
-              Rooms, crossings, ride days, and beach nights on a single trip —
-              and a single reference number to show at the gate.
-            </p>
 
-            <Link
-              to="/hotels"
-              className="mt-7 inline-flex h-11 items-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              Plan a trip
-              <ArrowRight className="size-4" />
-            </Link>
+            <div className="mt-6 flex items-center gap-3">
+              {SOCIALS.map(({ label, href, Icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  onClick={(e) => e.preventDefault()}
+                  aria-label={label}
+                  className="flex size-10 items-center justify-center rounded-full border border-white/20 text-white/70 transition-colors hover:border-white/40 hover:bg-white/10 hover:text-white"
+                >
+                  <Icon className="size-4" />
+                </a>
+              ))}
+            </div>
 
-            <p className="mt-7 font-mono text-[11px] tracking-[0.18em] text-white/35 uppercase">
-              3°12′N 73°04′E
-            </p>
+            <address className="mt-8 space-y-4 text-sm text-white/60 not-italic">
+              <p className="text-white/75">
+                Jetty 4, Harbour Terminal
+                <br />
+                Picnic Island · 3°12′N 73°04′E
+              </p>
+              <p>
+                <a
+                  href="mailto:guests@funisland.example"
+                  className="transition-colors hover:text-white"
+                >
+                  guests@funisland.example
+                </a>
+              </p>
+              <p>
+                <a
+                  href="tel:+9604001190"
+                  className="transition-colors hover:text-white"
+                >
+                  (+960) 400 1190
+                </a>
+              </p>
+            </address>
           </div>
 
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:col-span-7 lg:col-start-6">
-            <div>
-              <h2 className={headingClass}>Book the trip</h2>
-              <ul className="mt-5 space-y-3">
-                {BOOK_LINKS.map(({ label, to }) => (
-                  <li key={label}>
-                    <Link to={to} className={linkClass}>
-                      {label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <h2 className={headingClass}>Your bookings</h2>
-              <ul className="mt-5 space-y-3">
-                {ACCOUNT_LINKS.map(({ label, to }) => (
-                  <li key={label}>
-                    <Link to={to} className={linkClass}>
-                      {label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="col-span-2 sm:col-span-1">
-              <h2 className={headingClass}>Island desk</h2>
-              <ul className="mt-5 space-y-3">
-                <li>
-                  <Link to="/about" className={linkClass}>
-                    About the island
+            <FooterColumn title="Book">
+              {BOOK_LINKS.map(({ label, to }) => (
+                <li key={label}>
+                  <Link to={to} className={linkClass}>
+                    {label}
                   </Link>
                 </li>
-                <li>
-                  <a
-                    href="mailto:guests@funisland.example"
-                    className={linkClass}
-                  >
-                    Guest services
-                  </a>
-                </li>
-                <li>
-                  <Link to="/login" className={linkClass}>
-                    Staff sign in
+              ))}
+            </FooterColumn>
+
+            <FooterColumn title="Your trip">
+              {ACCOUNT_LINKS.map(({ label, to }) => (
+                <li key={label}>
+                  <Link to={to} className={linkClass}>
+                    {label}
                   </Link>
                 </li>
-              </ul>
-            </div>
+              ))}
+              <li>
+                <DeadLink>Gate passes</DeadLink>
+              </li>
+              <li>
+                <DeadLink>Changes & refunds</DeadLink>
+              </li>
+            </FooterColumn>
+
+            <FooterColumn title="Island" className="col-span-2 sm:col-span-1">
+              <li>
+                <Link to="/about" className={linkClass}>
+                  About the island
+                </Link>
+              </li>
+              <li>
+                <a href="mailto:guests@funisland.example" className={linkClass}>
+                  Guest services
+                </a>
+              </li>
+              <li>
+                <Link to="/login" className={linkClass}>
+                  Staff sign in
+                </Link>
+              </li>
+              <li>
+                <DeadLink>Careers</DeadLink>
+              </li>
+              <li>
+                <DeadLink>Press kit</DeadLink>
+              </li>
+            </FooterColumn>
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col gap-6 border-t border-white/10 pt-8 sm:mt-16 lg:flex-row lg:items-center lg:justify-between">
+        {/* The rule the reference hangs its CTA on — trust marks at one end,
+            the booking pill at the other, hairline stretching between. */}
+        <div className="mt-14 flex flex-col gap-6 sm:mt-16 sm:flex-row sm:items-center sm:gap-6">
           {/* The footer's own take on PaymentTrustBadges — that component is
               token-styled and would go unreadable on this ink in light mode. */}
-          <div className="flex flex-wrap items-center gap-3 text-xs text-white/60">
+          <div className="flex flex-wrap items-center gap-3 text-xs text-white/55">
             <span className="flex items-center gap-1.5">
               <ShieldCheck className="size-4 text-white/80" />
               Secure checkout
@@ -142,162 +152,158 @@ export function SiteFooter() {
             ))}
           </div>
 
-          <div className="flex items-center gap-5">
-            <p className="text-xs text-white/45">
-              © 2026 FUNISLAND · Prices in GBP
-            </p>
+          <div className="hidden h-px flex-1 bg-white/15 sm:block" />
+
+          <Link
+            to="/hotels"
+            className="inline-flex h-10 w-fit items-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-zinc-900 transition-colors hover:bg-white/85"
+          >
+            Plan a trip
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
+
+        <div className="mt-8 flex flex-col gap-6 pb-10 sm:mt-10 lg:flex-row lg:items-start lg:justify-between">
+          <p className="max-w-sm text-xs leading-relaxed text-white/45">
+            Rooms, crossings and ride days booked in one go — and one reference
+            number to show at the gate. Prices in GBP, taxes included.
+          </p>
+
+          <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
+            <DeadLink className={legalClass}>Terms &amp; conditions</DeadLink>
+            <DeadLink className={legalClass}>Privacy policy</DeadLink>
+            <span className={cn(legalClass, "text-white/35")}>
+              © 2026 FUNISLAND
+            </span>
             <ModeToggle className="rounded-full border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white dark:border-white/20 dark:bg-transparent dark:hover:bg-white/10" />
           </div>
         </div>
       </div>
+
+      <Wordmark />
     </footer>
   );
 }
 
 /**
- * The jetty board. You can only reach the island by ferry, so the footer signs
- * off with the day's sailings rather than a mailing-list box — and the sailing
- * you'd catch next is marked against the clock.
+ * The oversized sign-off. Purely decorative — the readable brand link lives up
+ * in the contact column — so it is hidden from assistive tech and cropped at
+ * the baseline by the clipping parent, the way a painted sign runs off a wall.
  */
-function CrossingsBoard() {
+function Wordmark() {
   return (
-    <div className="border-b border-dashed border-white/12">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-        {/* The clock is client-only: the server has no business guessing what
-            time it is where the reader is standing. */}
-        <ClientOnly fallback={<Board />}>
-          <LiveBoard />
-        </ClientOnly>
-      </div>
+    <div
+      aria-hidden
+      className="overflow-hidden px-4 select-none sm:px-6 lg:px-8"
+    >
+      <span className="block mb-[-0.1em] bg-linear-to-b from-white/22 to-white/4 bg-clip-text text-center text-[min(17.5vw,15rem)] leading-[0.75] font-extrabold tracking-[-0.045em] whitespace-nowrap text-transparent">
+        FUNISLAND
+      </span>
     </div>
   );
 }
 
-function Board({
-  clock,
-  waitLabel,
-  nextIndex,
+function FooterColumn({
+  title,
+  className,
+  children,
 }: {
-  clock?: string;
-  waitLabel?: string;
-  nextIndex?: number;
+  title: string;
+  className?: string;
+  children: React.ReactNode;
 }) {
   return (
-    <>
-      <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
-        <div>
-          <p
-            className={cn(
-              headingClass,
-              "flex items-center gap-2 text-white/50",
-            )}
-          >
-            <Ship className="size-3.5" />
-            Ferry crossings
-          </p>
-          <p className="mt-2.5 text-sm text-white/60">
-            Island time{" "}
-            <span className="font-mono font-semibold tabular-nums text-white">
-              {clock ?? "--:--"}
-            </span>
-            {waitLabel ? <> · next sailing in {waitLabel}</> : null}
-          </p>
-        </div>
-
-        <Link
-          to="/ferry"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-white transition-opacity hover:opacity-70"
-        >
-          All sailings and fares
-          <ArrowRight className="size-4" />
-        </Link>
-      </div>
-
-      {/* Scrolls as one strip on narrow screens — a board is read across. */}
-      <ul className="-mx-4 mt-7 flex snap-x gap-3 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:mt-8 sm:gap-4 sm:px-6 lg:mx-0 lg:px-0">
-        {CROSSINGS.map(({ time, from, to }, i) => {
-          const isNext = i === nextIndex;
-
-          return (
-            <li
-              key={time}
-              aria-current={isNext ? "true" : undefined}
-              className={cn(
-                "min-w-40 flex-1 shrink-0 snap-start rounded-2xl border border-white/10 bg-white/4 px-4 py-3.5",
-                isNext && "border-amber-400/50 bg-amber-400/10",
-              )}
-            >
-              <div className="flex items-baseline justify-between gap-2">
-                <time
-                  dateTime={time}
-                  className={cn(
-                    "font-mono text-lg font-semibold tabular-nums sm:text-xl",
-                    isNext && "text-amber-300",
-                  )}
-                >
-                  {time}
-                </time>
-                {isNext && (
-                  <span className="font-mono text-[10px] tracking-[0.18em] text-amber-300 uppercase">
-                    Next
-                  </span>
-                )}
-              </div>
-              <p className="mt-1.5 flex items-center gap-1.5 text-xs whitespace-nowrap text-white/55">
-                {from}
-                <ArrowRight className="size-3 shrink-0" aria-hidden />
-                {to}
-              </p>
-            </li>
-          );
-        })}
-      </ul>
-
-      <p className="mt-5 text-xs text-white/45">
-        Crossings are held with your room — book a stay and pick a sailing as
-        you go.
-      </p>
-    </>
+    <div className={className}>
+      <h2 className={headingClass}>{title}</h2>
+      <ul className="mt-5 space-y-3">{children}</ul>
+    </div>
   );
 }
 
-/** Minutes past midnight for an "HH:MM" sailing time. */
-function toMinutes(time: string) {
-  const [h, m] = time.split(":");
-  return Number(h) * 60 + Number(m);
-}
+const legalClass =
+  "font-mono text-[11px] tracking-[0.16em] uppercase text-white/55 transition-colors hover:text-white";
 
-/** Re-renders every half minute — enough for a clock showing hours and minutes. */
-function useNow() {
-  const [now, setNow] = useState(() => new Date());
-
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 30_000);
-    return () => clearInterval(id);
-  }, []);
-
-  return now;
-}
-
-const pad = (n: number) => String(n).padStart(2, "0");
-
-/** The board against the clock: which sailing is next, and how long the wait is. */
-function LiveBoard() {
-  const now = useNow();
-
-  const minutesNow = now.getHours() * 60 + now.getMinutes();
-  const found = CROSSINGS.findIndex((c) => toMinutes(c.time) > minutesNow);
-  // Past the last sailing, the next one is the first of tomorrow.
-  const nextIndex = found === -1 ? 0 : found;
-  const wait =
-    (toMinutes(CROSSINGS[nextIndex].time) - minutesNow + 1440) % 1440;
-  const hours = Math.floor(wait / 60);
-
+/**
+ * Stands in for pages the app doesn't have yet (careers, press, the legal
+ * pair). It renders as a real link so the layout is honest, but swallows the
+ * click rather than jumping to the top of the page like a bare `#` would.
+ */
+function DeadLink({
+  className,
+  children,
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <Board
-      clock={`${pad(now.getHours())}:${pad(now.getMinutes())}`}
-      waitLabel={hours > 0 ? `${hours}h ${wait % 60}m` : `${wait % 60}m`}
-      nextIndex={nextIndex}
-    />
+    <a
+      href="#"
+      onClick={(e) => e.preventDefault()}
+      className={cn(linkClass, className)}
+    >
+      {children}
+    </a>
   );
 }
+
+/**
+ * lucide dropped its brand icons in v1, so the three marks are inlined. They
+ * are drawn on the 24px lucide grid to sit level with the rest of the icons.
+ */
+type IconProps = { className?: string };
+
+function InstagramIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <rect x="2" y="2" width="20" height="20" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="0.75" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function XIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      aria-hidden
+    >
+      <path d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.66l-5.21-6.82-5.97 6.82H1.68l7.73-8.84L1.25 2.25h6.83l4.71 6.23zm-1.16 17.52h1.83L7.08 4.13H5.12z" />
+    </svg>
+  );
+}
+
+function YoutubeIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <path d="M2.5 17a24.1 24.1 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.6 49.6 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.1 24.1 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.6 49.6 0 0 1-16.2 0A2 2 0 0 1 2.5 17" />
+      <path d="m10 15 5-3-5-3z" fill="currentColor" />
+    </svg>
+  );
+}
+
+const SOCIALS = [
+  { label: "FUNISLAND on Instagram", href: "#", Icon: InstagramIcon },
+  { label: "FUNISLAND on X", href: "#", Icon: XIcon },
+  { label: "FUNISLAND on YouTube", href: "#", Icon: YoutubeIcon },
+] as const;

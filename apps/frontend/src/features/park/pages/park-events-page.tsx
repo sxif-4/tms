@@ -1,21 +1,17 @@
+import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
-import {
-  CalendarPlusIcon,
-  ChevronDownIcon,
-  ChevronRightIcon,
   FerrisWheelIcon,
+  PalmtreeIcon,
   PencilIcon,
   PlusIcon,
+  SparklesIcon,
   Trash2Icon,
 } from "lucide-react";
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "~/components/confirm-dialog";
+import { PageHeading } from "~/components/page-heading";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import {
@@ -33,37 +29,27 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { PageHeading } from "~/components/page-heading";
 import { EmptyState } from "~/features/hotels/components/empty-state";
-import { CapacityBar } from "../components/capacity-bar";
-import { EventDialog } from "../components/event-dialog";
+import { imageUrl } from "~/lib/image-url";
 import { EventTypeBadge } from "../components/park-badges";
-import { ScheduleDialog } from "../components/schedule-dialog";
 import { LOCATION_TYPE_LABELS, gbp } from "../constants";
-import { eventSchedulesQueryOptions, parkEventsQueryOptions } from "../queries";
-import {
-  deleteEventScheduleServerFn,
-  deleteParkEventServerFn,
-} from "../server";
-import type { EventSchedule, ParkEvent } from "../types";
+import { parkEventsQueryOptions } from "../queries";
+import { deleteParkEventServerFn } from "../server";
+import type { EventType, ParkEvent } from "../types";
 
-const fmtDateTime = (iso: string) =>
-  new Date(iso).toLocaleString(undefined, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+/** Stands in for a cover photo until one's uploaded, keyed to the event type. */
+const EVENT_ICONS: Record<EventType, typeof FerrisWheelIcon> = {
+  ride: FerrisWheelIcon,
+  show: SparklesIcon,
+  beach_event: PalmtreeIcon,
+};
 
 export function ParkEventsPage() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { data: events } = useSuspenseQuery(parkEventsQueryOptions());
 
-  const [eventDialogOpen, setEventDialogOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<ParkEvent | null>(null);
   const [deletingEvent, setDeletingEvent] = useState<ParkEvent | null>(null);
-  const [expanded, setExpanded] = useState<number | null>(null);
 
   const deleteEventMutation = useMutation({
     mutationFn: (id: number) => deleteParkEventServerFn({ data: { id } }),
@@ -79,19 +65,21 @@ export function ParkEventsPage() {
       ),
   });
 
+  const open = (id: number) =>
+    void navigate({
+      to: "/dashboard/park/events/$eventId",
+      params: { eventId: String(id) },
+    });
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <PageHeading />
-        <Button
-          size="sm"
-          onClick={() => {
-            setEditingEvent(null);
-            setEventDialogOpen(true);
-          }}
-        >
-          <PlusIcon data-icon="inline-start" />
-          New event
+        <Button asChild size="sm">
+          <Link to="/dashboard/park/events/new">
+            <PlusIcon data-icon="inline-start" />
+            New event
+          </Link>
         </Button>
       </div>
 
@@ -99,7 +87,8 @@ export function ParkEventsPage() {
         <CardHeader>
           <CardTitle>All events</CardTitle>
           <CardDescription>
-            Expand an event to manage the times it runs.
+            Open an event to edit it, manage its photos and set the times it
+            runs.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -109,14 +98,11 @@ export function ParkEventsPage() {
               title="No events yet"
               description="Create a ride, show or beach event, then add the times it runs."
               action={
-                <Button
-                  onClick={() => {
-                    setEditingEvent(null);
-                    setEventDialogOpen(true);
-                  }}
-                >
-                  <PlusIcon data-icon="inline-start" />
-                  New event
+                <Button asChild>
+                  <Link to="/dashboard/park/events/new">
+                    <PlusIcon data-icon="inline-start" />
+                    New event
+                  </Link>
                 </Button>
               }
             />
@@ -124,7 +110,7 @@ export function ParkEventsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-10" />
+                  <TableHead className="w-16">Photo</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Location</TableHead>
@@ -135,83 +121,58 @@ export function ParkEventsPage() {
               </TableHeader>
               <TableBody>
                 {events.map((event) => (
-                  // Fragment carries the key: each event renders a row plus an
-                  // optional expanded schedules row.
-                  <Fragment key={event.id}>
-                    <TableRow>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label={
-                            expanded === event.id
-                              ? "Hide schedules"
-                              : "Show schedules"
-                          }
-                          aria-expanded={expanded === event.id}
-                          onClick={() =>
-                            setExpanded(expanded === event.id ? null : event.id)
-                          }
-                        >
-                          {expanded === event.id ? (
-                            <ChevronDownIcon />
-                          ) : (
-                            <ChevronRightIcon />
-                          )}
-                        </Button>
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {event.name}
-                      </TableCell>
-                      <TableCell>
-                        <EventTypeBadge type={event.eventType} />
-                      </TableCell>
-                      <TableCell>
-                        {LOCATION_TYPE_LABELS[event.locationType]}
-                      </TableCell>
-                      <TableCell className="tabular-nums">
-                        {gbp(Number(event.basePrice))}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={event.isActive ? "default" : "destructive"}
-                        >
-                          {event.isActive ? "Active" : "Retired"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          aria-label="Edit event"
-                          onClick={() => {
-                            setEditingEvent(event);
-                            setEventDialogOpen(true);
-                          }}
-                        >
-                          <PencilIcon />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          aria-label="Delete event"
-                          onClick={() => setDeletingEvent(event)}
-                        >
-                          <Trash2Icon />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                    {expanded === event.id && (
-                      <TableRow>
-                        <TableCell colSpan={7} className="bg-muted/30 p-4">
-                          <SchedulesPanel
-                            eventId={event.id}
-                            eventName={event.name}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </Fragment>
+                  <TableRow
+                    key={event.id}
+                    // The whole row opens the event; the action buttons below
+                    // stop propagation so delete doesn't navigate first.
+                    className="hover:bg-muted/50 cursor-pointer"
+                    onClick={() => open(event.id)}
+                  >
+                    <TableCell>
+                      <EventThumbnail event={event} />
+                    </TableCell>
+                    <TableCell className="font-medium">{event.name}</TableCell>
+                    <TableCell>
+                      <EventTypeBadge type={event.eventType} />
+                    </TableCell>
+                    <TableCell>
+                      {LOCATION_TYPE_LABELS[event.locationType]}
+                    </TableCell>
+                    <TableCell className="tabular-nums">
+                      {gbp(Number(event.basePrice))}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={event.isActive ? "default" : "destructive"}
+                      >
+                        {event.isActive ? "Active" : "Retired"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        aria-label={`Edit ${event.name}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          open(event.id);
+                        }}
+                      >
+                        <PencilIcon />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        aria-label={`Delete ${event.name}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeletingEvent(event);
+                        }}
+                      >
+                        <Trash2Icon />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
                 ))}
               </TableBody>
             </Table>
@@ -219,11 +180,6 @@ export function ParkEventsPage() {
         </CardContent>
       </Card>
 
-      <EventDialog
-        open={eventDialogOpen}
-        onOpenChange={setEventDialogOpen}
-        event={editingEvent}
-      />
       <ConfirmDialog
         open={deletingEvent != null}
         onOpenChange={(o) => !o && setDeletingEvent(null)}
@@ -240,120 +196,26 @@ export function ParkEventsPage() {
   );
 }
 
-/** Child rows for one event — fetched only once its row is expanded. */
-function SchedulesPanel({
-  eventId,
-  eventName,
-}: {
-  eventId: number;
-  eventName: string;
-}) {
-  const queryClient = useQueryClient();
-  const { data: schedules, isPending } = useQuery(
-    eventSchedulesQueryOptions({ eventId }),
-  );
+function EventThumbnail({ event }: { event: ParkEvent }) {
+  const Icon = EVENT_ICONS[event.eventType];
 
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<EventSchedule | null>(null);
-  const [deleting, setDeleting] = useState<EventSchedule | null>(null);
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => deleteEventScheduleServerFn({ data: { id } }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["event-schedules"] });
-      toast.success("Schedule deleted");
-      setDeleting(null);
-    },
-    // 409 when bookings exist.
-    onError: (err) =>
-      toast.error(
-        err instanceof Error ? err.message : "Failed to delete schedule",
-      ),
-  });
+  if (!event.image) {
+    return (
+      <span
+        className="bg-muted text-muted-foreground flex size-11 items-center justify-center rounded-md"
+        title="No photo yet"
+      >
+        <Icon className="size-4" />
+      </span>
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-4">
-        <h3 className="text-sm font-medium">Schedules</h3>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => {
-            setEditing(null);
-            setDialogOpen(true);
-          }}
-        >
-          <CalendarPlusIcon data-icon="inline-start" />
-          Add schedule
-        </Button>
-      </div>
-
-      {isPending ? (
-        <p className="text-muted-foreground text-sm">Loading schedules…</p>
-      ) : !schedules || schedules.length === 0 ? (
-        <p className="text-muted-foreground text-sm">
-          No schedules yet — add one so visitors can book seats.
-        </p>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Starts</TableHead>
-              <TableHead className="w-48">Seats</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {schedules.map((s) => (
-              <TableRow key={s.id}>
-                <TableCell>{fmtDateTime(s.startAt)}</TableCell>
-                <TableCell>
-                  <CapacityBar booked={s.booked} capacity={s.capacity} />
-                </TableCell>
-                <TableCell className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    aria-label="Edit schedule"
-                    onClick={() => {
-                      setEditing(s);
-                      setDialogOpen(true);
-                    }}
-                  >
-                    <PencilIcon />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    aria-label="Delete schedule"
-                    onClick={() => setDeleting(s)}
-                  >
-                    <Trash2Icon />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
-
-      <ScheduleDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        eventId={eventId}
-        eventName={eventName}
-        schedule={editing}
-      />
-      <ConfirmDialog
-        open={deleting != null}
-        onOpenChange={(o) => !o && setDeleting(null)}
-        title="Delete schedule?"
-        description="This schedule will be permanently removed. Schedules with bookings can't be deleted."
-        confirmLabel="Delete"
-        destructive
-        pending={deleteMutation.isPending}
-        onConfirm={() => deleting && deleteMutation.mutate(deleting.id)}
-      />
-    </div>
+    <img
+      src={imageUrl(event.image)}
+      alt=""
+      loading="lazy"
+      className="bg-muted size-11 rounded-md object-cover"
+    />
   );
 }

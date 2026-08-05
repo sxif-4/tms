@@ -25,6 +25,14 @@ export interface ParkTicketType {
   updatedAt: string;
 }
 
+/** One photo in an event's gallery — the `imageables` row shape. */
+export interface EventImage {
+  id: number;
+  url: string;
+  isCover: boolean;
+  sortOrder: number;
+}
+
 export interface ParkEvent {
   id: number;
   name: string;
@@ -34,6 +42,9 @@ export interface ParkEvent {
   /** Decimal as text, e.g. "20.00". */
   basePrice: string;
   isActive: boolean;
+  /** Cover photo, or `null` until one's uploaded. */
+  image: string | null;
+  images: string[];
   createdAt: string;
   updatedAt: string;
 }

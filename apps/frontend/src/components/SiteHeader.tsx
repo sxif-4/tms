@@ -21,11 +21,6 @@ const NAV_LINKS: { label: string; link: LinkProps }[] = [
   { label: "Theme Park", link: { to: "/theme-park" } },
   { label: "Ferry", link: { to: "/ferry" } },
   { label: "Park Tickets", link: { to: "/theme-park/tickets" } },
-  { label: "What's On", link: { to: "/theme-park/events" } },
-  {
-    label: "Beach Events",
-    link: { to: "/theme-park/events", search: { locationType: "beach" } },
-  },
   { label: "Island Map", link: { to: "/map" } },
 ];
 
@@ -46,14 +41,8 @@ export function SiteHeader() {
     return () => window.removeEventListener("scroll", onScroll);
   }, [isHome]);
 
-  if (
-    pathname === "/login" ||
-    pathname === "/signup" ||
-    pathname.startsWith("/dashboard")
-  ) {
-    return null;
-  }
-
+  // Where the bar is shown at all is `__root`'s call — it gates the header and
+  // the footer together. This component only decides how it looks.
   // On the landing page the bar floats over the hero image until you scroll.
   const overlay = isHome && !scrolled;
 
@@ -64,7 +53,11 @@ export function SiteHeader() {
         isHome ? "fixed" : "sticky",
         overlay
           ? "bg-transparent"
-          : "glass-data-strong border-b border-border/40",
+          : // Not `glass-data-strong` — that tier carries a 40px drop shadow and a
+            // bright top hairline, which read as a gradient smear under a
+            // full-width bar. A frosted background and one clean rule is enough
+            // to separate the header from the page.
+            "border-b bg-background/90 backdrop-blur-md supports-backdrop-filter:bg-background/70",
       )}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:h-20 sm:px-6 lg:px-8">

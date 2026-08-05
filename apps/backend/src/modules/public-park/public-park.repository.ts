@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, asc, eq, gt, sql, type SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, sql, type SQL } from 'drizzle-orm';
 import {
   DRIZZLE,
   type DrizzleDB,
@@ -8,6 +8,8 @@ import {
   eventBookings,
   eventSchedules,
   events,
+  imageables,
+  images,
   parkTicketTypes,
 } from '../../shared/database/schema';
 import type { EventType, LocationType } from '../events/dto/create-event.dto';
@@ -25,6 +27,8 @@ export interface PublicEvent {
   eventType: string;
   locationType: string;
   basePrice: string;
+  /** Cover photo, or `null` until one's uploaded. */
+  image: string | null;
 }
 
 export interface PublicSchedule {
@@ -47,6 +51,23 @@ export interface PublicEventFilters {
   eventType?: EventType;
   locationType?: LocationType;
 }
+
+/**
+ * The event's cover photo, in the same order the gallery uses: the flagged
+ * cover first, then gallery position. Correlated rather than joined so an
+ * event with several photos still yields exactly one row.
+ *
+ * The outer column is written out rather than interpolated: inside a select
+ * field, `${events.id}` renders as a bare `"id"`, which the subquery resolves
+ * against its own tables and silently matches nothing.
+ */
+const COVER_IMAGE = sql<string | null>`(
+  SELECT i.url FROM imageables im
+  JOIN images i ON i.id = im.image_id
+  WHERE im.imageable_type = 'event' AND im.imageable_id = "events"."id"
+  ORDER BY im.is_cover DESC, im.sort_order, i.id
+  LIMIT 1
+)`;
 
 /**
  * Read-only, unauthenticated park data. Every selection here is deliberate:
@@ -90,6 +111,7 @@ export class PublicParkRepository {
           eventType: events.eventType,
           locationType: events.locationType,
           basePrice: events.basePrice,
+          image: COVER_IMAGE,
         })
         .from(events)
         .where(and(...conditions))
@@ -108,11 +130,29 @@ export class PublicParkRepository {
           eventType: events.eventType,
           locationType: events.locationType,
           basePrice: events.basePrice,
+          image: COVER_IMAGE,
         })
         .from(events)
         .where(and(eq(events.id, id), eq(events.isActive, true)))
         .get(),
     );
+  }
+
+  /** Every photo for one event, cover first — the detail page's gallery. */
+  eventGallery(id: number): Promise<string[]> {
+    const rows = this.db
+      .select({ url: images.url })
+      .from(imageables)
+      .innerJoin(images, eq(images.id, imageables.imageId))
+      .where(
+        and(
+          eq(imageables.imageableType, 'event'),
+          eq(imageables.imageableId, id),
+        ),
+      )
+      .orderBy(desc(imageables.isCover), asc(imageables.sortOrder), asc(images.id))
+      .all();
+    return Promise.resolve(rows.map((r) => r.url));
   }
 
   /** Upcoming schedules with seats left — what a visitor can actually book. */

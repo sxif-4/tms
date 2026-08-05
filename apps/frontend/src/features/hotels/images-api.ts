@@ -41,11 +41,14 @@ async function failure(res: Response, fallback: string): Promise<string> {
 }
 
 /**
- * Both hotels and room types expose the same `/images` sub-resource (the API
- * side is one polymorphic `imageables` table), so the four calls are written
- * once against an owner and re-exported per owner below.
+ * Hotels, room types and events all expose the same `/images` sub-resource
+ * (the API side is one polymorphic `imageables` table), so the four calls are
+ * written once against an owner and re-exported per owner below.
+ *
+ * This module predates the event gallery and still lives under `hotels/`; the
+ * park imports from it rather than cloning the fetch/refresh handling.
  */
-type ImageOwner = "room-types" | "hotels";
+type ImageOwner = "room-types" | "hotels" | "events";
 
 async function uploadImage(
   owner: ImageOwner,
@@ -121,3 +124,15 @@ export const setHotelCoverImage = (hotelId: number, imageId: number) =>
 
 export const deleteHotelImage = (hotelId: number, imageId: number) =>
   deleteImage("hotels", hotelId, imageId);
+
+export const uploadEventImage = (eventId: number, file: File) =>
+  uploadImage("events", eventId, file);
+
+export const listEventImages = (eventId: number) =>
+  listImages("events", eventId);
+
+export const setEventCoverImage = (eventId: number, imageId: number) =>
+  setCoverImage("events", eventId, imageId);
+
+export const deleteEventImage = (eventId: number, imageId: number) =>
+  deleteImage("events", eventId, imageId);
