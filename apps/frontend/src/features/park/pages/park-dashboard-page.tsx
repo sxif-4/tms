@@ -35,9 +35,8 @@ import { gbp } from "../constants";
 import { parkDashboardQueryOptions } from "../queries";
 import type { ScheduleFillRow, TicketStatus } from "../types";
 
-/** Dashboard schedule rows carry `startAt` as unix seconds, not an ISO string. */
-const fmtUnix = (s: number) =>
-  new Date(s * 1000).toLocaleString(undefined, {
+const fmtDateTime = (value: string) =>
+  new Date(value).toLocaleString(undefined, {
     day: "numeric",
     month: "short",
     hour: "2-digit",
@@ -135,7 +134,7 @@ export function ParkDashboardPage() {
                           {s.eventName}
                         </span>
                         <span className="text-muted-foreground text-xs">
-                          {fmtUnix(s.startAt)}
+                          {fmtDateTime(s.startAt)}
                         </span>
                       </div>
                       <CapacityBar
@@ -290,7 +289,7 @@ export function ParkDashboardPage() {
                     <div className="flex flex-col">
                       <span className="text-sm font-medium">{s.eventName}</span>
                       <span className="text-muted-foreground text-xs">
-                        {fmtUnix(s.startAt)}
+                        {fmtDateTime(s.startAt)}
                       </span>
                     </div>
                     <CapacityBar

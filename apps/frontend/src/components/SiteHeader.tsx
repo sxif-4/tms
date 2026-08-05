@@ -19,6 +19,7 @@ const NAV_LINKS: { label: string; link: LinkProps }[] = [
   { label: "Destinations", link: { to: "/hotels" } },
   { label: "Hotels", link: { to: "/hotels" } },
   { label: "Theme Park", link: { to: "/theme-park" } },
+  { label: "Ferry", link: { to: "/ferry" } },
   { label: "Park Tickets", link: { to: "/theme-park/tickets" } },
   { label: "What's On", link: { to: "/theme-park/events" } },
   {

@@ -21,6 +21,8 @@ import { Route as HotelsIndexRouteImport } from './routes/hotels/index'
 import { Route as FerryIndexRouteImport } from './routes/ferry/index'
 import { Route as ThemeParkTicketsRouteImport } from './routes/theme-park/tickets'
 import { Route as ThemeParkConfirmationRouteImport } from './routes/theme-park/confirmation'
+import { Route as FerryConfirmationRouteImport } from './routes/ferry/confirmation'
+import { Route as FerryBookRouteImport } from './routes/ferry/book'
 import { Route as DashboardParkRouteRouteImport } from './routes/dashboard/park/route'
 import { Route as DashboardHotelRouteRouteImport } from './routes/dashboard/hotel/route'
 import { Route as DashboardFerryRouteRouteImport } from './routes/dashboard/ferry/route'
@@ -49,6 +51,7 @@ import { Route as DashboardHotelBookingsIndexRouteImport } from './routes/dashbo
 import { Route as DashboardFerryValidateIndexRouteImport } from './routes/dashboard/ferry/validate/index'
 import { Route as DashboardFerrySchedulesIndexRouteImport } from './routes/dashboard/ferry/schedules/index'
 import { Route as DashboardFerryRoutesIndexRouteImport } from './routes/dashboard/ferry/routes/index'
+import { Route as DashboardFerryReportsIndexRouteImport } from './routes/dashboard/ferry/reports/index'
 import { Route as DashboardFerryBookingsIndexRouteImport } from './routes/dashboard/ferry/bookings/index'
 import { Route as DashboardAdminUsersIndexRouteImport } from './routes/dashboard/admin/users/index'
 import { Route as DashboardAdminSettingsIndexRouteImport } from './routes/dashboard/admin/settings/index'
@@ -63,6 +66,7 @@ import { Route as DashboardHotelRoomsNewRouteImport } from './routes/dashboard/h
 import { Route as DashboardHotelRoomsRoomTypeIdRouteImport } from './routes/dashboard/hotel/rooms/$roomTypeId'
 import { Route as DashboardHotelBookingsNewRouteImport } from './routes/dashboard/hotel/bookings/new'
 import { Route as DashboardHotelBookingsBookingIdRouteImport } from './routes/dashboard/hotel/bookings/$bookingId'
+import { Route as DashboardFerrySchedulesScheduleIdManifestRouteImport } from './routes/dashboard/ferry/schedules/$scheduleId/manifest'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -122,6 +126,16 @@ const ThemeParkTicketsRoute = ThemeParkTicketsRouteImport.update({
 const ThemeParkConfirmationRoute = ThemeParkConfirmationRouteImport.update({
   id: '/theme-park/confirmation',
   path: '/theme-park/confirmation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FerryConfirmationRoute = FerryConfirmationRouteImport.update({
+  id: '/ferry/confirmation',
+  path: '/ferry/confirmation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FerryBookRoute = FerryBookRouteImport.update({
+  id: '/ferry/book',
+  path: '/ferry/book',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardParkRouteRoute = DashboardParkRouteRouteImport.update({
@@ -279,6 +293,12 @@ const DashboardFerryRoutesIndexRoute =
     path: '/routes/',
     getParentRoute: () => DashboardFerryRouteRoute,
   } as any)
+const DashboardFerryReportsIndexRoute =
+  DashboardFerryReportsIndexRouteImport.update({
+    id: '/reports/',
+    path: '/reports/',
+    getParentRoute: () => DashboardFerryRouteRoute,
+  } as any)
 const DashboardFerryBookingsIndexRoute =
   DashboardFerryBookingsIndexRouteImport.update({
     id: '/bookings/',
@@ -360,6 +380,12 @@ const DashboardHotelBookingsBookingIdRoute =
     path: '/bookings/$bookingId',
     getParentRoute: () => DashboardHotelRouteRoute,
   } as any)
+const DashboardFerrySchedulesScheduleIdManifestRoute =
+  DashboardFerrySchedulesScheduleIdManifestRouteImport.update({
+    id: '/schedules/$scheduleId/manifest',
+    path: '/schedules/$scheduleId/manifest',
+    getParentRoute: () => DashboardFerryRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -371,6 +397,8 @@ export interface FileRoutesByFullPath {
   '/dashboard/ferry': typeof DashboardFerryRouteRouteWithChildren
   '/dashboard/hotel': typeof DashboardHotelRouteRouteWithChildren
   '/dashboard/park': typeof DashboardParkRouteRouteWithChildren
+  '/ferry/book': typeof FerryBookRoute
+  '/ferry/confirmation': typeof FerryConfirmationRoute
   '/theme-park/confirmation': typeof ThemeParkConfirmationRoute
   '/theme-park/tickets': typeof ThemeParkTicketsRoute
   '/ferry/': typeof FerryIndexRoute
@@ -401,6 +429,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/admin/settings/': typeof DashboardAdminSettingsIndexRoute
   '/dashboard/admin/users/': typeof DashboardAdminUsersIndexRoute
   '/dashboard/ferry/bookings/': typeof DashboardFerryBookingsIndexRoute
+  '/dashboard/ferry/reports/': typeof DashboardFerryReportsIndexRoute
   '/dashboard/ferry/routes/': typeof DashboardFerryRoutesIndexRoute
   '/dashboard/ferry/schedules/': typeof DashboardFerrySchedulesIndexRoute
   '/dashboard/ferry/validate/': typeof DashboardFerryValidateIndexRoute
@@ -416,6 +445,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/park/promotions/': typeof DashboardParkPromotionsIndexRoute
   '/dashboard/park/reports/': typeof DashboardParkReportsIndexRoute
   '/dashboard/park/tickets/': typeof DashboardParkTicketsIndexRoute
+  '/dashboard/ferry/schedules/$scheduleId/manifest': typeof DashboardFerrySchedulesScheduleIdManifestRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -423,6 +453,8 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/ferry/book': typeof FerryBookRoute
+  '/ferry/confirmation': typeof FerryConfirmationRoute
   '/theme-park/confirmation': typeof ThemeParkConfirmationRoute
   '/theme-park/tickets': typeof ThemeParkTicketsRoute
   '/ferry': typeof FerryIndexRoute
@@ -453,6 +485,7 @@ export interface FileRoutesByTo {
   '/dashboard/admin/settings': typeof DashboardAdminSettingsIndexRoute
   '/dashboard/admin/users': typeof DashboardAdminUsersIndexRoute
   '/dashboard/ferry/bookings': typeof DashboardFerryBookingsIndexRoute
+  '/dashboard/ferry/reports': typeof DashboardFerryReportsIndexRoute
   '/dashboard/ferry/routes': typeof DashboardFerryRoutesIndexRoute
   '/dashboard/ferry/schedules': typeof DashboardFerrySchedulesIndexRoute
   '/dashboard/ferry/validate': typeof DashboardFerryValidateIndexRoute
@@ -468,6 +501,7 @@ export interface FileRoutesByTo {
   '/dashboard/park/promotions': typeof DashboardParkPromotionsIndexRoute
   '/dashboard/park/reports': typeof DashboardParkReportsIndexRoute
   '/dashboard/park/tickets': typeof DashboardParkTicketsIndexRoute
+  '/dashboard/ferry/schedules/$scheduleId/manifest': typeof DashboardFerrySchedulesScheduleIdManifestRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -480,6 +514,8 @@ export interface FileRoutesById {
   '/dashboard/ferry': typeof DashboardFerryRouteRouteWithChildren
   '/dashboard/hotel': typeof DashboardHotelRouteRouteWithChildren
   '/dashboard/park': typeof DashboardParkRouteRouteWithChildren
+  '/ferry/book': typeof FerryBookRoute
+  '/ferry/confirmation': typeof FerryConfirmationRoute
   '/theme-park/confirmation': typeof ThemeParkConfirmationRoute
   '/theme-park/tickets': typeof ThemeParkTicketsRoute
   '/ferry/': typeof FerryIndexRoute
@@ -510,6 +546,7 @@ export interface FileRoutesById {
   '/dashboard/admin/settings/': typeof DashboardAdminSettingsIndexRoute
   '/dashboard/admin/users/': typeof DashboardAdminUsersIndexRoute
   '/dashboard/ferry/bookings/': typeof DashboardFerryBookingsIndexRoute
+  '/dashboard/ferry/reports/': typeof DashboardFerryReportsIndexRoute
   '/dashboard/ferry/routes/': typeof DashboardFerryRoutesIndexRoute
   '/dashboard/ferry/schedules/': typeof DashboardFerrySchedulesIndexRoute
   '/dashboard/ferry/validate/': typeof DashboardFerryValidateIndexRoute
@@ -525,6 +562,7 @@ export interface FileRoutesById {
   '/dashboard/park/promotions/': typeof DashboardParkPromotionsIndexRoute
   '/dashboard/park/reports/': typeof DashboardParkReportsIndexRoute
   '/dashboard/park/tickets/': typeof DashboardParkTicketsIndexRoute
+  '/dashboard/ferry/schedules/$scheduleId/manifest': typeof DashboardFerrySchedulesScheduleIdManifestRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -538,6 +576,8 @@ export interface FileRouteTypes {
     | '/dashboard/ferry'
     | '/dashboard/hotel'
     | '/dashboard/park'
+    | '/ferry/book'
+    | '/ferry/confirmation'
     | '/theme-park/confirmation'
     | '/theme-park/tickets'
     | '/ferry/'
@@ -568,6 +608,7 @@ export interface FileRouteTypes {
     | '/dashboard/admin/settings/'
     | '/dashboard/admin/users/'
     | '/dashboard/ferry/bookings/'
+    | '/dashboard/ferry/reports/'
     | '/dashboard/ferry/routes/'
     | '/dashboard/ferry/schedules/'
     | '/dashboard/ferry/validate/'
@@ -583,6 +624,7 @@ export interface FileRouteTypes {
     | '/dashboard/park/promotions/'
     | '/dashboard/park/reports/'
     | '/dashboard/park/tickets/'
+    | '/dashboard/ferry/schedules/$scheduleId/manifest'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -590,6 +632,8 @@ export interface FileRouteTypes {
     | '/about'
     | '/login'
     | '/signup'
+    | '/ferry/book'
+    | '/ferry/confirmation'
     | '/theme-park/confirmation'
     | '/theme-park/tickets'
     | '/ferry'
@@ -620,6 +664,7 @@ export interface FileRouteTypes {
     | '/dashboard/admin/settings'
     | '/dashboard/admin/users'
     | '/dashboard/ferry/bookings'
+    | '/dashboard/ferry/reports'
     | '/dashboard/ferry/routes'
     | '/dashboard/ferry/schedules'
     | '/dashboard/ferry/validate'
@@ -635,6 +680,7 @@ export interface FileRouteTypes {
     | '/dashboard/park/promotions'
     | '/dashboard/park/reports'
     | '/dashboard/park/tickets'
+    | '/dashboard/ferry/schedules/$scheduleId/manifest'
   id:
     | '__root__'
     | '/'
@@ -646,6 +692,8 @@ export interface FileRouteTypes {
     | '/dashboard/ferry'
     | '/dashboard/hotel'
     | '/dashboard/park'
+    | '/ferry/book'
+    | '/ferry/confirmation'
     | '/theme-park/confirmation'
     | '/theme-park/tickets'
     | '/ferry/'
@@ -676,6 +724,7 @@ export interface FileRouteTypes {
     | '/dashboard/admin/settings/'
     | '/dashboard/admin/users/'
     | '/dashboard/ferry/bookings/'
+    | '/dashboard/ferry/reports/'
     | '/dashboard/ferry/routes/'
     | '/dashboard/ferry/schedules/'
     | '/dashboard/ferry/validate/'
@@ -691,6 +740,7 @@ export interface FileRouteTypes {
     | '/dashboard/park/promotions/'
     | '/dashboard/park/reports/'
     | '/dashboard/park/tickets/'
+    | '/dashboard/ferry/schedules/$scheduleId/manifest'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -699,6 +749,8 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
+  FerryBookRoute: typeof FerryBookRoute
+  FerryConfirmationRoute: typeof FerryConfirmationRoute
   ThemeParkConfirmationRoute: typeof ThemeParkConfirmationRoute
   ThemeParkTicketsRoute: typeof ThemeParkTicketsRoute
   FerryIndexRoute: typeof FerryIndexRoute
@@ -797,6 +849,20 @@ declare module '@tanstack/react-router' {
       path: '/theme-park/confirmation'
       fullPath: '/theme-park/confirmation'
       preLoaderRoute: typeof ThemeParkConfirmationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ferry/confirmation': {
+      id: '/ferry/confirmation'
+      path: '/ferry/confirmation'
+      fullPath: '/ferry/confirmation'
+      preLoaderRoute: typeof FerryConfirmationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ferry/book': {
+      id: '/ferry/book'
+      path: '/ferry/book'
+      fullPath: '/ferry/book'
+      preLoaderRoute: typeof FerryBookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/park': {
@@ -995,6 +1061,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardFerryRoutesIndexRouteImport
       parentRoute: typeof DashboardFerryRouteRoute
     }
+    '/dashboard/ferry/reports/': {
+      id: '/dashboard/ferry/reports/'
+      path: '/reports'
+      fullPath: '/dashboard/ferry/reports/'
+      preLoaderRoute: typeof DashboardFerryReportsIndexRouteImport
+      parentRoute: typeof DashboardFerryRouteRoute
+    }
     '/dashboard/ferry/bookings/': {
       id: '/dashboard/ferry/bookings/'
       path: '/bookings'
@@ -1093,6 +1166,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardHotelBookingsBookingIdRouteImport
       parentRoute: typeof DashboardHotelRouteRoute
     }
+    '/dashboard/ferry/schedules/$scheduleId/manifest': {
+      id: '/dashboard/ferry/schedules/$scheduleId/manifest'
+      path: '/schedules/$scheduleId/manifest'
+      fullPath: '/dashboard/ferry/schedules/$scheduleId/manifest'
+      preLoaderRoute: typeof DashboardFerrySchedulesScheduleIdManifestRouteImport
+      parentRoute: typeof DashboardFerryRouteRoute
+    }
   }
 }
 
@@ -1128,17 +1208,22 @@ const DashboardAdminRouteRouteWithChildren =
 interface DashboardFerryRouteRouteChildren {
   DashboardFerryIndexRoute: typeof DashboardFerryIndexRoute
   DashboardFerryBookingsIndexRoute: typeof DashboardFerryBookingsIndexRoute
+  DashboardFerryReportsIndexRoute: typeof DashboardFerryReportsIndexRoute
   DashboardFerryRoutesIndexRoute: typeof DashboardFerryRoutesIndexRoute
   DashboardFerrySchedulesIndexRoute: typeof DashboardFerrySchedulesIndexRoute
   DashboardFerryValidateIndexRoute: typeof DashboardFerryValidateIndexRoute
+  DashboardFerrySchedulesScheduleIdManifestRoute: typeof DashboardFerrySchedulesScheduleIdManifestRoute
 }
 
 const DashboardFerryRouteRouteChildren: DashboardFerryRouteRouteChildren = {
   DashboardFerryIndexRoute: DashboardFerryIndexRoute,
   DashboardFerryBookingsIndexRoute: DashboardFerryBookingsIndexRoute,
+  DashboardFerryReportsIndexRoute: DashboardFerryReportsIndexRoute,
   DashboardFerryRoutesIndexRoute: DashboardFerryRoutesIndexRoute,
   DashboardFerrySchedulesIndexRoute: DashboardFerrySchedulesIndexRoute,
   DashboardFerryValidateIndexRoute: DashboardFerryValidateIndexRoute,
+  DashboardFerrySchedulesScheduleIdManifestRoute:
+    DashboardFerrySchedulesScheduleIdManifestRoute,
 }
 
 const DashboardFerryRouteRouteWithChildren =
@@ -1222,6 +1307,8 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
+  FerryBookRoute: FerryBookRoute,
+  FerryConfirmationRoute: FerryConfirmationRoute,
   ThemeParkConfirmationRoute: ThemeParkConfirmationRoute,
   ThemeParkTicketsRoute: ThemeParkTicketsRoute,
   FerryIndexRoute: FerryIndexRoute,

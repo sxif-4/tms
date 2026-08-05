@@ -5,13 +5,35 @@ import {
 } from "@tanstack/react-query";
 import { Link, type LinkProps } from "@tanstack/react-router";
 import { ArrowRight, BedDouble, CalendarDays, Users } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "~/components/confirm-dialog";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { useCurrentUser } from "~/features/auth/queries";
+import { MyFerryBookingCard } from "~/features/ferry-browsing/components/my-ferry-booking-card";
+import { myFerryBookingsQueryOptions } from "~/features/ferry-browsing/queries";
+import { cancelMyFerryBookingServerFn } from "~/features/ferry-browsing/server";
+import { NextUpCard } from "~/features/my-bookings/components/next-up-card";
+import { TripRail } from "~/features/my-bookings/components/trip-rail";
+import { TripRow } from "~/features/my-bookings/components/trip-row";
+import {
+  isUpcoming,
+  nextUp,
+  toTripItems,
+  tripAlerts,
+  tripPulse,
+  type TripItem,
+} from "~/features/my-bookings/trip-items";
 import { MyEventBookingCard } from "~/features/park-browsing/components/my-event-booking-card";
 import { MyParkTicketCard } from "~/features/park-browsing/components/my-park-ticket-card";
 import {
@@ -66,8 +88,13 @@ function BookingCard({
   const showCancel = onCancel && canVisitorCancel(booking);
 
   return (
-    <Card className="overflow-hidden p-0">
-      <CardContent className="p-5">
+    <Card className="relative overflow-hidden p-0">
+      {/* Domain spine, matching the merged timeline and the ferry/park cards. */}
+      <span
+        aria-hidden
+        className="absolute inset-y-0 left-0 w-1 bg-series-hotel"
+      />
+      <CardContent className="p-5 pl-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
@@ -162,12 +189,33 @@ function EmptyState({
   );
 }
 
+/** Tab label with its count, so the badge markup isn't repeated eight times. */
+function CountTab({ value, label, count }: {
+  value: string;
+  label: string;
+  count: number;
+}) {
+  return (
+    <TabsTrigger value={value}>
+      {label}
+      <Badge variant="secondary" className="ml-2">
+        {count}
+      </Badge>
+    </TabsTrigger>
+  );
+}
+
+type HotelFilter = "upcoming" | "completed" | "cancelled";
+
 export function MyBookingsPage() {
   const queryClient = useQueryClient();
+  const user = useCurrentUser();
   const { data: bookings } = useSuspenseQuery(myHotelBookingsQueryOptions);
   const { data: parkTickets } = useSuspenseQuery(myParkTicketsQueryOptions);
   const { data: eventBookings } = useSuspenseQuery(myEventBookingsQueryOptions);
+  const { data: ferryBookings } = useSuspenseQuery(myFerryBookingsQueryOptions);
   const [cancelling, setCancelling] = useState<HotelBooking | null>(null);
+  const [hotelFilter, setHotelFilter] = useState<HotelFilter>("upcoming");
 
   const cancelMutation = useMutation({
     ...cancelHotelBookingMutationOptions(),
@@ -182,12 +230,27 @@ export function MyBookingsPage() {
       toast.error(err instanceof Error ? err.message : "Failed to cancel"),
   });
 
-  const upcoming = bookings.filter((b) => visitorTab(b.status) === "upcoming");
-  const completed = bookings.filter(
-    (b) => visitorTab(b.status) === "completed",
-  );
-  const cancelled = bookings.filter(
-    (b) => visitorTab(b.status) === "cancelled",
+  const cancelFerryMutation = useMutation({
+    mutationFn: (id: number) => cancelMyFerryBookingServerFn({ data: { id } }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: myFerryBookingsQueryOptions.queryKey,
+      });
+      toast.success("Ferry booking cancelled");
+    },
+    onError: (err) =>
+      toast.error(err instanceof Error ? err.message : "Failed to cancel"),
+  });
+
+  const hotelCounts: Record<HotelFilter, number> = {
+    upcoming: bookings.filter((b) => visitorTab(b.status) === "upcoming").length,
+    completed: bookings.filter((b) => visitorTab(b.status) === "completed")
+      .length,
+    cancelled: bookings.filter((b) => visitorTab(b.status) === "cancelled")
+      .length,
+  };
+  const filteredHotels = bookings.filter(
+    (b) => visitorTab(b.status) === hotelFilter,
   );
 
   /** Newest visit first, so an upcoming day sits above last month's. */
@@ -197,112 +260,243 @@ export function MyBookingsPage() {
   const activities = [...eventBookings].sort(
     (a, b) => new Date(b.startAt).getTime() - new Date(a.startAt).getTime(),
   );
+  const ferry = [...ferryBookings].sort(
+    (a, b) =>
+      new Date(b.departureAt).getTime() - new Date(a.departureAt).getTime(),
+  );
+
+  const sources = useMemo(
+    () => ({
+      hotels: bookings,
+      ferry: ferryBookings,
+      tickets: parkTickets,
+      events: eventBookings,
+    }),
+    [bookings, ferryBookings, parkTickets, eventBookings],
+  );
+
+  /*
+   * Time-dependent derivations are pinned to one timestamp per render. Reading
+   * Date.now() separately in each helper lets "upcoming" and "next up" disagree
+   * for a booking sitting exactly on the boundary.
+   */
+  const { items, upcomingItems, pastItems, pulse, alerts, next } =
+    useMemo(() => {
+      const now = Date.now();
+      const all = toTripItems(sources);
+      const upcoming = all.filter((i) => isUpcoming(i, now));
+      return {
+        items: all,
+        upcomingItems: upcoming,
+        // Newest first: a trip that just ended is more interesting than one
+        // from a year ago.
+        pastItems: all.filter((i) => !isUpcoming(i, now)).reverse(),
+        pulse: tripPulse(all, now),
+        alerts: tripAlerts(sources, now),
+        next: nextUp(all, now),
+      };
+    }, [sources]);
+
+  const memberSince = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString("en-GB", {
+        month: "long",
+        year: "numeric",
+      })
+    : null;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-semibold tracking-tight">My bookings</h1>
-      <p className="mt-2 text-muted-foreground">
-        Manage your upcoming trips, park tickets and activities.
-      </p>
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <header>
+        <h1 className="font-heading text-3xl font-semibold tracking-tight">
+          My bookings
+        </h1>
+        <p className="mt-2 text-muted-foreground">
+          Manage your upcoming trips, park tickets and activities.
+        </p>
+      </header>
 
-      <Tabs defaultValue="hotels" className="mt-8">
-        <TabsList>
-          <TabsTrigger value="hotels">
-            Hotels
-            <Badge variant="secondary" className="ml-2">
-              {bookings.length}
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger value="park-tickets">
-            Park tickets
-            <Badge variant="secondary" className="ml-2">
-              {tickets.length}
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger value="activities">
-            Activities
-            <Badge variant="secondary" className="ml-2">
-              {activities.length}
-            </Badge>
-          </TabsTrigger>
-        </TabsList>
+      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+        {/*
+          On a narrow screen the rail's alerts and next-departure matter more
+          than the full history, so it sits above the tabs; from `lg` up it
+          becomes the right-hand column.
+        */}
+        <div className="order-2 min-w-0 lg:order-1">
+          {next && (
+            <div className="mb-8">
+              <NextUpCard item={next} />
+            </div>
+          )}
 
-        <TabsContent value="hotels" className="mt-6">
-          <Tabs defaultValue="upcoming">
-            <TabsList>
-              <TabsTrigger value="upcoming">
-                Upcoming
-                <Badge variant="secondary" className="ml-2">
-                  {upcoming.length}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger value="completed">
-                Completed
-                <Badge variant="secondary" className="ml-2">
-                  {completed.length}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger value="cancelled">
-                Cancelled
-                <Badge variant="secondary" className="ml-2">
-                  {cancelled.length}
-                </Badge>
-              </TabsTrigger>
+          <Tabs defaultValue="all">
+            {/* One tab row. The hotel status filter is a select, not a second
+                row of tabs — nesting tabs gave the page two levels of state
+                and two sets of counts that contradicted each other. */}
+            <TabsList className="flex-wrap">
+              <CountTab value="all" label="All" count={items.length} />
+              <CountTab
+                value="hotels"
+                label="Hotels"
+                count={bookings.length}
+              />
+              <CountTab value="ferry" label="Ferry" count={ferry.length} />
+              <CountTab
+                value="park-tickets"
+                label="Park"
+                count={tickets.length}
+              />
+              <CountTab
+                value="activities"
+                label="Activities"
+                count={activities.length}
+              />
             </TabsList>
-            <TabsContent value="upcoming" className="mt-6 space-y-4">
-              {upcoming.length === 0 ? (
+
+            <TabsContent value="all" className="mt-6">
+              {items.length === 0 ? (
                 <EmptyState />
               ) : (
-                upcoming.map((b) => (
-                  <BookingCard
+                <div className="flex flex-col gap-6">
+                  {upcomingItems.length > 0 && (
+                    <TimelineGroup
+                      title="Upcoming"
+                      items={upcomingItems}
+                      count={upcomingItems.length}
+                    />
+                  )}
+                  {pastItems.length > 0 && (
+                    <TimelineGroup
+                      title="Past and cancelled"
+                      items={pastItems}
+                      count={pastItems.length}
+                    />
+                  )}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="hotels" className="mt-6">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <p className="text-sm text-muted-foreground">
+                  {filteredHotels.length} booking
+                  {filteredHotels.length === 1 ? "" : "s"}
+                </p>
+                <Select
+                  value={hotelFilter}
+                  onValueChange={(v) => setHotelFilter(v as HotelFilter)}
+                >
+                  <SelectTrigger className="w-44" aria-label="Filter stays">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="upcoming">
+                      Upcoming ({hotelCounts.upcoming})
+                    </SelectItem>
+                    <SelectItem value="completed">
+                      Completed ({hotelCounts.completed})
+                    </SelectItem>
+                    <SelectItem value="cancelled">
+                      Cancelled ({hotelCounts.cancelled})
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-4">
+                {filteredHotels.length === 0 ? (
+                  <EmptyState
+                    title={`No ${hotelFilter} stays.`}
+                    description="Start planning your island escape."
+                  />
+                ) : (
+                  filteredHotels.map((b) => (
+                    <BookingCard
+                      key={b.id}
+                      booking={b}
+                      onCancel={
+                        hotelFilter === "upcoming" ? setCancelling : undefined
+                      }
+                    />
+                  ))
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="ferry" className="mt-6 space-y-4">
+              {/*
+                Ferry passes arrive automatically with a hotel booking, so most
+                guests reach this tab without ever seeing the booking form. The
+                way to travel at another time has to be offered here.
+              */}
+              {ferry.length > 0 && (
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed p-4">
+                  <p className="text-sm text-muted-foreground">
+                    Your return ferry is included with your stay. Want to travel
+                    at a different time?
+                  </p>
+                  <Button asChild size="sm">
+                    <Link to="/ferry/book">Book another sailing</Link>
+                  </Button>
+                </div>
+              )}
+              {ferry.length === 0 ? (
+                <EmptyState
+                  title="No ferry trips booked."
+                  description="Ferry seats are reserved against a confirmed hotel stay covering the sailing date."
+                  action={{ label: "See sailings", to: "/ferry" }}
+                />
+              ) : (
+                ferry.map((b) => (
+                  <MyFerryBookingCard
                     key={b.id}
                     booking={b}
-                    onCancel={setCancelling}
+                    cancelling={cancelFerryMutation.isPending}
+                    onCancel={() => cancelFerryMutation.mutate(b.id)}
                   />
                 ))
               )}
             </TabsContent>
-            <TabsContent value="completed" className="mt-6 space-y-4">
-              {completed.length === 0 ? (
-                <EmptyState />
+
+            <TabsContent value="park-tickets" className="mt-6 space-y-4">
+              {tickets.length === 0 ? (
+                <EmptyState
+                  title="No park tickets yet."
+                  description="A park ticket admits you for one day — and it's what rides and shows are booked against."
+                  action={{
+                    label: "Buy park tickets",
+                    to: "/theme-park/tickets",
+                  }}
+                />
               ) : (
-                completed.map((b) => <BookingCard key={b.id} booking={b} />)
+                tickets.map((t) => <MyParkTicketCard key={t.id} ticket={t} />)
               )}
             </TabsContent>
-            <TabsContent value="cancelled" className="mt-6 space-y-4">
-              {cancelled.length === 0 ? (
-                <EmptyState />
+
+            <TabsContent value="activities" className="mt-6 space-y-4">
+              {activities.length === 0 ? (
+                <EmptyState
+                  title="No activities booked."
+                  description="Rides, shows and beach events are booked against a park ticket for the same day."
+                  action={{ label: "See what's on", to: "/theme-park" }}
+                />
               ) : (
-                cancelled.map((b) => <BookingCard key={b.id} booking={b} />)
+                activities.map((b) => (
+                  <MyEventBookingCard key={b.id} booking={b} />
+                ))
               )}
             </TabsContent>
           </Tabs>
-        </TabsContent>
+        </div>
 
-        <TabsContent value="park-tickets" className="mt-6 space-y-4">
-          {tickets.length === 0 ? (
-            <EmptyState
-              title="No park tickets yet."
-              description="A park ticket admits you for one day — and it's what rides and shows are booked against."
-              action={{ label: "Buy park tickets", to: "/theme-park/tickets" }}
-            />
-          ) : (
-            tickets.map((t) => <MyParkTicketCard key={t.id} ticket={t} />)
-          )}
-        </TabsContent>
-
-        <TabsContent value="activities" className="mt-6 space-y-4">
-          {activities.length === 0 ? (
-            <EmptyState
-              title="No activities booked."
-              description="Rides, shows and beach events are booked against a park ticket for the same day."
-              action={{ label: "See what's on", to: "/theme-park" }}
-            />
-          ) : (
-            activities.map((b) => <MyEventBookingCard key={b.id} booking={b} />)
-          )}
-        </TabsContent>
-      </Tabs>
+        <div className="order-1 lg:order-2">
+          <TripRail
+            name={user?.name ?? "Guest"}
+            email={user?.email ?? ""}
+            memberSince={memberSince}
+            pulse={pulse}
+            alerts={alerts}
+          />
+        </div>
+      </div>
 
       <ConfirmDialog
         open={cancelling != null}
@@ -319,5 +513,31 @@ export function MyBookingsPage() {
         }}
       />
     </div>
+  );
+}
+
+function TimelineGroup({
+  title,
+  items,
+  count,
+}: {
+  title: string;
+  items: TripItem[];
+  count: number;
+}) {
+  return (
+    <section>
+      <div className="mb-3 flex items-center gap-2">
+        <h2 className="text-sm font-medium tracking-wide text-muted-foreground uppercase">
+          {title}
+        </h2>
+        <Badge variant="secondary">{count}</Badge>
+      </div>
+      <ul className="flex flex-col gap-2">
+        {items.map((item) => (
+          <TripRow key={item.key} item={item} />
+        ))}
+      </ul>
+    </section>
   );
 }

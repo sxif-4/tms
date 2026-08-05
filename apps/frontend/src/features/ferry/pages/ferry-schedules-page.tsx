@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import {
   BanIcon,
   CalendarDaysIcon,
+  ClipboardListIcon,
   PencilIcon,
   Trash2Icon,
   UsersIcon,
@@ -204,6 +206,15 @@ export function FerrySchedulesPage() {
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                       <ScheduleStatusBadge status={schedule.status} />
+                      <Button asChild variant="outline" size="sm">
+                        <Link
+                          to="/dashboard/ferry/schedules/$scheduleId/manifest"
+                          params={{ scheduleId: String(schedule.id) }}
+                        >
+                          <ClipboardListIcon data-icon="inline-start" />
+                          Manifest
+                        </Link>
+                      </Button>
                       {schedule.status === "scheduled" ? (
                         <Button
                           variant="outline"

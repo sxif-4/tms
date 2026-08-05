@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { AuditService } from '../../shared/audit/audit.service';
+import { FerryService } from '../ferry/ferry.service';
 import { AuditAction } from '../../shared/enums/audit-action.enum';
 import { HotelAccessService } from '../../shared/hotel-access/hotel-access.service';
 import type { AuthenticatedUser } from '../../shared/interfaces/authenticated-user.interface';
@@ -64,6 +65,7 @@ export class HotelBookingsService {
     private readonly hotelAccess: HotelAccessService,
     private readonly users: UsersService,
     private readonly audit: AuditService,
+    private readonly ferry: FerryService,
   ) {}
 
   async listScoped(
@@ -276,6 +278,8 @@ export class HotelBookingsService {
       subjectId: bookingId,
       metadata: { status: 'cancelled', by: 'visitor' },
     });
+    // The stay was what authorised ferry travel; it goes with it.
+    await this.ferry.cancelComplimentaryPasses(user.id, bookingId);
 
     const row = await this.bookingsRepo.findRowById(bookingId);
     if (!row) throw new NotFoundException('Booking not found after cancel');
@@ -405,6 +409,20 @@ export class HotelBookingsService {
         ...(room ? { roomId: room.id, roomNumber: room.roomNumber } : {}),
       },
     });
+
+    // Ferry travel is included with a confirmed stay: a return pair of
+    // complimentary passes, out on check-in day and back on check-out day. The
+    // ferry service swallows its own failures — a missing sailing must never
+    // fail a paid hotel booking.
+    if (input.status === 'confirmed') {
+      await this.ferry.issueComplimentaryPasses({
+        id: booking.id,
+        userId: input.guestId,
+        checkIn,
+        checkOut,
+        guests: input.guests,
+      });
+    }
 
     const row = await this.bookingsRepo.findRowById(booking.id);
     if (!row) throw new NotFoundException('Booking not found after creation');

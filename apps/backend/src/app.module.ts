@@ -27,6 +27,8 @@ import { HotelDashboardModule } from './modules/hotel-dashboard/hotel-dashboard.
 import { HotelReportsModule } from './modules/hotel-reports/hotel-reports.module';
 import { PublicHotelsModule } from './modules/public-hotels/public-hotels.module';
 import { FerryModule } from './modules/ferry/ferry.module';
+import { FerryDashboardModule } from './modules/ferry-dashboard/ferry-dashboard.module';
+import { FerryReportsModule } from './modules/ferry-reports/ferry-reports.module';
 import { EventsModule } from './modules/events/events.module';
 import { EventSchedulesModule } from './modules/event-schedules/event-schedules.module';
 import { EventBookingsModule } from './modules/event-bookings/event-bookings.module';
@@ -69,6 +71,8 @@ import { PublicParkModule } from './modules/public-park/public-park.module';
     HotelReportsModule,
     PublicHotelsModule,
     FerryModule,
+    FerryDashboardModule,
+    FerryReportsModule,
     EventsModule,
     EventSchedulesModule,
     EventBookingsModule,

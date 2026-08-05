@@ -28,3 +28,22 @@ export class CreateFerryBookingDto {
   @Max(255)
   passengerCount!: number;
 }
+
+/**
+ * A visitor booking for themselves. Deliberately has no `userId` — the
+ * passenger comes from the JWT, so there is no field to forge.
+ */
+export class CreateOwnFerryBookingDto {
+  @IsInt()
+  @IsPositive()
+  scheduleId!: number;
+
+  @IsInt()
+  @IsPositive()
+  hotelBookingId!: number;
+
+  @IsInt()
+  @Min(1)
+  @Max(255)
+  passengerCount!: number;
+}

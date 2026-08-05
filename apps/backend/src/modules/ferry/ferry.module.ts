@@ -8,5 +8,7 @@ import { FerryService } from './ferry.service';
   imports: [AuditModule],
   controllers: [FerryController],
   providers: [FerryService, FerryRepository],
+  // Hotel bookings issue complimentary ferry passes on the guest's behalf.
+  exports: [FerryService],
 })
 export class FerryModule {}

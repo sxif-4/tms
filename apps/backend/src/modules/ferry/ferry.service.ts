@@ -1,17 +1,21 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { AuditService } from '../../shared/audit/audit.service';
 import { AuditAction } from '../../shared/enums/audit-action.enum';
+import { Role } from '../../shared/enums/role.enum';
 import { AuthenticatedUser } from '../../shared/interfaces/authenticated-user.interface';
 import {
   addUtcDays,
   isSameUtcDay,
   toDateKey,
+  utcMidnight,
 } from '../../shared/utils/park-date';
 import {
   type FerryBooking,
@@ -19,7 +23,10 @@ import {
   type FerrySchedule,
   type HotelBooking,
 } from '../../shared/database/schema';
-import { CreateFerryBookingDto } from './dto/create-ferry-booking.dto';
+import {
+  CreateFerryBookingDto,
+  CreateOwnFerryBookingDto,
+} from './dto/create-ferry-booking.dto';
 import { CreateFerryRouteDto } from './dto/create-ferry-route.dto';
 import { CreateFerryScheduleDto } from './dto/create-ferry-schedule.dto';
 import { UpdateFerryBookingDto } from './dto/update-ferry-booking.dto';
@@ -30,6 +37,8 @@ import {
   FerryRepository,
   type FerryBookingFilters,
   type FerryBookingRow,
+  type FerryScheduleFilters,
+  type FerryScheduleRow,
   type HotelBookingOptionRow,
 } from './ferry.repository';
 
@@ -59,6 +68,37 @@ export interface FerryPass {
   validatedAt: Date | null;
 }
 
+/** The boarding list for one sailing — the sheet an operator carries aboard. */
+export interface FerryManifest {
+  schedule: {
+    id: number;
+    routeName: string;
+    origin: string;
+    destination: string;
+    departureAt: Date;
+    direction: FerrySchedule['direction'];
+    status: FerrySchedule['status'];
+    capacity: number;
+  };
+  totals: {
+    bookings: number;
+    passengers: number;
+    validated: number;
+    remaining: number;
+    loadFactor: number;
+  };
+  /** Cancelled bookings are listed too — a withdrawal staff can see beats a gap. */
+  passengers: FerryBookingRow[];
+}
+
+/** Work still to do first, finished business last. */
+const MANIFEST_STATUS_ORDER: Record<FerryBooking['status'], number> = {
+  pending: 0,
+  confirmed: 1,
+  validated: 2,
+  cancelled: 3,
+};
+
 /** The fields of a stay the eligibility rule actually reads. */
 interface EligibleStay {
   userId: number;
@@ -68,7 +108,37 @@ interface EligibleStay {
 }
 
 const money = (value: number | string) => Number(value).toFixed(2);
-const ref = () => `FB-${randomUUID().slice(0, 8).toUpperCase()}`;
+const newRef = (prefix: string) =>
+  `${prefix}-${randomUUID().slice(0, 8).toUpperCase()}`;
+const ref = () => newRef('FB');
+
+/**
+ * Complimentary passes carry their own reference prefix. `ferry_bookings` has no
+ * spare column to mark them with and we are staying migration-free, so the
+ * reference itself is the marker — self-describing to staff on the queue and on
+ * the manifest, and cheap to query with a LIKE.
+ */
+const COMPLIMENTARY_PREFIX = 'FC';
+const isComplimentary = (bookingReference: string) =>
+  bookingReference.startsWith(`${COMPLIMENTARY_PREFIX}-`);
+
+/**
+ * The two legs a stay entitles a guest to. `to_island` carries them to the
+ * island their hotel is on; `to_theme_park` is the opposite leg home. The enum's
+ * names read oddly for a return journey — they predate this feature — but what
+ * matters is that the two are opposites.
+ */
+const ARRIVAL_DIRECTION: FerrySchedule['direction'] = 'to_island';
+const RETURN_DIRECTION: FerrySchedule['direction'] = 'to_theme_park';
+
+/** The stay fields the complimentary-pass rule needs. */
+export interface ComplimentaryStay {
+  id: number;
+  userId: number;
+  checkIn: Date;
+  checkOut: Date;
+  guests: number;
+}
 
 /**
  * A stay only authorises ferry travel once it is actually paid for. A `pending`
@@ -84,6 +154,8 @@ const FERRY_TRAVEL_GRACE_DAYS = 1;
 
 @Injectable()
 export class FerryService {
+  private readonly logger = new Logger(FerryService.name);
+
   constructor(
     private readonly ferryRepo: FerryRepository,
     private readonly audit: AuditService,
@@ -164,8 +236,24 @@ export class FerryService {
     });
   }
 
-  listSchedules(): Promise<FerrySchedule[]> {
-    return this.ferryRepo.findAllSchedules();
+  listSchedules(
+    filters: FerryScheduleFilters = {},
+  ): Promise<FerryScheduleRow[]> {
+    return this.ferryRepo.findScheduleRows(filters);
+  }
+
+  /** Sailings a visitor can still book onto: scheduled, future, and not full. */
+  async listBookableSchedules(
+    filters: FerryScheduleFilters = {},
+  ): Promise<FerryScheduleRow[]> {
+    const rows = await this.ferryRepo.findScheduleRows({
+      ...filters,
+      status: 'scheduled',
+    });
+    const now = Date.now();
+    return rows.filter(
+      (row) => row.departureAt.getTime() > now && row.remainingSeats > 0,
+    );
   }
 
   async getScheduleById(id: number): Promise<FerrySchedule> {
@@ -367,6 +455,244 @@ export class FerryService {
     return row;
   }
 
+  /** A visitor's own ferry bookings, newest first. */
+  listMyBookings(userId: number): Promise<FerryBookingRow[]> {
+    return this.ferryRepo.findBookingRowsByUserId(userId);
+  }
+
+  /**
+   * Staff act on anyone's booking; a visitor only on their own. Enforced here
+   * rather than in the guard because the check needs the booking, not the route.
+   */
+  private assertCanAccessBooking(
+    user: AuthenticatedUser,
+    row: FerryBookingRow,
+  ): void {
+    const isStaff = user.role === Role.Admin || user.role === Role.FerryStaff;
+    if (!isStaff && row.userId !== user.id) {
+      throw new ForbiddenException('This booking belongs to another guest');
+    }
+  }
+
+  /** The booking, but only if this user is allowed to see it. */
+  async getBookingRowFor(
+    user: AuthenticatedUser,
+    id: number,
+  ): Promise<FerryBookingRow> {
+    const row = await this.getBookingRowById(id);
+    this.assertCanAccessBooking(user, row);
+    return row;
+  }
+
+  async getPassFor(user: AuthenticatedUser, id: number): Promise<FerryPass> {
+    await this.getBookingRowFor(user, id); // 403 unless staff or the owner
+    return this.getPass(id);
+  }
+
+  /**
+   * Ferry travel is included with a stay: booking a hotel issues a return pair
+   * of complimentary passes, out on check-in day and back on check-out day.
+   *
+   * Never throws. A missing sailing, a full one, or any other failure must not
+   * take a paid hotel booking down with it — the guest can always buy a seat.
+   */
+  async issueComplimentaryPasses(
+    stay: ComplimentaryStay,
+  ): Promise<FerryBooking[]> {
+    const legs: Array<[Date, FerrySchedule['direction']]> = [
+      [stay.checkIn, ARRIVAL_DIRECTION],
+      [stay.checkOut, RETURN_DIRECTION],
+    ];
+
+    const issued: FerryBooking[] = [];
+    for (const [date, direction] of legs) {
+      try {
+        const pass = await this.issueComplimentaryLeg(stay, date, direction);
+        if (pass) issued.push(pass);
+      } catch (err) {
+        this.logger.warn(
+          `Could not issue the ${direction} pass for hotel booking #${stay.id}: ` +
+            (err instanceof Error ? err.message : String(err)),
+        );
+      }
+    }
+    return issued;
+  }
+
+  /** The first sailing that day, in that direction, with room for the party. */
+  private async issueComplimentaryLeg(
+    stay: ComplimentaryStay,
+    date: Date,
+    direction: FerrySchedule['direction'],
+  ): Promise<FerryBooking | null> {
+    const dayStart = utcMidnight(date);
+    const dayEnd = addUtcDays(date, 1);
+
+    const candidates = await this.listBookableSchedules({
+      direction,
+      from: dayStart,
+      to: dayEnd,
+    });
+    const sailing = candidates.find((row) => row.remainingSeats >= stay.guests);
+    if (!sailing) return null;
+
+    const booking = await this.ferryRepo.createBooking({
+      bookingReference: newRef(COMPLIMENTARY_PREFIX),
+      userId: stay.userId,
+      scheduleId: sailing.id,
+      hotelBookingId: stay.id,
+      passengerCount: stay.guests,
+      // Included with the stay: no fare, and so no payments row to record.
+      totalAmount: '0.00',
+      // Nothing to approve — the stay that authorises it is already confirmed.
+      status: 'confirmed',
+    });
+
+    await this.audit.record({
+      userId: stay.userId,
+      action: AuditAction.FerryBookingIssued,
+      subjectType: 'FerryBooking',
+      subjectId: booking.id,
+      metadata: {
+        bookingReference: booking.bookingReference,
+        complimentary: true,
+        hotelBookingId: stay.id,
+        direction,
+      },
+    });
+    return booking;
+  }
+
+  /**
+   * A guest who buys their own seat on a leg no longer needs the free one, so it
+   * is stood down — freeing the seat for someone else. Only the matching
+   * direction is touched: buying an early outbound must not cost them the ride
+   * home.
+   */
+  private async supersedeComplimentaryLeg(
+    actorId: number,
+    hotelBookingId: number,
+    direction: FerrySchedule['direction'],
+    keepBookingId: number,
+  ): Promise<void> {
+    const rows = await this.ferryRepo.findBookingRows({ hotelBookingId });
+    const superseded = rows.filter(
+      (row) =>
+        row.id !== keepBookingId &&
+        isComplimentary(row.bookingReference) &&
+        row.direction === direction &&
+        (row.status === 'pending' || row.status === 'confirmed'),
+    );
+
+    for (const row of superseded) {
+      await this.ferryRepo.updateBooking(row.id, { status: 'cancelled' });
+      await this.audit.record({
+        userId: actorId,
+        action: AuditAction.FerryBookingSuperseded,
+        subjectType: 'FerryBooking',
+        subjectId: row.id,
+        metadata: {
+          bookingReference: row.bookingReference,
+          replacedBy: keepBookingId,
+          direction,
+        },
+      });
+    }
+  }
+
+  /** A stay that goes away takes its complimentary passes with it. */
+  async cancelComplimentaryPasses(
+    actorId: number,
+    hotelBookingId: number,
+  ): Promise<void> {
+    try {
+      const rows = await this.ferryRepo.findBookingRows({ hotelBookingId });
+      const live = rows.filter(
+        (row) =>
+          isComplimentary(row.bookingReference) &&
+          (row.status === 'pending' || row.status === 'confirmed'),
+      );
+
+      for (const row of live) {
+        await this.ferryRepo.updateBooking(row.id, { status: 'cancelled' });
+        await this.audit.record({
+          userId: actorId,
+          action: AuditAction.FerryBookingCancelled,
+          subjectType: 'FerryBooking',
+          subjectId: row.id,
+          metadata: {
+            bookingReference: row.bookingReference,
+            reason: 'stay_cancelled',
+          },
+        });
+      }
+    } catch (err) {
+      this.logger.warn(
+        `Could not stand down complimentary passes for hotel booking #${hotelBookingId}: ` +
+          (err instanceof Error ? err.message : String(err)),
+      );
+    }
+  }
+
+  /**
+   * A visitor booking for themselves. The passenger is taken from the JWT, never
+   * the body — otherwise a visitor could book against another guest's stay.
+   */
+  createOwnBooking(
+    user: AuthenticatedUser,
+    dto: CreateOwnFerryBookingDto,
+  ): Promise<FerryBooking> {
+    return this.createBooking(user, { ...dto, userId: user.id });
+  }
+
+  /**
+   * The passenger manifest for one sailing. Reuses the enriched booking rows —
+   * a manifest is the booking queue filtered to a single sailing and ordered
+   * for boarding rather than by recency.
+   */
+  async getManifest(scheduleId: number): Promise<FerryManifest> {
+    const schedule = await this.getScheduleById(scheduleId);
+    const route = await this.getRouteById(schedule.routeId);
+    const rows = await this.ferryRepo.findBookingRows({ scheduleId });
+
+    const passengers = [...rows].sort(
+      (a, b) =>
+        MANIFEST_STATUS_ORDER[a.status] - MANIFEST_STATUS_ORDER[b.status] ||
+        a.bookingReference.localeCompare(b.bookingReference),
+    );
+
+    // A cancelled booking freed its seat, so it counts towards nothing.
+    const live = passengers.filter((row) => row.status !== 'cancelled');
+    const booked = live.reduce((sum, row) => sum + row.passengerCount, 0);
+    const validated = passengers
+      .filter((row) => row.status === 'validated')
+      .reduce((sum, row) => sum + row.passengerCount, 0);
+
+    return {
+      schedule: {
+        id: schedule.id,
+        routeName: route.name,
+        origin: route.origin,
+        destination: route.destination,
+        departureAt: schedule.departureAt,
+        direction: schedule.direction,
+        status: schedule.status,
+        capacity: schedule.capacity,
+      },
+      totals: {
+        bookings: live.length,
+        passengers: booked,
+        validated,
+        remaining: Math.max(schedule.capacity - booked, 0),
+        loadFactor:
+          schedule.capacity > 0
+            ? Math.round((booked / schedule.capacity) * 1000) / 10
+            : 0,
+      },
+      passengers,
+    };
+  }
+
   /** Read-only preview for the validation screen — deliberately does not mutate. */
   async lookup(reference: string): Promise<FerryBookingRow> {
     const row = await this.ferryRepo.findBookingRowByReference(
@@ -506,8 +832,9 @@ export class FerryService {
     return this.getBookingRowById(row.id);
   }
 
-  async cancel(staff: AuthenticatedUser, id: number): Promise<FerryBookingRow> {
-    const row = await this.getBookingRowById(id);
+  /** Staff cancel anyone's booking; a visitor only their own. */
+  async cancel(user: AuthenticatedUser, id: number): Promise<FerryBookingRow> {
+    const row = await this.getBookingRowFor(user, id);
 
     if (row.status === 'cancelled') {
       throw new ConflictException('This booking is already cancelled');
@@ -525,7 +852,7 @@ export class FerryService {
     }
 
     await this.audit.record({
-      userId: staff.id,
+      userId: user.id,
       action: AuditAction.FerryBookingCancelled,
       subjectType: 'FerryBooking',
       subjectId: id,
@@ -581,6 +908,14 @@ export class FerryService {
         passengerCount: booking.passengerCount,
       },
     });
+
+    // A bought seat on this leg stands the free one down.
+    await this.supersedeComplimentaryLeg(
+      staff.id,
+      dto.hotelBookingId,
+      schedule.direction,
+      booking.id,
+    );
     return booking;
   }
 

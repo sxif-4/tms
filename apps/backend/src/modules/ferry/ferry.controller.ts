@@ -21,7 +21,10 @@ import {
   type FerryRoute,
   type FerrySchedule,
 } from '../../shared/database/schema';
-import { CreateFerryBookingDto } from './dto/create-ferry-booking.dto';
+import {
+  CreateFerryBookingDto,
+  CreateOwnFerryBookingDto,
+} from './dto/create-ferry-booking.dto';
 import { CreateFerryRouteDto } from './dto/create-ferry-route.dto';
 import { CreateFerryScheduleDto } from './dto/create-ferry-schedule.dto';
 import { UpdateFerryBookingDto } from './dto/update-ferry-booking.dto';
@@ -31,10 +34,12 @@ import { ValidateFerryPassDto } from './dto/validate-ferry-pass.dto';
 import {
   FERRY_BOOKING_STATUSES,
   FerryService,
+  type FerryManifest,
   type FerryPass,
 } from './ferry.service';
 import {
   type FerryBookingRow,
+  type FerryScheduleRow,
   type HotelBookingOptionRow,
 } from './ferry.repository';
 
@@ -87,8 +92,44 @@ export class FerryController {
 
   @Get('schedules')
   @Roles()
-  listSchedules(): Promise<FerrySchedule[]> {
-    return this.ferryService.listSchedules();
+  listSchedules(
+    @Query('routeId') routeId?: string,
+    @Query('direction') direction?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ): Promise<FerryScheduleRow[]> {
+    return this.ferryService.listSchedules({
+      routeId: parseId(routeId, 'routeId'),
+      direction: parseDirection(direction),
+      from: parseDate(from, 'from'),
+      to: parseDate(to, 'to'),
+    });
+  }
+
+  /** What a visitor may actually book: scheduled, still ahead, still has seats. */
+  @Get('schedules/bookable')
+  @Roles()
+  listBookableSchedules(
+    @Query('routeId') routeId?: string,
+    @Query('direction') direction?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ): Promise<FerryScheduleRow[]> {
+    return this.ferryService.listBookableSchedules({
+      routeId: parseId(routeId, 'routeId'),
+      direction: parseDirection(direction),
+      from: parseDate(from, 'from'),
+      to: parseDate(to, 'to'),
+    });
+  }
+
+  /** The signed-in visitor's own eligible stays — no userId in the path to forge. */
+  @Get('my-hotel-bookings')
+  @Roles()
+  listMyHotelBookings(
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<HotelBookingOptionRow[]> {
+    return this.ferryService.listHotelBookingsForUser(currentUser.id);
   }
 
   @Get('schedules/:id')
@@ -114,6 +155,12 @@ export class FerryController {
     @CurrentUser() currentUser: AuthenticatedUser,
   ): Promise<FerrySchedule> {
     return this.ferryService.updateSchedule(currentUser, id, dto);
+  }
+
+  /** The boarding list for one sailing. Staff-only — it names every passenger. */
+  @Get('schedules/:id/manifest')
+  getManifest(@Param('id', ParseIntPipe) id: number): Promise<FerryManifest> {
+    return this.ferryService.getManifest(id);
   }
 
   @Delete('schedules/:id')
@@ -151,6 +198,15 @@ export class FerryController {
     });
   }
 
+  /** The signed-in visitor's own ferry bookings. */
+  @Get('bookings/mine')
+  @Roles()
+  listMyBookings(
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<FerryBookingRow[]> {
+    return this.ferryService.listMyBookings(currentUser.id);
+  }
+
   // Declared before `bookings/:id` reads naturally, though the extra path
   // segment already keeps the two from colliding.
   @Get('bookings/lookup/:reference')
@@ -165,12 +221,31 @@ export class FerryController {
     return this.ferryService.getBookingRowById(id);
   }
 
+  /** Staff or the owner — a visitor must be able to show their own pass. */
   @Get('bookings/:id/pass')
-  getPass(@Param('id', ParseIntPipe) id: number): Promise<FerryPass> {
-    return this.ferryService.getPass(id);
+  @Roles()
+  getPass(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<FerryPass> {
+    return this.ferryService.getPassFor(currentUser, id);
   }
 
+  /**
+   * Visitor self-service. The passenger comes from the JWT, so a visitor can
+   * only ever book against their own stay.
+   */
   @Post('bookings')
+  @Roles()
+  createOwnBooking(
+    @Body() dto: CreateOwnFerryBookingDto,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<FerryBooking> {
+    return this.ferryService.createOwnBooking(currentUser, dto);
+  }
+
+  /** Counter booking: staff taking a request on a named guest's behalf. */
+  @Post('bookings/manual')
   createBooking(
     @Body() dto: CreateFerryBookingDto,
     @CurrentUser() currentUser: AuthenticatedUser,
@@ -208,7 +283,9 @@ export class FerryController {
     return this.ferryService.validate(currentUser, dto);
   }
 
+  /** Staff cancel anyone's; a visitor only their own (checked in the service). */
   @Post('bookings/:id/cancel')
+  @Roles()
   @HttpCode(HttpStatus.OK)
   cancel(
     @Param('id', ParseIntPipe) id: number,
@@ -246,6 +323,19 @@ function parseId(value: string | undefined, field: string): number | undefined {
     throw new BadRequestException(`${field} must be a positive integer`);
   }
   return parsed;
+}
+
+const FERRY_DIRECTIONS = ['to_theme_park', 'to_island'] as const;
+type FerryDirection = (typeof FERRY_DIRECTIONS)[number];
+
+function parseDirection(value?: string): FerryDirection | undefined {
+  if (!value) return undefined;
+  if (!FERRY_DIRECTIONS.includes(value as FerryDirection)) {
+    throw new BadRequestException(
+      `direction must be one of: ${FERRY_DIRECTIONS.join(', ')}`,
+    );
+  }
+  return value as FerryDirection;
 }
 
 function parseDate(value: string | undefined, field: string): Date | undefined {

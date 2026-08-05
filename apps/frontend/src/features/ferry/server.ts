@@ -4,10 +4,93 @@ import { apiFetch, errorMessage } from "~/lib/server-api";
 import type { FerryBooking, FerryPass } from "./bookings-types";
 import type {
   FerryBookingUser,
+  FerryDashboard,
   FerryHotelBookingOption,
+  FerryManifest,
   FerryRoute,
+  FerryRouteReportRow,
+  FerrySalesRow,
   FerrySchedule,
+  FerryTripRow,
 } from "./types";
+
+const reportRangeSchema = z.object({
+  from: z.string().optional(),
+  to: z.string().optional(),
+});
+
+export const getFerrySalesReportServerFn = createServerFn({ method: "GET" })
+  .validator((input: unknown) =>
+    reportRangeSchema
+      .extend({ groupBy: z.enum(["day", "week", "month"]).optional() })
+      .parse(input ?? {}),
+  )
+  .handler(async ({ data }): Promise<FerrySalesRow[]> => {
+    const res = await apiFetch(`/ferry-reports/sales${qs(data)}`);
+    if (!res.ok) {
+      throw new Error(await errorMessage(res, "Failed to load ferry sales"));
+    }
+
+    return (await res.json()) as FerrySalesRow[];
+  });
+
+export const getFerryTripsReportServerFn = createServerFn({ method: "GET" })
+  .validator((input: unknown) =>
+    reportRangeSchema
+      .extend({ routeId: z.number().int().positive().optional() })
+      .parse(input ?? {}),
+  )
+  .handler(async ({ data }): Promise<FerryTripRow[]> => {
+    const res = await apiFetch(`/ferry-reports/trips${qs(data)}`);
+    if (!res.ok) {
+      throw new Error(await errorMessage(res, "Failed to load trip reports"));
+    }
+
+    return (await res.json()) as FerryTripRow[];
+  });
+
+export const getFerryRoutesReportServerFn = createServerFn({ method: "GET" })
+  .validator((input: unknown) => reportRangeSchema.parse(input ?? {}))
+  .handler(async ({ data }): Promise<FerryRouteReportRow[]> => {
+    const res = await apiFetch(`/ferry-reports/routes${qs(data)}`);
+    if (!res.ok) {
+      throw new Error(await errorMessage(res, "Failed to load route reports"));
+    }
+
+    return (await res.json()) as FerryRouteReportRow[];
+  });
+
+export const getFerryManifestServerFn = createServerFn({ method: "GET" })
+  .validator((input: unknown) =>
+    z.object({ scheduleId: z.number().int().positive() }).parse(input),
+  )
+  .handler(
+    async ({
+      data,
+    }): Promise<FerryManifest & { passengers: FerryBooking[] }> => {
+      const res = await apiFetch(
+        `/ferry/schedules/${data.scheduleId}/manifest`,
+      );
+      if (!res.ok) {
+        throw new Error(await errorMessage(res, "Failed to load the manifest"));
+      }
+
+      return (await res.json()) as FerryManifest & {
+        passengers: FerryBooking[];
+      };
+    },
+  );
+
+export const getFerryDashboardServerFn = createServerFn({
+  method: "GET",
+}).handler(async (): Promise<FerryDashboard> => {
+  const res = await apiFetch("/ferry-dashboard");
+  if (!res.ok) {
+    throw new Error(await errorMessage(res, "Failed to load ferry dashboard"));
+  }
+
+  return (await res.json()) as FerryDashboard;
+});
 
 /** Drops undefined/empty params so we never send `?status=undefined`. */
 function qs(params: Record<string, string | number | undefined>): string {

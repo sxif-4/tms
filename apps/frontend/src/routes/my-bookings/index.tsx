@@ -1,4 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { myFerryBookingsQueryOptions } from "~/features/ferry-browsing/queries";
 import { MyBookingsPage } from "~/features/hotel-browsing/pages/my-bookings-page";
 import { myHotelBookingsQueryOptions } from "~/features/hotel-browsing/queries";
 import {
@@ -15,13 +16,14 @@ export const Route = createFileRoute("/my-bookings/")({
       });
     }
   },
-  // The page spans three domains now — all three panels are suspense-read, so
-  // all three must be warm before it renders.
+  // The page spans four domains now — every panel is suspense-read, so all four
+  // must be warm before it renders.
   loader: ({ context }) =>
     Promise.all([
       context.queryClient.ensureQueryData(myHotelBookingsQueryOptions),
       context.queryClient.ensureQueryData(myParkTicketsQueryOptions),
       context.queryClient.ensureQueryData(myEventBookingsQueryOptions),
+      context.queryClient.ensureQueryData(myFerryBookingsQueryOptions),
     ]),
   component: MyBookingsPage,
 });

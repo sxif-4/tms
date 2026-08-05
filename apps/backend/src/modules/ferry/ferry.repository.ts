@@ -5,6 +5,7 @@ import {
   asc,
   desc,
   eq,
+  getTableColumns,
   gte,
   like,
   lte,
@@ -88,11 +89,30 @@ export interface FerryBookingRow {
   hotelStatus: HotelBooking['status'];
 }
 
+/** A sailing with its route and live availability. */
+export interface FerryScheduleRow extends FerrySchedule {
+  routeName: string;
+  origin: string;
+  destination: string;
+  booked: number;
+  remainingSeats: number;
+}
+
+export interface FerryScheduleFilters {
+  routeId?: number;
+  direction?: FerrySchedule['direction'];
+  status?: FerrySchedule['status'];
+  from?: Date;
+  to?: Date;
+}
+
 /** Server-side filters for the booking queue. */
 export interface FerryBookingFilters {
   status?: FerryBooking['status'];
   scheduleId?: number;
   routeId?: number;
+  /** The stay a booking travels on — used to find its complimentary passes. */
+  hotelBookingId?: number;
   /** Departure window, not booking-creation window. */
   from?: Date;
   to?: Date;
@@ -152,13 +172,53 @@ export class FerryRepository {
     return Promise.resolve(row?.count ?? 0);
   }
 
-  findAllSchedules(): Promise<FerrySchedule[]> {
+  /**
+   * Sailings with live availability. `remainingSeats` is computed server-side so
+   * a visitor can never be offered a seat the capacity rule would then refuse —
+   * the browser used to sum this itself from the full booking list.
+   */
+  findScheduleRows(
+    filters: FerryScheduleFilters = {},
+  ): Promise<FerryScheduleRow[]> {
+    const conditions: SQL[] = [];
+
+    if (filters.routeId != null) {
+      conditions.push(eq(ferrySchedules.routeId, filters.routeId));
+    }
+    if (filters.direction) {
+      conditions.push(eq(ferrySchedules.direction, filters.direction));
+    }
+    if (filters.status) {
+      conditions.push(eq(ferrySchedules.status, filters.status));
+    }
+    if (filters.from) {
+      conditions.push(gte(ferrySchedules.departureAt, filters.from));
+    }
+    if (filters.to) {
+      conditions.push(lte(ferrySchedules.departureAt, filters.to));
+    }
+
+    const query = this.db
+      .select({
+        ...getTableColumns(ferrySchedules),
+        routeName: ferryRoutes.name,
+        origin: ferryRoutes.origin,
+        destination: ferryRoutes.destination,
+        booked: BOOKED_SEATS,
+      })
+      .from(ferrySchedules)
+      .innerJoin(ferryRoutes, eq(ferrySchedules.routeId, ferryRoutes.id));
+
+    const filtered = conditions.length
+      ? query.where(and(...conditions))
+      : query;
+    const rows = filtered.orderBy(asc(ferrySchedules.departureAt)).all();
+
     return Promise.resolve(
-      this.db
-        .select()
-        .from(ferrySchedules)
-        .orderBy(asc(ferrySchedules.departureAt))
-        .all(),
+      rows.map((row) => ({
+        ...row,
+        remainingSeats: Math.max(row.capacity - row.booked, 0),
+      })),
     );
   }
 
@@ -335,6 +395,9 @@ export class FerryRepository {
     if (filters.routeId != null) {
       conditions.push(eq(ferrySchedules.routeId, filters.routeId));
     }
+    if (filters.hotelBookingId != null) {
+      conditions.push(eq(ferryBookings.hotelBookingId, filters.hotelBookingId));
+    }
     if (filters.from) {
       conditions.push(gte(ferrySchedules.departureAt, filters.from));
     }
@@ -407,6 +470,15 @@ export class FerryRepository {
     );
   }
 
+  findBookingRowsByUserId(userId: number): Promise<FerryBookingRow[]> {
+    return Promise.resolve(
+      this.bookingRowsQuery()
+        .where(eq(ferryBookings.userId, userId))
+        .orderBy(desc(ferryBookings.createdAt))
+        .all(),
+    );
+  }
+
   deleteBooking(id: number): Promise<void> {
     this.db.delete(ferryBookings).where(eq(ferryBookings.id, id)).run();
     return Promise.resolve();
@@ -451,3 +523,10 @@ export class FerryRepository {
     return Promise.resolve();
   }
 }
+
+/** Cancelled bookings release their seats, so they never count as booked. */
+const BOOKED_SEATS = sql<number>`(
+  SELECT COALESCE(SUM(fb.passenger_count), 0)
+  FROM ferry_bookings fb
+  WHERE fb.schedule_id = ${ferrySchedules.id} AND fb.status != 'cancelled'
+)`;

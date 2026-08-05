@@ -130,12 +130,11 @@ export interface GateTicketRow {
   channel: string;
 }
 
-/** Dashboard schedule rows carry `startAt` as a unix timestamp, not an ISO string. */
 export interface ScheduleFillRow {
   id: number;
   eventId: number;
   eventName: string;
-  startAt: number;
+  startAt: string;
   capacity: number;
   booked: number;
   fillRate: number;

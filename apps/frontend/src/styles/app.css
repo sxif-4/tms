@@ -218,6 +218,16 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
+  /*
+   * The domain series must be registered here, not just declared on :root —
+   * Tailwind only emits `bg-series-*`/`text-series-*`/`border-series-*` for
+   * tokens it knows about, so without these four lines every call site using
+   * them renders with no colour at all.
+   */
+  --color-series-hotel: var(--series-hotel);
+  --color-series-ferry: var(--series-ferry);
+  --color-series-park: var(--series-park);
+  --color-series-event: var(--series-event);
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);

@@ -50,6 +50,8 @@ export enum AuditAction {
   FerryBookingIssued = 'ferry_booking.issued',
   FerryBookingValidated = 'ferry_booking.validated',
   FerryBookingCancelled = 'ferry_booking.cancelled',
+  /** A complimentary pass stood down because the guest bought that leg. */
+  FerryBookingSuperseded = 'ferry_booking.superseded',
   ParkTicketTypeCreated = 'park_ticket_type.created',
   ParkTicketTypeUpdated = 'park_ticket_type.updated',
   ParkTicketTypeDeleted = 'park_ticket_type.deleted',

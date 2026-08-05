@@ -144,6 +144,16 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
         },
       ],
     },
+    {
+      label: "Insights",
+      items: [
+        {
+          title: "Reports",
+          path: "/dashboard/ferry/reports",
+          icon: <BarChart3Icon />,
+        },
+      ],
+    },
   ],
   park_staff: [
     {

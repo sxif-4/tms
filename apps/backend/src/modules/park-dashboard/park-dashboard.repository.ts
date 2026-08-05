@@ -30,7 +30,8 @@ export interface ScheduleFillRow {
   id: number;
   eventId: number;
   eventName: string;
-  startAt: number;
+  /** ISO 8601 UTC, matching every Drizzle-backed endpoint. See ISO_START_AT. */
+  startAt: string;
   capacity: number;
   booked: number;
   fillRate: number;
@@ -144,7 +145,8 @@ export class ParkDashboardRepository {
     const nowSec = Math.floor(Date.now() / 1000);
     return Promise.resolve(
       this.db.all<ScheduleFillRow>(sql`
-        SELECT s.id, s.event_id AS eventId, e.name AS eventName, s.start_at AS startAt,
+        SELECT s.id, s.event_id AS eventId, e.name AS eventName,
+          ${ISO_START_AT} AS startAt,
           s.capacity, ${BOOKED_SEATS} AS booked,
           CAST(${BOOKED_SEATS} AS REAL) / s.capacity AS fillRate
         FROM event_schedules s
@@ -164,7 +166,8 @@ export class ParkDashboardRepository {
     const nowSec = Math.floor(Date.now() / 1000);
     return Promise.resolve(
       this.db.all<ScheduleFillRow>(sql`
-        SELECT s.id, s.event_id AS eventId, e.name AS eventName, s.start_at AS startAt,
+        SELECT s.id, s.event_id AS eventId, e.name AS eventName,
+          ${ISO_START_AT} AS startAt,
           s.capacity, ${BOOKED_SEATS} AS booked,
           CASE WHEN s.capacity > 0
             THEN CAST(${BOOKED_SEATS} AS REAL) / s.capacity ELSE 0 END AS fillRate
@@ -180,6 +183,15 @@ export class ParkDashboardRepository {
     );
   }
 }
+
+/**
+ * Raw SQL bypasses Drizzle's `mode: 'timestamp'` mapping, so a timestamp would
+ * otherwise leave here as a unix integer while every Drizzle-backed endpoint
+ * emits an ISO string — the same field arriving as two different types
+ * depending on which route you asked. Formatting in SQL keeps the API speaking
+ * one language, at the cost of sub-second precision these columns never had.
+ */
+const ISO_START_AT = sql`strftime('%Y-%m-%dT%H:%M:%SZ', s.start_at, 'unixepoch')`;
 
 /** Cancelled bookings release their seats, so they never count as booked. */
 const BOOKED_SEATS = sql`COALESCE(SUM(b.quantity), 0)`;

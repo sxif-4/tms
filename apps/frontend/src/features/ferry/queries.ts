@@ -2,11 +2,59 @@ import { queryOptions } from "@tanstack/react-query";
 import type { FerryBookingStatus } from "./constants";
 import {
   getFerryBookingsServerFn,
+  getFerryDashboardServerFn,
+  getFerryManifestServerFn,
   getFerryPassServerFn,
+  getFerryRoutesReportServerFn,
   getFerryRoutesServerFn,
+  getFerrySalesReportServerFn,
   getFerrySchedulesServerFn,
+  getFerryTripsReportServerFn,
   getHotelBookingsForUserServerFn,
 } from "./server";
+
+export type FerryReportRange = {
+  from?: string;
+  to?: string;
+};
+
+export const ferrySalesReportQueryOptions = (
+  range: FerryReportRange & { groupBy?: "day" | "week" | "month" },
+) =>
+  queryOptions({
+    queryKey: ["ferry", "reports", "sales", range] as const,
+    queryFn: () => getFerrySalesReportServerFn({ data: range }),
+    staleTime: 60 * 1000,
+  });
+
+export const ferryTripsReportQueryOptions = (
+  range: FerryReportRange & { routeId?: number },
+) =>
+  queryOptions({
+    queryKey: ["ferry", "reports", "trips", range] as const,
+    queryFn: () => getFerryTripsReportServerFn({ data: range }),
+    staleTime: 60 * 1000,
+  });
+
+export const ferryRoutesReportQueryOptions = (range: FerryReportRange) =>
+  queryOptions({
+    queryKey: ["ferry", "reports", "routes", range] as const,
+    queryFn: () => getFerryRoutesReportServerFn({ data: range }),
+    staleTime: 60 * 1000,
+  });
+
+export const ferryManifestQueryOptions = (scheduleId: number) =>
+  queryOptions({
+    queryKey: ["ferry", "manifest", scheduleId] as const,
+    queryFn: () => getFerryManifestServerFn({ data: { scheduleId } }),
+    staleTime: 15 * 1000,
+  });
+
+export const ferryDashboardQueryOptions = queryOptions({
+  queryKey: ["ferry", "dashboard"] as const,
+  queryFn: () => getFerryDashboardServerFn(),
+  staleTime: 30 * 1000,
+});
 
 export const ferryRoutesQueryOptions = queryOptions({
   queryKey: ["ferry", "routes"] as const,

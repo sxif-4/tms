@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Hotel as HotelIcon,
   Mail,
+  Ship,
   Users,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
@@ -111,6 +112,23 @@ export function HotelBookingConfirmationPage({
                 <p>
                   We&apos;ve sent a confirmation to{" "}
                   <span className="font-medium">{booking.guestEmail}</span>.
+                </p>
+              </div>
+              {/* Issued by the ferry module the moment the stay is confirmed. */}
+              <div className="flex items-start gap-2 rounded-lg bg-series-ferry/10 p-3 text-sm">
+                <Ship className="mt-0.5 size-4 shrink-0 text-series-ferry" />
+                <p>
+                  Your <span className="font-medium">return ferry passes</span>{" "}
+                  are included and already issued — out on your arrival day,
+                  back on your departure day. Find them under{" "}
+                  <Link to="/my-bookings" className="underline">
+                    My bookings
+                  </Link>
+                  , or{" "}
+                  <Link to="/ferry/book" className="underline">
+                    pick a different sailing
+                  </Link>{" "}
+                  if those times don&apos;t suit you.
                 </p>
               </div>
             </>

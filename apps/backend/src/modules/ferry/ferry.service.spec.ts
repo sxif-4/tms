@@ -98,6 +98,7 @@ describe('FerryService', () => {
       sumPassengersByScheduleId: jest.fn().mockResolvedValue(0),
       findBookingById: jest.fn(),
       findBookingRows: jest.fn().mockResolvedValue([]),
+      findScheduleRows: jest.fn().mockResolvedValue([]),
       findBookingRowById: jest.fn().mockResolvedValue(row()),
       findBookingRowByReference: jest.fn().mockResolvedValue(row()),
       recordMockPayment: jest.fn(),
@@ -523,6 +524,173 @@ describe('FerryService', () => {
       expect(pass).not.toHaveProperty('hotelStatus');
       expect(pass).not.toHaveProperty('validatedBy');
       expect(pass).not.toHaveProperty('capacity');
+    });
+  });
+
+  describe('complimentary passes', () => {
+    const stay = {
+      id: 7,
+      userId: 42,
+      checkIn: at(3),
+      checkOut: at(6),
+      guests: 2,
+    };
+
+    /** A sailing row as findScheduleRows returns it, with live availability. */
+    const sailing = (overrides = {}) => ({
+      ...schedule(),
+      routeName: 'Hulhumalé ↔ Resort Island',
+      origin: 'Hulhumalé Jetty',
+      destination: 'Resort Island Dock',
+      booked: 0,
+      remainingSeats: 80,
+      ...overrides,
+    });
+
+    it('issues a return pair: out on check-in day, back on check-out day', async () => {
+      repo.findScheduleRows.mockImplementation(
+        ({ direction }: { direction: string }) =>
+          Promise.resolve([
+            sailing({
+              id: direction === 'to_island' ? 10 : 20,
+              direction,
+              departureAt: direction === 'to_island' ? at(3) : at(6),
+            }),
+          ]),
+      );
+
+      const issued = await service.issueComplimentaryPasses(stay);
+
+      expect(issued).toHaveLength(2);
+      expect(repo.createBooking).toHaveBeenCalledTimes(2);
+      const [outbound, ret] = repo.createBooking.mock.calls.map(
+        ([data]: [Record<string, unknown>]) => data,
+      );
+      expect(outbound.scheduleId).toBe(10);
+      expect(ret.scheduleId).toBe(20);
+    });
+
+    it('costs nothing and needs no approval', async () => {
+      repo.findScheduleRows.mockResolvedValue([sailing()]);
+
+      await service.issueComplimentaryPasses(stay);
+
+      expect(repo.createBooking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          totalAmount: '0.00',
+          status: 'confirmed',
+          passengerCount: 2,
+        }),
+      );
+    });
+
+    it('marks the pass with its own reference prefix', async () => {
+      repo.findScheduleRows.mockResolvedValue([sailing()]);
+
+      await service.issueComplimentaryPasses(stay);
+
+      const [data] = repo.createBooking.mock.calls[0] as [
+        { bookingReference: string },
+      ];
+      expect(data.bookingReference).toMatch(/^FC-[0-9A-F]{8}$/);
+    });
+
+    it('skips a leg with no sailing rather than failing the stay', async () => {
+      repo.findScheduleRows.mockResolvedValue([]);
+
+      await expect(service.issueComplimentaryPasses(stay)).resolves.toEqual([]);
+    });
+
+    it('skips a sailing without room for the whole party', async () => {
+      repo.findScheduleRows.mockResolvedValue([
+        sailing({ remainingSeats: 1 }), // party of 2
+      ]);
+
+      await expect(service.issueComplimentaryPasses(stay)).resolves.toEqual([]);
+    });
+
+    it('never lets a ferry failure take the hotel booking down', async () => {
+      repo.findScheduleRows.mockRejectedValue(new Error('database is on fire'));
+
+      await expect(service.issueComplimentaryPasses(stay)).resolves.toEqual([]);
+    });
+
+    it('stands down only the free pass on the leg the guest bought', async () => {
+      repo.findBookingRows.mockResolvedValue([
+        {
+          id: 1,
+          bookingReference: 'FC-AAAA1111',
+          direction: 'to_island',
+          status: 'confirmed',
+        },
+        {
+          id: 2,
+          bookingReference: 'FC-BBBB2222',
+          direction: 'to_theme_park',
+          status: 'confirmed',
+        },
+      ]);
+
+      await service.createBooking(staff, dto());
+
+      // The default schedule is to_theme_park, so only #2 is superseded.
+      expect(repo.updateBooking).toHaveBeenCalledWith(2, {
+        status: 'cancelled',
+      });
+      expect(repo.updateBooking).not.toHaveBeenCalledWith(1, {
+        status: 'cancelled',
+      });
+    });
+
+    it('leaves a paid booking alone when another is bought', async () => {
+      repo.findBookingRows.mockResolvedValue([
+        {
+          id: 3,
+          bookingReference: 'FB-CCCC3333',
+          direction: 'to_theme_park',
+          status: 'confirmed',
+        },
+      ]);
+
+      await service.createBooking(staff, dto());
+
+      expect(repo.updateBooking).not.toHaveBeenCalled();
+    });
+
+    it('stands down every free pass when the stay is cancelled', async () => {
+      repo.findBookingRows.mockResolvedValue([
+        {
+          id: 1,
+          bookingReference: 'FC-AAAA1111',
+          direction: 'to_island',
+          status: 'confirmed',
+        },
+        {
+          id: 2,
+          bookingReference: 'FC-BBBB2222',
+          direction: 'to_theme_park',
+          status: 'pending',
+        },
+        {
+          id: 3,
+          bookingReference: 'FB-CCCC3333',
+          direction: 'to_island',
+          status: 'confirmed',
+        },
+      ]);
+
+      await service.cancelComplimentaryPasses(99, 7);
+
+      expect(repo.updateBooking).toHaveBeenCalledWith(1, {
+        status: 'cancelled',
+      });
+      expect(repo.updateBooking).toHaveBeenCalledWith(2, {
+        status: 'cancelled',
+      });
+      // The seat they paid for is theirs to keep.
+      expect(repo.updateBooking).not.toHaveBeenCalledWith(3, {
+        status: 'cancelled',
+      });
     });
   });
 
