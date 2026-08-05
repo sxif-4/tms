@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { asc, desc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq, ne, sql } from 'drizzle-orm';
 import {
   DRIZZLE,
   type DrizzleDB,
@@ -70,6 +70,16 @@ export class FerryRepository {
   deleteRoute(id: number): Promise<void> {
     this.db.delete(ferryRoutes).where(eq(ferryRoutes.id, id)).run();
     return Promise.resolve();
+  }
+
+  /** Sailings hanging off a route — what makes deleting it a conflict. */
+  countSchedulesByRouteId(routeId: number): Promise<number> {
+    const row = this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(ferrySchedules)
+      .where(eq(ferrySchedules.routeId, routeId))
+      .get();
+    return Promise.resolve(row?.count ?? 0);
   }
 
   findAllSchedules(): Promise<FerrySchedule[]> {
@@ -146,15 +156,41 @@ export class FerryRepository {
     return Promise.resolve(rows);
   }
 
-  findBookingsByScheduleId(scheduleId: number): Promise<FerryBooking[]> {
-    return Promise.resolve(
-      this.db
-        .select()
-        .from(ferryBookings)
-        .where(eq(ferryBookings.scheduleId, scheduleId))
-        .orderBy(desc(ferryBookings.createdAt))
-        .all(),
-    );
+  /**
+   * Seats taken on a sailing. Cancelled bookings are excluded — cancelling has
+   * to actually free the seat. `excludeBookingId` lets an update measure the
+   * sailing as it would be *without* the booking being edited.
+   */
+  sumPassengersByScheduleId(
+    scheduleId: number,
+    excludeBookingId?: number,
+  ): Promise<number> {
+    const filters = [
+      eq(ferryBookings.scheduleId, scheduleId),
+      ne(ferryBookings.status, 'cancelled'),
+    ];
+    if (excludeBookingId != null) {
+      filters.push(ne(ferryBookings.id, excludeBookingId));
+    }
+
+    const row = this.db
+      .select({
+        total: sql<number>`coalesce(sum(${ferryBookings.passengerCount}), 0)`,
+      })
+      .from(ferryBookings)
+      .where(and(...filters))
+      .get();
+    return Promise.resolve(row?.total ?? 0);
+  }
+
+  /** Every booking on a sailing, cancelled ones included — for delete guards. */
+  countBookingsByScheduleId(scheduleId: number): Promise<number> {
+    const row = this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(ferryBookings)
+      .where(eq(ferryBookings.scheduleId, scheduleId))
+      .get();
+    return Promise.resolve(row?.count ?? 0);
   }
 
   findAllBookings(): Promise<FerryBooking[]> {

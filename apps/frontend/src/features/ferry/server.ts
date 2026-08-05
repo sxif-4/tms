@@ -111,14 +111,13 @@ export const createFerryScheduleServerFn = createServerFn({ method: "POST" })
     return (await res.json()) as FerrySchedule;
   });
 
+// status, validatedBy and validatedAt are server-controlled — a new booking is
+// always `pending`, and only the issue/validate actions move it from there.
 const createBookingSchema = z.object({
   userId: z.number().int().positive(),
   scheduleId: z.number().int().positive(),
   hotelBookingId: z.number().int().positive(),
   passengerCount: z.number().int().min(1).max(255),
-  validatedBy: z.number().int().positive().optional(),
-  validatedAt: z.string().optional(),
-  status: z.enum(["pending", "confirmed", "cancelled", "validated"]),
 });
 
 export const getFerryBookingsServerFn = createServerFn({ method: "GET" }).handler(

@@ -30,6 +30,13 @@ export function isSameUtcDay(a: Date, b: Date): boolean {
   return utcMidnight(a).getTime() === utcMidnight(b).getTime();
 }
 
+/** `value` shifted by whole UTC days, normalised to midnight. Negative shifts back. */
+export function addUtcDays(value: Date, days: number): Date {
+  const shifted = utcMidnight(value);
+  shifted.setUTCDate(shifted.getUTCDate() + days);
+  return shifted;
+}
+
 /** Every UTC-midnight day from `from` to `to`, inclusive. Empty if `to < from`. */
 export function eachUtcDay(from: Date, to: Date): Date[] {
   const days: Date[] = [];

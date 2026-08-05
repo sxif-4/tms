@@ -23,6 +23,7 @@ import { Route as ThemeParkTicketsRouteImport } from './routes/theme-park/ticket
 import { Route as ThemeParkConfirmationRouteImport } from './routes/theme-park/confirmation'
 import { Route as DashboardParkRouteRouteImport } from './routes/dashboard/park/route'
 import { Route as DashboardHotelRouteRouteImport } from './routes/dashboard/hotel/route'
+import { Route as DashboardFerryRouteRouteImport } from './routes/dashboard/ferry/route'
 import { Route as DashboardAdminRouteRouteImport } from './routes/dashboard/admin/route'
 import { Route as ThemeParkEventsIndexRouteImport } from './routes/theme-park/events/index'
 import { Route as HotelsHotelIdIndexRouteImport } from './routes/hotels/$hotelId/index'
@@ -132,6 +133,11 @@ const DashboardHotelRouteRoute = DashboardHotelRouteRouteImport.update({
   path: '/hotel',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
+const DashboardFerryRouteRoute = DashboardFerryRouteRouteImport.update({
+  id: '/ferry',
+  path: '/ferry',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 const DashboardAdminRouteRoute = DashboardAdminRouteRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -158,9 +164,9 @@ const DashboardHotelIndexRoute = DashboardHotelIndexRouteImport.update({
   getParentRoute: () => DashboardHotelRouteRoute,
 } as any)
 const DashboardFerryIndexRoute = DashboardFerryIndexRouteImport.update({
-  id: '/ferry/',
-  path: '/ferry/',
-  getParentRoute: () => DashboardRouteRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardFerryRouteRoute,
 } as any)
 const DashboardAdminIndexRoute = DashboardAdminIndexRouteImport.update({
   id: '/',
@@ -256,21 +262,21 @@ const DashboardHotelBookingsIndexRoute =
   } as any)
 const DashboardFerrySchedulesIndexRoute =
   DashboardFerrySchedulesIndexRouteImport.update({
-    id: '/ferry/schedules/',
-    path: '/ferry/schedules/',
-    getParentRoute: () => DashboardRouteRoute,
+    id: '/schedules/',
+    path: '/schedules/',
+    getParentRoute: () => DashboardFerryRouteRoute,
   } as any)
 const DashboardFerryRoutesIndexRoute =
   DashboardFerryRoutesIndexRouteImport.update({
-    id: '/ferry/routes/',
-    path: '/ferry/routes/',
-    getParentRoute: () => DashboardRouteRoute,
+    id: '/routes/',
+    path: '/routes/',
+    getParentRoute: () => DashboardFerryRouteRoute,
   } as any)
 const DashboardFerryBookingsIndexRoute =
   DashboardFerryBookingsIndexRouteImport.update({
-    id: '/ferry/bookings/',
-    path: '/ferry/bookings/',
-    getParentRoute: () => DashboardRouteRoute,
+    id: '/bookings/',
+    path: '/bookings/',
+    getParentRoute: () => DashboardFerryRouteRoute,
   } as any)
 const DashboardAdminUsersIndexRoute =
   DashboardAdminUsersIndexRouteImport.update({
@@ -355,6 +361,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/dashboard/admin': typeof DashboardAdminRouteRouteWithChildren
+  '/dashboard/ferry': typeof DashboardFerryRouteRouteWithChildren
   '/dashboard/hotel': typeof DashboardHotelRouteRouteWithChildren
   '/dashboard/park': typeof DashboardParkRouteRouteWithChildren
   '/theme-park/confirmation': typeof ThemeParkConfirmationRoute
@@ -461,6 +468,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/dashboard/admin': typeof DashboardAdminRouteRouteWithChildren
+  '/dashboard/ferry': typeof DashboardFerryRouteRouteWithChildren
   '/dashboard/hotel': typeof DashboardHotelRouteRouteWithChildren
   '/dashboard/park': typeof DashboardParkRouteRouteWithChildren
   '/theme-park/confirmation': typeof ThemeParkConfirmationRoute
@@ -517,6 +525,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/dashboard/admin'
+    | '/dashboard/ferry'
     | '/dashboard/hotel'
     | '/dashboard/park'
     | '/theme-park/confirmation'
@@ -622,6 +631,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/dashboard/admin'
+    | '/dashboard/ferry'
     | '/dashboard/hotel'
     | '/dashboard/park'
     | '/theme-park/confirmation'
@@ -790,6 +800,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardHotelRouteRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/dashboard/ferry': {
+      id: '/dashboard/ferry'
+      path: '/ferry'
+      fullPath: '/dashboard/ferry'
+      preLoaderRoute: typeof DashboardFerryRouteRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
     '/dashboard/admin': {
       id: '/dashboard/admin'
       path: '/admin'
@@ -827,10 +844,10 @@ declare module '@tanstack/react-router' {
     }
     '/dashboard/ferry/': {
       id: '/dashboard/ferry/'
-      path: '/ferry'
+      path: '/'
       fullPath: '/dashboard/ferry/'
       preLoaderRoute: typeof DashboardFerryIndexRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardFerryRouteRoute
     }
     '/dashboard/admin/': {
       id: '/dashboard/admin/'
@@ -946,24 +963,24 @@ declare module '@tanstack/react-router' {
     }
     '/dashboard/ferry/schedules/': {
       id: '/dashboard/ferry/schedules/'
-      path: '/ferry/schedules'
+      path: '/schedules'
       fullPath: '/dashboard/ferry/schedules/'
       preLoaderRoute: typeof DashboardFerrySchedulesIndexRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardFerryRouteRoute
     }
     '/dashboard/ferry/routes/': {
       id: '/dashboard/ferry/routes/'
-      path: '/ferry/routes'
+      path: '/routes'
       fullPath: '/dashboard/ferry/routes/'
       preLoaderRoute: typeof DashboardFerryRoutesIndexRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardFerryRouteRoute
     }
     '/dashboard/ferry/bookings/': {
       id: '/dashboard/ferry/bookings/'
-      path: '/ferry/bookings'
+      path: '/bookings'
       fullPath: '/dashboard/ferry/bookings/'
       preLoaderRoute: typeof DashboardFerryBookingsIndexRouteImport
-      parentRoute: typeof DashboardRouteRoute
+      parentRoute: typeof DashboardFerryRouteRoute
     }
     '/dashboard/admin/users/': {
       id: '/dashboard/admin/users/'
@@ -1088,6 +1105,23 @@ const DashboardAdminRouteRouteChildren: DashboardAdminRouteRouteChildren = {
 const DashboardAdminRouteRouteWithChildren =
   DashboardAdminRouteRoute._addFileChildren(DashboardAdminRouteRouteChildren)
 
+interface DashboardFerryRouteRouteChildren {
+  DashboardFerryIndexRoute: typeof DashboardFerryIndexRoute
+  DashboardFerryBookingsIndexRoute: typeof DashboardFerryBookingsIndexRoute
+  DashboardFerryRoutesIndexRoute: typeof DashboardFerryRoutesIndexRoute
+  DashboardFerrySchedulesIndexRoute: typeof DashboardFerrySchedulesIndexRoute
+}
+
+const DashboardFerryRouteRouteChildren: DashboardFerryRouteRouteChildren = {
+  DashboardFerryIndexRoute: DashboardFerryIndexRoute,
+  DashboardFerryBookingsIndexRoute: DashboardFerryBookingsIndexRoute,
+  DashboardFerryRoutesIndexRoute: DashboardFerryRoutesIndexRoute,
+  DashboardFerrySchedulesIndexRoute: DashboardFerrySchedulesIndexRoute,
+}
+
+const DashboardFerryRouteRouteWithChildren =
+  DashboardFerryRouteRoute._addFileChildren(DashboardFerryRouteRouteChildren)
+
 interface DashboardHotelRouteRouteChildren {
   DashboardHotelIndexRoute: typeof DashboardHotelIndexRoute
   DashboardHotelBookingsBookingIdRoute: typeof DashboardHotelBookingsBookingIdRoute
@@ -1144,22 +1178,16 @@ const DashboardParkRouteRouteWithChildren =
 
 interface DashboardRouteRouteChildren {
   DashboardAdminRouteRoute: typeof DashboardAdminRouteRouteWithChildren
+  DashboardFerryRouteRoute: typeof DashboardFerryRouteRouteWithChildren
   DashboardHotelRouteRoute: typeof DashboardHotelRouteRouteWithChildren
   DashboardParkRouteRoute: typeof DashboardParkRouteRouteWithChildren
-  DashboardFerryIndexRoute: typeof DashboardFerryIndexRoute
-  DashboardFerryBookingsIndexRoute: typeof DashboardFerryBookingsIndexRoute
-  DashboardFerryRoutesIndexRoute: typeof DashboardFerryRoutesIndexRoute
-  DashboardFerrySchedulesIndexRoute: typeof DashboardFerrySchedulesIndexRoute
 }
 
 const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardAdminRouteRoute: DashboardAdminRouteRouteWithChildren,
+  DashboardFerryRouteRoute: DashboardFerryRouteRouteWithChildren,
   DashboardHotelRouteRoute: DashboardHotelRouteRouteWithChildren,
   DashboardParkRouteRoute: DashboardParkRouteRouteWithChildren,
-  DashboardFerryIndexRoute: DashboardFerryIndexRoute,
-  DashboardFerryBookingsIndexRoute: DashboardFerryBookingsIndexRoute,
-  DashboardFerryRoutesIndexRoute: DashboardFerryRoutesIndexRoute,
-  DashboardFerrySchedulesIndexRoute: DashboardFerrySchedulesIndexRoute,
 }
 
 const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(

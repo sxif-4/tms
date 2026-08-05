@@ -10,8 +10,10 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { CurrentUser } from '../../shared/decorators/current-user.decorator';
 import { Roles } from '../../shared/decorators/roles.decorator';
 import { Role } from '../../shared/enums/role.enum';
+import type { AuthenticatedUser } from '../../shared/interfaces/authenticated-user.interface';
 import {
   type FerryBooking,
   type FerryRoute,
@@ -20,6 +22,7 @@ import {
 import { CreateFerryBookingDto } from './dto/create-ferry-booking.dto';
 import { CreateFerryRouteDto } from './dto/create-ferry-route.dto';
 import { CreateFerryScheduleDto } from './dto/create-ferry-schedule.dto';
+import { UpdateFerryBookingDto } from './dto/update-ferry-booking.dto';
 import { UpdateFerryRouteDto } from './dto/update-ferry-route.dto';
 import { UpdateFerryScheduleDto } from './dto/update-ferry-schedule.dto';
 import { FerryService } from './ferry.service';
@@ -47,22 +50,29 @@ export class FerryController {
   }
 
   @Post('routes')
-  createRoute(@Body() dto: CreateFerryRouteDto): Promise<FerryRoute> {
-    return this.ferryService.createRoute(dto);
+  createRoute(
+    @Body() dto: CreateFerryRouteDto,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<FerryRoute> {
+    return this.ferryService.createRoute(currentUser, dto);
   }
 
   @Patch('routes/:id')
   updateRoute(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateFerryRouteDto,
+    @CurrentUser() currentUser: AuthenticatedUser,
   ): Promise<FerryRoute> {
-    return this.ferryService.updateRoute(id, dto);
+    return this.ferryService.updateRoute(currentUser, id, dto);
   }
 
   @Delete('routes/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  removeRoute(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    return this.ferryService.removeRoute(id);
+  removeRoute(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<void> {
+    return this.ferryService.removeRoute(currentUser, id);
   }
 
   @Get('schedules')
@@ -80,22 +90,29 @@ export class FerryController {
   }
 
   @Post('schedules')
-  createSchedule(@Body() dto: CreateFerryScheduleDto): Promise<FerrySchedule> {
-    return this.ferryService.createSchedule(dto);
+  createSchedule(
+    @Body() dto: CreateFerryScheduleDto,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<FerrySchedule> {
+    return this.ferryService.createSchedule(currentUser, dto);
   }
 
   @Patch('schedules/:id')
   updateSchedule(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateFerryScheduleDto,
+    @CurrentUser() currentUser: AuthenticatedUser,
   ): Promise<FerrySchedule> {
-    return this.ferryService.updateSchedule(id, dto);
+    return this.ferryService.updateSchedule(currentUser, id, dto);
   }
 
   @Delete('schedules/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  removeSchedule(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    return this.ferryService.removeSchedule(id);
+  removeSchedule(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<void> {
+    return this.ferryService.removeSchedule(currentUser, id);
   }
 
   @Get('users/:userId/hotel-bookings')
@@ -116,21 +133,28 @@ export class FerryController {
   }
 
   @Post('bookings')
-  createBooking(@Body() dto: CreateFerryBookingDto): Promise<FerryBooking> {
-    return this.ferryService.createBooking(dto);
+  createBooking(
+    @Body() dto: CreateFerryBookingDto,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<FerryBooking> {
+    return this.ferryService.createBooking(currentUser, dto);
   }
 
   @Patch('bookings/:id')
   updateBooking(
     @Param('id', ParseIntPipe) id: number,
-    @Body() dto: Partial<CreateFerryBookingDto>,
+    @Body() dto: UpdateFerryBookingDto,
+    @CurrentUser() currentUser: AuthenticatedUser,
   ): Promise<FerryBooking> {
-    return this.ferryService.updateBooking(id, dto);
+    return this.ferryService.updateBooking(currentUser, id, dto);
   }
 
   @Delete('bookings/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  removeBooking(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    return this.ferryService.removeBooking(id);
+  removeBooking(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<void> {
+    return this.ferryService.removeBooking(currentUser, id);
   }
 }

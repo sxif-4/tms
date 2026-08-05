@@ -1,22 +1,15 @@
-import {
-  IsDateString,
-  IsIn,
-  IsInt,
-  IsOptional,
-  IsPositive,
-  Max,
-  Min,
-} from 'class-validator';
+import { IsInt, IsPositive, Max, Min } from 'class-validator';
 
-export const FERRY_BOOKING_STATUSES = [
-  'pending',
-  'confirmed',
-  'cancelled',
-  'validated',
-] as const;
-export type FerryBookingStatus = (typeof FERRY_BOOKING_STATUSES)[number];
-
-/** bookingReference and totalAmount are always server-generated/computed — never client input. */
+/**
+ * A booking request. Everything that asserts something about the booking's
+ * standing is server-controlled and absent here on purpose:
+ *
+ * - `bookingReference` / `totalAmount` are generated and computed on write.
+ * - `status` always starts `pending`; only the issue/validate/cancel actions
+ *   move it.
+ * - `validatedBy` / `validatedAt` are written from the authenticated staff user
+ *   at check-in — a client may never claim a pass was checked in, or by whom.
+ */
 export class CreateFerryBookingDto {
   @IsInt()
   @IsPositive()
@@ -34,18 +27,4 @@ export class CreateFerryBookingDto {
   @Min(1)
   @Max(255)
   passengerCount!: number;
-
-  @IsOptional()
-  @IsInt()
-  @IsPositive()
-  validatedBy?: number;
-
-  @IsOptional()
-  @IsDateString()
-  validatedAt?: string;
-
-  @IsIn(FERRY_BOOKING_STATUSES, {
-    message: `status must be one of: ${FERRY_BOOKING_STATUSES.join(', ')}`,
-  })
-  status!: FerryBookingStatus;
 }

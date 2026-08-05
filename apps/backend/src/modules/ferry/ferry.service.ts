@@ -1,17 +1,24 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
+import { AuditService } from '../../shared/audit/audit.service';
+import { AuditAction } from '../../shared/enums/audit-action.enum';
+import { AuthenticatedUser } from '../../shared/interfaces/authenticated-user.interface';
+import { addUtcDays, toDateKey } from '../../shared/utils/park-date';
 import {
   type FerryBooking,
   type FerryRoute,
   type FerrySchedule,
+  type HotelBooking,
 } from '../../shared/database/schema';
 import { CreateFerryBookingDto } from './dto/create-ferry-booking.dto';
 import { CreateFerryRouteDto } from './dto/create-ferry-route.dto';
 import { CreateFerryScheduleDto } from './dto/create-ferry-schedule.dto';
+import { UpdateFerryBookingDto } from './dto/update-ferry-booking.dto';
 import { UpdateFerryRouteDto } from './dto/update-ferry-route.dto';
 import { UpdateFerryScheduleDto } from './dto/update-ferry-schedule.dto';
 import {
@@ -22,9 +29,24 @@ import {
 const money = (value: number | string) => Number(value).toFixed(2);
 const ref = () => `FB-${randomUUID().slice(0, 8).toUpperCase()}`;
 
+/**
+ * A stay only authorises ferry travel once it is actually paid for. A `pending`
+ * booking is an unpaid intention, not a valid stay.
+ */
+const FERRY_ELIGIBLE_HOTEL_STATUSES: readonly HotelBooking['status'][] = [
+  'confirmed',
+  'completed',
+];
+
+/** Guests sail in the evening before check-in and the morning after check-out. */
+const FERRY_TRAVEL_GRACE_DAYS = 1;
+
 @Injectable()
 export class FerryService {
-  constructor(private readonly ferryRepo: FerryRepository) {}
+  constructor(
+    private readonly ferryRepo: FerryRepository,
+    private readonly audit: AuditService,
+  ) {}
 
   listRoutes(): Promise<FerryRoute[]> {
     return this.ferryRepo.findAllRoutes();
@@ -36,15 +58,31 @@ export class FerryService {
     return route;
   }
 
-  async createRoute(dto: CreateFerryRouteDto): Promise<FerryRoute> {
-    return this.ferryRepo.createRoute({
+  async createRoute(
+    staff: AuthenticatedUser,
+    dto: CreateFerryRouteDto,
+  ): Promise<FerryRoute> {
+    const route = await this.ferryRepo.createRoute({
       name: dto.name,
       origin: dto.origin,
       destination: dto.destination,
     });
+
+    await this.audit.record({
+      userId: staff.id,
+      action: AuditAction.FerryRouteCreated,
+      subjectType: 'FerryRoute',
+      subjectId: route.id,
+      metadata: { name: route.name },
+    });
+    return route;
   }
 
-  async updateRoute(id: number, dto: UpdateFerryRouteDto): Promise<FerryRoute> {
+  async updateRoute(
+    staff: AuthenticatedUser,
+    id: number,
+    dto: UpdateFerryRouteDto,
+  ): Promise<FerryRoute> {
     await this.getRouteById(id);
 
     const updated = await this.ferryRepo.updateRoute(id, {
@@ -53,12 +91,36 @@ export class FerryService {
       destination: dto.destination,
     });
     if (!updated) throw new NotFoundException(`Ferry route #${id} not found`);
+
+    await this.audit.record({
+      userId: staff.id,
+      action: AuditAction.FerryRouteUpdated,
+      subjectType: 'FerryRoute',
+      subjectId: id,
+      metadata: { name: updated.name },
+    });
     return updated;
   }
 
-  async removeRoute(id: number): Promise<void> {
-    await this.getRouteById(id);
+  async removeRoute(staff: AuthenticatedUser, id: number): Promise<void> {
+    const route = await this.getRouteById(id);
+
+    // Without this the FK would surface as an opaque 500.
+    const schedules = await this.ferryRepo.countSchedulesByRouteId(id);
+    if (schedules > 0) {
+      throw new ConflictException(
+        `Cannot delete a route with ${schedules} sailing(s) — remove them first`,
+      );
+    }
+
     await this.ferryRepo.deleteRoute(id);
+    await this.audit.record({
+      userId: staff.id,
+      action: AuditAction.FerryRouteDeleted,
+      subjectType: 'FerryRoute',
+      subjectId: id,
+      metadata: { name: route.name },
+    });
   }
 
   listSchedules(): Promise<FerrySchedule[]> {
@@ -72,10 +134,13 @@ export class FerryService {
     return schedule;
   }
 
-  async createSchedule(dto: CreateFerryScheduleDto): Promise<FerrySchedule> {
+  async createSchedule(
+    staff: AuthenticatedUser,
+    dto: CreateFerryScheduleDto,
+  ): Promise<FerrySchedule> {
     await this.getRouteById(dto.routeId);
 
-    return this.ferryRepo.createSchedule({
+    const schedule = await this.ferryRepo.createSchedule({
       routeId: dto.routeId,
       departureAt: new Date(dto.departureAt),
       direction: dto.direction,
@@ -83,16 +148,40 @@ export class FerryService {
       basePrice: money(dto.basePrice),
       status: dto.status,
     });
+
+    await this.audit.record({
+      userId: staff.id,
+      action: AuditAction.FerryScheduleCreated,
+      subjectType: 'FerrySchedule',
+      subjectId: schedule.id,
+      metadata: {
+        routeId: schedule.routeId,
+        departureAt: schedule.departureAt.toISOString(),
+        capacity: schedule.capacity,
+      },
+    });
+    return schedule;
   }
 
   async updateSchedule(
+    staff: AuthenticatedUser,
     id: number,
     dto: UpdateFerryScheduleDto,
   ): Promise<FerrySchedule> {
-    await this.getScheduleById(id);
+    const current = await this.getScheduleById(id);
 
     if (dto.routeId != null) {
       await this.getRouteById(dto.routeId);
+    }
+
+    // Shrinking below what is already sold would silently oversell the sailing.
+    if (dto.capacity != null && dto.capacity < current.capacity) {
+      const booked = await this.ferryRepo.sumPassengersByScheduleId(id);
+      if (dto.capacity < booked) {
+        throw new ConflictException(
+          `Capacity cannot drop below the ${booked} passenger(s) already booked`,
+        );
+      }
     }
 
     const updated = await this.ferryRepo.updateSchedule(id, {
@@ -105,20 +194,117 @@ export class FerryService {
     });
     if (!updated)
       throw new NotFoundException(`Ferry schedule #${id} not found`);
+
+    await this.audit.record({
+      userId: staff.id,
+      action: AuditAction.FerryScheduleUpdated,
+      subjectType: 'FerrySchedule',
+      subjectId: id,
+      metadata: { status: updated.status, capacity: updated.capacity },
+    });
     return updated;
   }
 
-  async removeSchedule(id: number): Promise<void> {
-    await this.getScheduleById(id);
+  async removeSchedule(staff: AuthenticatedUser, id: number): Promise<void> {
+    const schedule = await this.getScheduleById(id);
+
+    const bookings = await this.ferryRepo.countBookingsByScheduleId(id);
+    if (bookings > 0) {
+      throw new ConflictException(
+        `Cannot delete a sailing with ${bookings} booking(s) — cancel it instead`,
+      );
+    }
+
     await this.ferryRepo.deleteSchedule(id);
+    await this.audit.record({
+      userId: staff.id,
+      action: AuditAction.FerryScheduleDeleted,
+      subjectType: 'FerrySchedule',
+      subjectId: id,
+      metadata: { departureAt: schedule.departureAt.toISOString() },
+    });
   }
 
-  /** Hotel bookings a staff member can pick from when creating a ferry booking for this user — cancelled ones are excluded since they can never satisfy the valid-stay rule. */
+  /**
+   * The spec's "valid hotel booking" rule, in one place, called from every path
+   * that creates or edits a booking. Each rejection names its own reason —
+   * staff need to know what to tell the guest at the counter.
+   */
+  private assertHotelBookingEligible(
+    hotelBooking: HotelBooking,
+    passengerUserId: number,
+    departureAt: Date,
+  ): void {
+    if (hotelBooking.userId !== passengerUserId) {
+      throw new BadRequestException(
+        'That hotel booking belongs to a different guest',
+      );
+    }
+
+    if (!FERRY_ELIGIBLE_HOTEL_STATUSES.includes(hotelBooking.status)) {
+      throw new BadRequestException(
+        `Hotel booking is ${hotelBooking.status} — a confirmed stay is required for ferry access`,
+      );
+    }
+
+    // Date keys are `YYYY-MM-DD`, so lexicographic comparison is chronological.
+    const from = toDateKey(
+      addUtcDays(hotelBooking.checkIn, -FERRY_TRAVEL_GRACE_DAYS),
+    );
+    const to = toDateKey(
+      addUtcDays(hotelBooking.checkOut, FERRY_TRAVEL_GRACE_DAYS),
+    );
+    const sailing = toDateKey(departureAt);
+
+    if (sailing < from || sailing > to) {
+      throw new BadRequestException(
+        `Sailing on ${sailing} falls outside the stay ` +
+          `(${toDateKey(hotelBooking.checkIn)} – ${toDateKey(hotelBooking.checkOut)})`,
+      );
+    }
+  }
+
+  /** A sailing can only take bookings while it is still going to sail. */
+  private assertScheduleBookable(schedule: FerrySchedule): void {
+    if (schedule.status !== 'scheduled') {
+      throw new BadRequestException(`This sailing is ${schedule.status}`);
+    }
+    if (schedule.departureAt.getTime() <= Date.now()) {
+      throw new BadRequestException('This sailing has already departed');
+    }
+  }
+
+  /** Seats left on a sailing, ignoring one booking (the one being edited). */
+  private async assertCapacity(
+    schedule: FerrySchedule,
+    passengerCount: number,
+    excludeBookingId?: number,
+  ): Promise<void> {
+    const booked = await this.ferryRepo.sumPassengersByScheduleId(
+      schedule.id,
+      excludeBookingId,
+    );
+    const remaining = schedule.capacity - booked;
+
+    if (passengerCount > remaining) {
+      throw new BadRequestException(
+        `Only ${remaining} seat(s) left on this sailing`,
+      );
+    }
+  }
+
+  /**
+   * Hotel bookings a staff member can pick from when creating a ferry booking
+   * for this user. Filtered to the same statuses the eligibility rule accepts,
+   * so the picker can never offer an option the API would reject.
+   */
   async listHotelBookingsForUser(
     userId: number,
   ): Promise<HotelBookingOptionRow[]> {
     const bookings = await this.ferryRepo.findHotelBookingsByUserId(userId);
-    return bookings.filter((booking) => booking.status !== 'cancelled');
+    return bookings.filter((booking) =>
+      FERRY_ELIGIBLE_HOTEL_STATUSES.includes(booking.status),
+    );
   }
 
   listBookings(): Promise<FerryBooking[]> {
@@ -131,121 +317,116 @@ export class FerryService {
     return booking;
   }
 
-  async createBooking(dto: CreateFerryBookingDto): Promise<FerryBooking> {
+  async createBooking(
+    staff: AuthenticatedUser,
+    dto: CreateFerryBookingDto,
+  ): Promise<FerryBooking> {
     const schedule = await this.getScheduleById(dto.scheduleId);
+    this.assertScheduleBookable(schedule);
+
     const hotelBooking = await this.ferryRepo.findHotelBookingById(
       dto.hotelBookingId,
     );
-
     if (!hotelBooking) {
       throw new NotFoundException(
         `Hotel booking #${dto.hotelBookingId} not found`,
       );
     }
 
-    if (hotelBooking.status === 'cancelled') {
-      throw new BadRequestException(
-        'Hotel booking is cancelled and cannot be used for ferry access',
-      );
-    }
-
-    if (dto.passengerCount > schedule.capacity) {
-      throw new BadRequestException(
-        `Passenger count exceeds schedule capacity of ${schedule.capacity}`,
-      );
-    }
-
-    const existingBookings = await this.ferryRepo.findBookingsByScheduleId(
-      dto.scheduleId,
+    this.assertHotelBookingEligible(
+      hotelBooking,
+      dto.userId,
+      schedule.departureAt,
     );
-    const bookedPassengers = existingBookings.reduce(
-      (sum, booking) => sum + Number(booking.passengerCount),
-      0,
-    );
+    await this.assertCapacity(schedule, dto.passengerCount);
 
-    if (bookedPassengers + dto.passengerCount > schedule.capacity) {
-      throw new BadRequestException(
-        'Not enough capacity remaining on this ferry schedule',
-      );
-    }
-
-    const totalAmount = money(Number(schedule.basePrice) * dto.passengerCount);
-
-    return this.ferryRepo.createBooking({
+    const booking = await this.ferryRepo.createBooking({
       bookingReference: ref(),
       userId: dto.userId,
       scheduleId: dto.scheduleId,
       hotelBookingId: dto.hotelBookingId,
       passengerCount: dto.passengerCount,
-      totalAmount,
-      validatedBy: dto.validatedBy,
-      validatedAt: dto.validatedAt ? new Date(dto.validatedAt) : null,
-      status: dto.status,
+      totalAmount: money(Number(schedule.basePrice) * dto.passengerCount),
+      status: 'pending',
     });
+
+    await this.audit.record({
+      userId: staff.id,
+      action: AuditAction.FerryBookingCreated,
+      subjectType: 'FerryBooking',
+      subjectId: booking.id,
+      metadata: {
+        bookingReference: booking.bookingReference,
+        scheduleId: booking.scheduleId,
+        passengerCount: booking.passengerCount,
+      },
+    });
+    return booking;
   }
 
   async updateBooking(
+    staff: AuthenticatedUser,
     id: number,
-    dto: Partial<CreateFerryBookingDto>,
+    dto: UpdateFerryBookingDto,
   ): Promise<FerryBooking> {
     const current = await this.getBookingById(id);
 
-    const scheduleId = dto.scheduleId ?? current.scheduleId;
-    const schedule = await this.getScheduleById(scheduleId);
+    const schedule = await this.getScheduleById(
+      dto.scheduleId ?? current.scheduleId,
+    );
+    this.assertScheduleBookable(schedule);
 
-    const hotelBookingId = dto.hotelBookingId ?? current.hotelBookingId;
-    const hotelBooking =
-      await this.ferryRepo.findHotelBookingById(hotelBookingId);
-
+    const hotelBooking = await this.ferryRepo.findHotelBookingById(
+      current.hotelBookingId,
+    );
     if (!hotelBooking) {
-      throw new NotFoundException(`Hotel booking #${hotelBookingId} not found`);
-    }
-
-    if (hotelBooking.status === 'cancelled') {
-      throw new BadRequestException(
-        'Hotel booking is cancelled and cannot be used for ferry access',
+      throw new NotFoundException(
+        `Hotel booking #${current.hotelBookingId} not found`,
       );
     }
+
+    // Re-checked because moving to another sailing can push the departure
+    // outside the stay that authorises it.
+    this.assertHotelBookingEligible(
+      hotelBooking,
+      current.userId,
+      schedule.departureAt,
+    );
 
     const passengerCount = dto.passengerCount ?? current.passengerCount;
-    if (passengerCount > schedule.capacity) {
-      throw new BadRequestException(
-        `Passenger count exceeds schedule capacity of ${schedule.capacity}`,
-      );
-    }
-
-    const existingBookings =
-      await this.ferryRepo.findBookingsByScheduleId(scheduleId);
-    const currentBookingId = current.id;
-    const bookedPassengers = existingBookings.reduce((sum, booking) => {
-      if (booking.id === currentBookingId) return sum;
-      return sum + Number(booking.passengerCount);
-    }, 0);
-
-    if (bookedPassengers + passengerCount > schedule.capacity) {
-      throw new BadRequestException(
-        'Not enough capacity remaining on this ferry schedule',
-      );
-    }
-
-    const totalAmount = money(Number(schedule.basePrice) * passengerCount);
+    await this.assertCapacity(schedule, passengerCount, current.id);
 
     const updated = await this.ferryRepo.updateBooking(id, {
-      userId: dto.userId,
       scheduleId: dto.scheduleId,
-      hotelBookingId: dto.hotelBookingId,
       passengerCount: dto.passengerCount,
-      totalAmount,
-      validatedBy: dto.validatedBy,
-      validatedAt: dto.validatedAt ? new Date(dto.validatedAt) : undefined,
-      status: dto.status,
+      totalAmount: money(Number(schedule.basePrice) * passengerCount),
     });
     if (!updated) throw new NotFoundException(`Ferry booking #${id} not found`);
+
+    await this.audit.record({
+      userId: staff.id,
+      action: AuditAction.FerryBookingUpdated,
+      subjectType: 'FerryBooking',
+      subjectId: id,
+      metadata: {
+        bookingReference: updated.bookingReference,
+        scheduleId: updated.scheduleId,
+        passengerCount: updated.passengerCount,
+      },
+    });
     return updated;
   }
 
-  async removeBooking(id: number): Promise<void> {
-    await this.getBookingById(id);
+  async removeBooking(staff: AuthenticatedUser, id: number): Promise<void> {
+    const booking = await this.getBookingById(id);
+
     await this.ferryRepo.deleteBooking(id);
+    await this.audit.record({
+      userId: staff.id,
+      action: AuditAction.FerryBookingDeleted,
+      subjectType: 'FerryBooking',
+      subjectId: id,
+      metadata: { bookingReference: booking.bookingReference },
+    });
   }
 }

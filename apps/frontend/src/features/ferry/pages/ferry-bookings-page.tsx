@@ -22,13 +22,6 @@ import {
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
 import { PageHeading } from "~/components/page-heading";
 import {
   ferryBookingsQueryOptions,
@@ -100,7 +93,6 @@ export function FerryBookingsPage({
   const [scheduleId, setScheduleId] = useState("");
   const [hotelBookingId, setHotelBookingId] = useState("");
   const [passengerCount, setPassengerCount] = useState("");
-  const [status, setStatus] = useState<FerryBooking["status"]>("pending");
   const [formError, setFormError] = useState<string | null>(null);
 
   const {
@@ -209,7 +201,6 @@ export function FerryBookingsPage({
     setScheduleId("");
     setHotelBookingId("");
     setPassengerCount("");
-    setStatus("pending");
     setFormError(null);
   };
 
@@ -221,7 +212,6 @@ export function FerryBookingsPage({
           scheduleId: Number(scheduleId),
           hotelBookingId: Number(hotelBookingId),
           passengerCount: Number(passengerCount),
-          status,
         },
       }),
     onSuccess: (created) => {
@@ -381,8 +371,9 @@ export function FerryBookingsPage({
           <DialogHeader>
             <DialogTitle>Create ferry booking</DialogTitle>
             <DialogDescription>
-              Add a new ferry booking request to the system. The booking
-              reference is generated automatically.
+              Add a new ferry booking request to the system. The reference is
+              generated automatically and the booking starts as pending until a
+              pass is issued.
             </DialogDescription>
           </DialogHeader>
 
@@ -408,38 +399,17 @@ export function FerryBookingsPage({
               />
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="booking-schedule">Sailing</Label>
-                <Combobox
-                  id="booking-schedule"
-                  options={scheduleOptions}
-                  value={scheduleId}
-                  onChange={setScheduleId}
-                  placeholder="Select a sailing"
-                  searchPlaceholder="Search sailings…"
-                  emptyText="No sailings found."
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="booking-status">Status</Label>
-                <Select
-                  value={status}
-                  onValueChange={(value) =>
-                    setStatus(value as FerryBooking["status"])
-                  }
-                >
-                  <SelectTrigger id="booking-status">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="confirmed">Confirmed</SelectItem>
-                    <SelectItem value="validated">Validated</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="grid gap-2">
+              <Label htmlFor="booking-schedule">Sailing</Label>
+              <Combobox
+                id="booking-schedule"
+                options={scheduleOptions}
+                value={scheduleId}
+                onChange={setScheduleId}
+                placeholder="Select a sailing"
+                searchPlaceholder="Search sailings…"
+                emptyText="No sailings found."
+              />
             </div>
 
             <div className="grid gap-2">

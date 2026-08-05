@@ -1070,7 +1070,7 @@ export async function seedDemo(db: DemoDb): Promise<void> {
     .returning()
     .get();
 
-  const [depOut, , futOut] = db
+  const [depOut, , futOut, , soonOut] = db
     .insert(ferrySchedules)
     .values([
       {
@@ -1105,6 +1105,16 @@ export async function seedDemo(db: DemoDb): Promise<void> {
         basePrice: '40.00',
         status: 'scheduled',
       },
+      // Falls inside James' stay (HB-2, -3 → +1), which is what makes his
+      // pending booking below satisfy the hotel-booking eligibility rule.
+      {
+        routeId: route.id,
+        departureAt: at(1),
+        direction: 'to_theme_park',
+        capacity: 80,
+        basePrice: '40.00',
+        status: 'scheduled',
+      },
     ])
     .returning()
     .all();
@@ -1135,7 +1145,7 @@ export async function seedDemo(db: DemoDb): Promise<void> {
       {
         bookingReference: ref('FB', 3),
         userId: james.id,
-        scheduleId: futOut.id,
+        scheduleId: soonOut.id,
         hotelBookingId: hb2.id,
         passengerCount: 2,
         totalAmount: '80.00',
