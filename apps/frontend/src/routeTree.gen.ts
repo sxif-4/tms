@@ -46,6 +46,7 @@ import { Route as DashboardHotelRoomsIndexRouteImport } from './routes/dashboard
 import { Route as DashboardHotelReportsIndexRouteImport } from './routes/dashboard/hotel/reports/index'
 import { Route as DashboardHotelPromotionsIndexRouteImport } from './routes/dashboard/hotel/promotions/index'
 import { Route as DashboardHotelBookingsIndexRouteImport } from './routes/dashboard/hotel/bookings/index'
+import { Route as DashboardFerryValidateIndexRouteImport } from './routes/dashboard/ferry/validate/index'
 import { Route as DashboardFerrySchedulesIndexRouteImport } from './routes/dashboard/ferry/schedules/index'
 import { Route as DashboardFerryRoutesIndexRouteImport } from './routes/dashboard/ferry/routes/index'
 import { Route as DashboardFerryBookingsIndexRouteImport } from './routes/dashboard/ferry/bookings/index'
@@ -260,6 +261,12 @@ const DashboardHotelBookingsIndexRoute =
     path: '/bookings/',
     getParentRoute: () => DashboardHotelRouteRoute,
   } as any)
+const DashboardFerryValidateIndexRoute =
+  DashboardFerryValidateIndexRouteImport.update({
+    id: '/validate/',
+    path: '/validate/',
+    getParentRoute: () => DashboardFerryRouteRoute,
+  } as any)
 const DashboardFerrySchedulesIndexRoute =
   DashboardFerrySchedulesIndexRouteImport.update({
     id: '/schedules/',
@@ -396,6 +403,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/ferry/bookings/': typeof DashboardFerryBookingsIndexRoute
   '/dashboard/ferry/routes/': typeof DashboardFerryRoutesIndexRoute
   '/dashboard/ferry/schedules/': typeof DashboardFerrySchedulesIndexRoute
+  '/dashboard/ferry/validate/': typeof DashboardFerryValidateIndexRoute
   '/dashboard/hotel/bookings/': typeof DashboardHotelBookingsIndexRoute
   '/dashboard/hotel/promotions/': typeof DashboardHotelPromotionsIndexRoute
   '/dashboard/hotel/reports/': typeof DashboardHotelReportsIndexRoute
@@ -447,6 +455,7 @@ export interface FileRoutesByTo {
   '/dashboard/ferry/bookings': typeof DashboardFerryBookingsIndexRoute
   '/dashboard/ferry/routes': typeof DashboardFerryRoutesIndexRoute
   '/dashboard/ferry/schedules': typeof DashboardFerrySchedulesIndexRoute
+  '/dashboard/ferry/validate': typeof DashboardFerryValidateIndexRoute
   '/dashboard/hotel/bookings': typeof DashboardHotelBookingsIndexRoute
   '/dashboard/hotel/promotions': typeof DashboardHotelPromotionsIndexRoute
   '/dashboard/hotel/reports': typeof DashboardHotelReportsIndexRoute
@@ -503,6 +512,7 @@ export interface FileRoutesById {
   '/dashboard/ferry/bookings/': typeof DashboardFerryBookingsIndexRoute
   '/dashboard/ferry/routes/': typeof DashboardFerryRoutesIndexRoute
   '/dashboard/ferry/schedules/': typeof DashboardFerrySchedulesIndexRoute
+  '/dashboard/ferry/validate/': typeof DashboardFerryValidateIndexRoute
   '/dashboard/hotel/bookings/': typeof DashboardHotelBookingsIndexRoute
   '/dashboard/hotel/promotions/': typeof DashboardHotelPromotionsIndexRoute
   '/dashboard/hotel/reports/': typeof DashboardHotelReportsIndexRoute
@@ -560,6 +570,7 @@ export interface FileRouteTypes {
     | '/dashboard/ferry/bookings/'
     | '/dashboard/ferry/routes/'
     | '/dashboard/ferry/schedules/'
+    | '/dashboard/ferry/validate/'
     | '/dashboard/hotel/bookings/'
     | '/dashboard/hotel/promotions/'
     | '/dashboard/hotel/reports/'
@@ -611,6 +622,7 @@ export interface FileRouteTypes {
     | '/dashboard/ferry/bookings'
     | '/dashboard/ferry/routes'
     | '/dashboard/ferry/schedules'
+    | '/dashboard/ferry/validate'
     | '/dashboard/hotel/bookings'
     | '/dashboard/hotel/promotions'
     | '/dashboard/hotel/reports'
@@ -666,6 +678,7 @@ export interface FileRouteTypes {
     | '/dashboard/ferry/bookings/'
     | '/dashboard/ferry/routes/'
     | '/dashboard/ferry/schedules/'
+    | '/dashboard/ferry/validate/'
     | '/dashboard/hotel/bookings/'
     | '/dashboard/hotel/promotions/'
     | '/dashboard/hotel/reports/'
@@ -961,6 +974,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardHotelBookingsIndexRouteImport
       parentRoute: typeof DashboardHotelRouteRoute
     }
+    '/dashboard/ferry/validate/': {
+      id: '/dashboard/ferry/validate/'
+      path: '/validate'
+      fullPath: '/dashboard/ferry/validate/'
+      preLoaderRoute: typeof DashboardFerryValidateIndexRouteImport
+      parentRoute: typeof DashboardFerryRouteRoute
+    }
     '/dashboard/ferry/schedules/': {
       id: '/dashboard/ferry/schedules/'
       path: '/schedules'
@@ -1110,6 +1130,7 @@ interface DashboardFerryRouteRouteChildren {
   DashboardFerryBookingsIndexRoute: typeof DashboardFerryBookingsIndexRoute
   DashboardFerryRoutesIndexRoute: typeof DashboardFerryRoutesIndexRoute
   DashboardFerrySchedulesIndexRoute: typeof DashboardFerrySchedulesIndexRoute
+  DashboardFerryValidateIndexRoute: typeof DashboardFerryValidateIndexRoute
 }
 
 const DashboardFerryRouteRouteChildren: DashboardFerryRouteRouteChildren = {
@@ -1117,6 +1138,7 @@ const DashboardFerryRouteRouteChildren: DashboardFerryRouteRouteChildren = {
   DashboardFerryBookingsIndexRoute: DashboardFerryBookingsIndexRoute,
   DashboardFerryRoutesIndexRoute: DashboardFerryRoutesIndexRoute,
   DashboardFerrySchedulesIndexRoute: DashboardFerrySchedulesIndexRoute,
+  DashboardFerryValidateIndexRoute: DashboardFerryValidateIndexRoute,
 }
 
 const DashboardFerryRouteRouteWithChildren =

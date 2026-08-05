@@ -46,6 +46,10 @@ export enum AuditAction {
   FerryBookingCreated = 'ferry_booking.created',
   FerryBookingUpdated = 'ferry_booking.updated',
   FerryBookingDeleted = 'ferry_booking.deleted',
+  // `issued` and `validated` are the audit trail for money and physical access.
+  FerryBookingIssued = 'ferry_booking.issued',
+  FerryBookingValidated = 'ferry_booking.validated',
+  FerryBookingCancelled = 'ferry_booking.cancelled',
   ParkTicketTypeCreated = 'park_ticket_type.created',
   ParkTicketTypeUpdated = 'park_ticket_type.updated',
   ParkTicketTypeDeleted = 'park_ticket_type.deleted',

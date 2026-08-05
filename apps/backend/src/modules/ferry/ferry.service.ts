@@ -8,7 +8,11 @@ import { randomUUID } from 'node:crypto';
 import { AuditService } from '../../shared/audit/audit.service';
 import { AuditAction } from '../../shared/enums/audit-action.enum';
 import { AuthenticatedUser } from '../../shared/interfaces/authenticated-user.interface';
-import { addUtcDays, toDateKey } from '../../shared/utils/park-date';
+import {
+  addUtcDays,
+  isSameUtcDay,
+  toDateKey,
+} from '../../shared/utils/park-date';
 import {
   type FerryBooking,
   type FerryRoute,
@@ -21,10 +25,47 @@ import { CreateFerryScheduleDto } from './dto/create-ferry-schedule.dto';
 import { UpdateFerryBookingDto } from './dto/update-ferry-booking.dto';
 import { UpdateFerryRouteDto } from './dto/update-ferry-route.dto';
 import { UpdateFerryScheduleDto } from './dto/update-ferry-schedule.dto';
+import { ValidateFerryPassDto } from './dto/validate-ferry-pass.dto';
 import {
   FerryRepository,
+  type FerryBookingFilters,
+  type FerryBookingRow,
   type HotelBookingOptionRow,
 } from './ferry.repository';
+
+export const FERRY_BOOKING_STATUSES = [
+  'pending',
+  'confirmed',
+  'cancelled',
+  'validated',
+] as const;
+
+/** The guest-facing ferry pass — the projection safe to hand over or print. */
+export interface FerryPass {
+  bookingReference: string;
+  status: FerryBooking['status'];
+  guestName: string;
+  passengerCount: number;
+  totalAmount: string;
+  routeName: string;
+  origin: string;
+  destination: string;
+  departureAt: Date;
+  direction: FerrySchedule['direction'];
+  hotelName: string;
+  hotelBookingReference: string;
+  /** Null until a pass is issued. See ferryOperatorPlan.md decision 2. */
+  issuedAt: Date | null;
+  validatedAt: Date | null;
+}
+
+/** The fields of a stay the eligibility rule actually reads. */
+interface EligibleStay {
+  userId: number;
+  status: HotelBooking['status'];
+  checkIn: Date;
+  checkOut: Date;
+}
 
 const money = (value: number | string) => Number(value).toFixed(2);
 const ref = () => `FB-${randomUUID().slice(0, 8).toUpperCase()}`;
@@ -231,7 +272,7 @@ export class FerryService {
    * staff need to know what to tell the guest at the counter.
    */
   private assertHotelBookingEligible(
-    hotelBooking: HotelBooking,
+    hotelBooking: EligibleStay,
     passengerUserId: number,
     departureAt: Date,
   ): void {
@@ -265,7 +306,10 @@ export class FerryService {
   }
 
   /** A sailing can only take bookings while it is still going to sail. */
-  private assertScheduleBookable(schedule: FerrySchedule): void {
+  private assertScheduleBookable(schedule: {
+    status: FerrySchedule['status'];
+    departureAt: Date;
+  }): void {
     if (schedule.status !== 'scheduled') {
       throw new BadRequestException(`This sailing is ${schedule.status}`);
     }
@@ -307,14 +351,190 @@ export class FerryService {
     );
   }
 
-  listBookings(): Promise<FerryBooking[]> {
-    return this.ferryRepo.findAllBookings();
+  listBookings(filters: FerryBookingFilters = {}): Promise<FerryBookingRow[]> {
+    return this.ferryRepo.findBookingRows(filters);
   }
 
   async getBookingById(id: number): Promise<FerryBooking> {
     const booking = await this.ferryRepo.findBookingById(id);
     if (!booking) throw new NotFoundException(`Ferry booking #${id} not found`);
     return booking;
+  }
+
+  async getBookingRowById(id: number): Promise<FerryBookingRow> {
+    const row = await this.ferryRepo.findBookingRowById(id);
+    if (!row) throw new NotFoundException(`Ferry booking #${id} not found`);
+    return row;
+  }
+
+  /** Read-only preview for the validation screen — deliberately does not mutate. */
+  async lookup(reference: string): Promise<FerryBookingRow> {
+    const row = await this.ferryRepo.findBookingRowByReference(
+      reference.trim(),
+    );
+    if (!row) throw new NotFoundException('No booking with that reference');
+    return row;
+  }
+
+  async getPass(id: number): Promise<FerryPass> {
+    const row = await this.getBookingRowById(id);
+
+    return {
+      bookingReference: row.bookingReference,
+      status: row.status,
+      guestName: row.guestName,
+      passengerCount: row.passengerCount,
+      totalAmount: row.totalAmount,
+      routeName: row.routeName,
+      origin: row.origin,
+      destination: row.destination,
+      departureAt: row.departureAt,
+      direction: row.direction,
+      hotelName: row.hotelName,
+      hotelBookingReference: row.hotelBookingReference,
+      issuedAt: row.status === 'pending' ? null : row.updatedAt,
+      validatedAt: row.validatedAt,
+    };
+  }
+
+  /** The stay as the eligibility rule sees it, projected off a joined row. */
+  private stayOf(row: FerryBookingRow): EligibleStay {
+    return {
+      userId: row.hotelUserId,
+      status: row.hotelStatus,
+      checkIn: row.hotelCheckIn,
+      checkOut: row.hotelCheckOut,
+    };
+  }
+
+  /**
+   * Issue the pass — the spec's "provide customer with a ferry pass if valid
+   * hotel booking exist". Eligibility is re-run here, not just at request time:
+   * the stay may have been cancelled in between.
+   */
+  async issue(staff: AuthenticatedUser, id: number): Promise<FerryPass> {
+    const row = await this.getBookingRowById(id);
+
+    if (row.status === 'confirmed') {
+      throw new ConflictException(
+        'A pass has already been issued for this booking',
+      );
+    }
+    if (row.status === 'validated') {
+      throw new ConflictException('This passenger has already boarded');
+    }
+    if (row.status === 'cancelled') {
+      throw new ConflictException('This booking was cancelled');
+    }
+
+    this.assertScheduleBookable({
+      status: row.scheduleStatus,
+      departureAt: row.departureAt,
+    });
+    this.assertHotelBookingEligible(
+      this.stayOf(row),
+      row.userId,
+      row.departureAt,
+    );
+
+    await this.ferryRepo.updateBooking(id, { status: 'confirmed' });
+    await this.ferryRepo.recordMockPayment({
+      userId: row.userId,
+      payableId: id,
+      amount: row.totalAmount,
+    });
+
+    await this.audit.record({
+      userId: staff.id,
+      action: AuditAction.FerryBookingIssued,
+      subjectType: 'FerryBooking',
+      subjectId: id,
+      metadata: {
+        bookingReference: row.bookingReference,
+        totalAmount: row.totalAmount,
+      },
+    });
+    return this.getPass(id);
+  }
+
+  /**
+   * Jetty check-in. Every rejection names its own reason — the whole point of
+   * the screen is telling the operator what is wrong with the pass in front of
+   * them.
+   */
+  async validate(
+    staff: AuthenticatedUser,
+    dto: ValidateFerryPassDto,
+  ): Promise<FerryBookingRow> {
+    const row = await this.lookup(dto.bookingReference); // 404 if unknown
+
+    if (row.status === 'validated') {
+      throw new ConflictException(
+        `Already boarded at ${row.validatedAt?.toISOString() ?? 'an earlier time'}`,
+      );
+    }
+    if (row.status === 'cancelled') {
+      throw new ConflictException('This booking was cancelled');
+    }
+    if (row.status === 'pending') {
+      throw new ConflictException(
+        'No pass has been issued for this booking yet',
+      );
+    }
+    if (!isSameUtcDay(row.departureAt, new Date())) {
+      throw new ConflictException(
+        `This pass is for ${toDateKey(row.departureAt)}, not today`,
+      );
+    }
+
+    await this.ferryRepo.updateBooking(row.id, {
+      status: 'validated',
+      validatedBy: staff.id, // from the JWT, never the request body
+      validatedAt: new Date(),
+    });
+
+    await this.audit.record({
+      userId: staff.id,
+      action: AuditAction.FerryBookingValidated,
+      subjectType: 'FerryBooking',
+      subjectId: row.id,
+      metadata: {
+        bookingReference: row.bookingReference,
+        passengerCount: row.passengerCount,
+      },
+    });
+    return this.getBookingRowById(row.id);
+  }
+
+  async cancel(staff: AuthenticatedUser, id: number): Promise<FerryBookingRow> {
+    const row = await this.getBookingRowById(id);
+
+    if (row.status === 'cancelled') {
+      throw new ConflictException('This booking is already cancelled');
+    }
+    if (row.status === 'validated') {
+      throw new ConflictException(
+        'This passenger has already boarded — the trip cannot be undone',
+      );
+    }
+
+    await this.ferryRepo.updateBooking(id, { status: 'cancelled' });
+    // Only an issued pass ever took money.
+    if (row.status === 'confirmed') {
+      await this.ferryRepo.refundPayment(id);
+    }
+
+    await this.audit.record({
+      userId: staff.id,
+      action: AuditAction.FerryBookingCancelled,
+      subjectType: 'FerryBooking',
+      subjectId: id,
+      metadata: {
+        bookingReference: row.bookingReference,
+        refunded: row.status === 'confirmed',
+      },
+    });
+    return this.getBookingRowById(id);
   }
 
   async createBooking(

@@ -1,4 +1,8 @@
-import { BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Role } from '../../shared/enums/role.enum';
 import { FerryService } from './ferry.service';
 
@@ -40,6 +44,41 @@ const dto = (overrides = {}) => ({
   ...overrides,
 });
 
+/** A joined booking row, as the enriched read model returns it. */
+const row = (overrides = {}) => ({
+  id: 5,
+  bookingReference: 'FB-ABCD1234',
+  status: 'pending' as const,
+  passengerCount: 2,
+  totalAmount: '80.00',
+  createdAt: at(-1),
+  updatedAt: at(-1),
+  validatedBy: null,
+  validatedAt: null,
+  userId: 42,
+  guestName: 'Aisha Rahman',
+  guestEmail: 'aisha@example.com',
+  scheduleId: 1,
+  routeId: 1,
+  routeName: 'Hulhumalé ↔ Resort Island',
+  origin: 'Hulhumalé Jetty',
+  destination: 'Resort Island Dock',
+  // Today, so the boarding check passes unless a test says otherwise.
+  departureAt: at(0),
+  direction: 'to_theme_park' as const,
+  scheduleStatus: 'scheduled' as const,
+  capacity: 10,
+  basePrice: '40.00',
+  hotelBookingId: 7,
+  hotelUserId: 42,
+  hotelName: 'Velara Resort',
+  hotelBookingReference: 'HB-0001',
+  hotelCheckIn: at(-1),
+  hotelCheckOut: at(2),
+  hotelStatus: 'confirmed' as const,
+  ...overrides,
+});
+
 describe('FerryService', () => {
   let service: FerryService;
   let repo: Record<string, jest.Mock>;
@@ -58,6 +97,11 @@ describe('FerryService', () => {
       findHotelBookingsByUserId: jest.fn(),
       sumPassengersByScheduleId: jest.fn().mockResolvedValue(0),
       findBookingById: jest.fn(),
+      findBookingRows: jest.fn().mockResolvedValue([]),
+      findBookingRowById: jest.fn().mockResolvedValue(row()),
+      findBookingRowByReference: jest.fn().mockResolvedValue(row()),
+      recordMockPayment: jest.fn(),
+      refundPayment: jest.fn(),
       createBooking: jest.fn((data: Record<string, unknown>) =>
         Promise.resolve({ id: 5, ...data }),
       ),
@@ -280,6 +324,205 @@ describe('FerryService', () => {
         /cancel it instead/,
       );
       expect(repo.deleteSchedule).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('issuing a pass', () => {
+    /** Issuing needs a sailing that has not left yet, unlike boarding. */
+    const issuable = (overrides = {}) =>
+      row({ departureAt: at(3), hotelCheckOut: at(5), ...overrides });
+
+    it.each([
+      ['confirmed', /already been issued/],
+      ['validated', /already boarded/],
+      ['cancelled', /was cancelled/],
+    ] as const)('refuses to re-issue a %s booking', async (status, message) => {
+      repo.findBookingRowById.mockResolvedValue(issuable({ status }));
+
+      await expect(service.issue(staff, 5)).rejects.toThrow(message);
+    });
+
+    it('re-checks eligibility — a stay cancelled since the request blocks it', async () => {
+      repo.findBookingRowById.mockResolvedValue(
+        issuable({ hotelStatus: 'cancelled' }),
+      );
+
+      await expect(service.issue(staff, 5)).rejects.toThrow(
+        /a confirmed stay is required/,
+      );
+    });
+
+    it('refuses to issue for a sailing that has already gone', async () => {
+      repo.findBookingRowById.mockResolvedValue(
+        issuable({ departureAt: at(-1) }),
+      );
+
+      await expect(service.issue(staff, 5)).rejects.toThrow(/already departed/);
+    });
+
+    it('confirms the booking and takes the fare', async () => {
+      repo.findBookingRowById.mockResolvedValue(issuable());
+
+      await service.issue(staff, 5);
+
+      expect(repo.updateBooking).toHaveBeenCalledWith(5, {
+        status: 'confirmed',
+      });
+      expect(repo.recordMockPayment).toHaveBeenCalledWith({
+        userId: 42,
+        payableId: 5,
+        amount: '80.00',
+      });
+      expect(audit.record).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: staff.id,
+          action: 'ferry_booking.issued',
+        }),
+      );
+    });
+  });
+
+  describe('boarding a passenger', () => {
+    const boardable = (overrides = {}) =>
+      row({ status: 'confirmed' as const, ...overrides });
+
+    it('404s on an unknown reference', async () => {
+      repo.findBookingRowByReference.mockResolvedValue(undefined);
+
+      await expect(
+        service.validate(staff, { bookingReference: 'FB-NOPE' }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('trims the typed reference before looking it up', async () => {
+      repo.findBookingRowByReference.mockResolvedValue(boardable());
+
+      await service.validate(staff, { bookingReference: '  FB-ABCD1234 ' });
+
+      expect(repo.findBookingRowByReference).toHaveBeenCalledWith(
+        'FB-ABCD1234',
+      );
+    });
+
+    it('refuses a pass with no issued ticket behind it', async () => {
+      repo.findBookingRowByReference.mockResolvedValue(
+        boardable({ status: 'pending' }),
+      );
+
+      await expect(
+        service.validate(staff, { bookingReference: 'FB-ABCD1234' }),
+      ).rejects.toThrow(/No pass has been issued/);
+    });
+
+    it('refuses a cancelled booking', async () => {
+      repo.findBookingRowByReference.mockResolvedValue(
+        boardable({ status: 'cancelled' }),
+      );
+
+      await expect(
+        service.validate(staff, { bookingReference: 'FB-ABCD1234' }),
+      ).rejects.toThrow(/was cancelled/);
+    });
+
+    it('refuses a second boarding, naming when the first happened', async () => {
+      const validatedAt = at(-1);
+      repo.findBookingRowByReference.mockResolvedValue(
+        boardable({ status: 'validated', validatedAt }),
+      );
+
+      await expect(
+        service.validate(staff, { bookingReference: 'FB-ABCD1234' }),
+      ).rejects.toThrow(`Already boarded at ${validatedAt.toISOString()}`);
+    });
+
+    it("refuses a pass for another day's sailing", async () => {
+      repo.findBookingRowByReference.mockResolvedValue(
+        boardable({ departureAt: at(3) }),
+      );
+
+      await expect(
+        service.validate(staff, { bookingReference: 'FB-ABCD1234' }),
+      ).rejects.toThrow(/not today/);
+    });
+
+    it('stamps the boarding with the staff member from the JWT', async () => {
+      repo.findBookingRowByReference.mockResolvedValue(boardable());
+
+      await service.validate(staff, { bookingReference: 'FB-ABCD1234' });
+
+      const [, data] = repo.updateBooking.mock.calls[0] as [
+        number,
+        { status: string; validatedBy: number; validatedAt: Date },
+      ];
+      expect(data.status).toBe('validated');
+      expect(data.validatedBy).toBe(staff.id);
+      expect(data.validatedAt).toBeInstanceOf(Date);
+    });
+  });
+
+  describe('cancelling', () => {
+    it('refuses to cancel twice', async () => {
+      repo.findBookingRowById.mockResolvedValue(row({ status: 'cancelled' }));
+
+      await expect(service.cancel(staff, 5)).rejects.toThrow(
+        /already cancelled/,
+      );
+    });
+
+    it('refuses to cancel a trip already taken', async () => {
+      repo.findBookingRowById.mockResolvedValue(row({ status: 'validated' }));
+
+      await expect(service.cancel(staff, 5)).rejects.toThrow(/already boarded/);
+    });
+
+    it('refunds the fare when an issued pass is cancelled', async () => {
+      repo.findBookingRowById.mockResolvedValue(row({ status: 'confirmed' }));
+
+      await service.cancel(staff, 5);
+
+      expect(repo.updateBooking).toHaveBeenCalledWith(5, {
+        status: 'cancelled',
+      });
+      expect(repo.refundPayment).toHaveBeenCalledWith(5);
+    });
+
+    it('has nothing to refund on a booking that was never issued', async () => {
+      repo.findBookingRowById.mockResolvedValue(row({ status: 'pending' }));
+
+      await service.cancel(staff, 5);
+
+      expect(repo.refundPayment).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('the pass', () => {
+    it('has no issue time while the booking is still pending', async () => {
+      repo.findBookingRowById.mockResolvedValue(row({ status: 'pending' }));
+
+      await expect(service.getPass(5)).resolves.toMatchObject({
+        issuedAt: null,
+      });
+    });
+
+    it('reports an issue time once the pass exists', async () => {
+      const updatedAt = at(-1);
+      repo.findBookingRowById.mockResolvedValue(
+        row({ status: 'confirmed', updatedAt }),
+      );
+
+      await expect(service.getPass(5)).resolves.toMatchObject({
+        issuedAt: updatedAt,
+        origin: 'Hulhumalé Jetty',
+        destination: 'Resort Island Dock',
+      });
+    });
+
+    it('leaves staff-only fields out of the guest projection', async () => {
+      const pass = await service.getPass(5);
+
+      expect(pass).not.toHaveProperty('hotelStatus');
+      expect(pass).not.toHaveProperty('validatedBy');
+      expect(pass).not.toHaveProperty('capacity');
     });
   });
 

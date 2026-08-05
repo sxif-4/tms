@@ -1,5 +1,18 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, asc, desc, eq, ne, sql } from 'drizzle-orm';
+import { randomUUID } from 'node:crypto';
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gte,
+  like,
+  lte,
+  ne,
+  or,
+  sql,
+  type SQL,
+} from 'drizzle-orm';
 import {
   DRIZZLE,
   type DrizzleDB,
@@ -10,6 +23,8 @@ import {
   ferrySchedules,
   hotelBookings,
   hotels,
+  payments,
+  users,
   type FerryBooking,
   type FerryRoute,
   type FerrySchedule,
@@ -28,6 +43,61 @@ export interface HotelBookingOptionRow {
   checkIn: Date;
   checkOut: Date;
   status: HotelBooking['status'];
+}
+
+/**
+ * A booking with everything the operator needs to act on it — who is
+ * travelling, on what sailing, and which stay authorises it. The raw table row
+ * carries only foreign keys, which is why the booking queue could previously
+ * show nothing but a reference.
+ *
+ * Every FK involved is NOT NULL, so all five joins are inner joins.
+ */
+export interface FerryBookingRow {
+  id: number;
+  bookingReference: string;
+  status: FerryBooking['status'];
+  passengerCount: number;
+  totalAmount: string;
+  createdAt: Date;
+  updatedAt: Date;
+  validatedBy: number | null;
+  validatedAt: Date | null;
+  // guest
+  userId: number;
+  guestName: string;
+  guestEmail: string;
+  // sailing
+  scheduleId: number;
+  routeId: number;
+  routeName: string;
+  origin: string;
+  destination: string;
+  departureAt: Date;
+  direction: FerrySchedule['direction'];
+  scheduleStatus: FerrySchedule['status'];
+  capacity: number;
+  basePrice: string;
+  // the stay that authorises travel
+  hotelBookingId: number;
+  hotelUserId: number;
+  hotelName: string;
+  hotelBookingReference: string;
+  hotelCheckIn: Date;
+  hotelCheckOut: Date;
+  hotelStatus: HotelBooking['status'];
+}
+
+/** Server-side filters for the booking queue. */
+export interface FerryBookingFilters {
+  status?: FerryBooking['status'];
+  scheduleId?: number;
+  routeId?: number;
+  /** Departure window, not booking-creation window. */
+  from?: Date;
+  to?: Date;
+  /** Matches booking reference, guest name, or guest email. */
+  q?: string;
 }
 
 /** Sole owner of Drizzle queries for the ferry domain. */
@@ -203,6 +273,110 @@ export class FerryRepository {
     );
   }
 
+  /** The one joined projection behind the queue, the detail view and the pass. */
+  private bookingRowsQuery() {
+    return this.db
+      .select({
+        id: ferryBookings.id,
+        bookingReference: ferryBookings.bookingReference,
+        status: ferryBookings.status,
+        passengerCount: ferryBookings.passengerCount,
+        totalAmount: ferryBookings.totalAmount,
+        createdAt: ferryBookings.createdAt,
+        updatedAt: ferryBookings.updatedAt,
+        validatedBy: ferryBookings.validatedBy,
+        validatedAt: ferryBookings.validatedAt,
+        userId: ferryBookings.userId,
+        guestName: users.name,
+        guestEmail: users.email,
+        scheduleId: ferryBookings.scheduleId,
+        routeId: ferrySchedules.routeId,
+        routeName: ferryRoutes.name,
+        origin: ferryRoutes.origin,
+        destination: ferryRoutes.destination,
+        departureAt: ferrySchedules.departureAt,
+        direction: ferrySchedules.direction,
+        scheduleStatus: ferrySchedules.status,
+        capacity: ferrySchedules.capacity,
+        basePrice: ferrySchedules.basePrice,
+        hotelBookingId: ferryBookings.hotelBookingId,
+        hotelUserId: hotelBookings.userId,
+        hotelName: hotels.name,
+        hotelBookingReference: hotelBookings.bookingReference,
+        hotelCheckIn: hotelBookings.checkIn,
+        hotelCheckOut: hotelBookings.checkOut,
+        hotelStatus: hotelBookings.status,
+      })
+      .from(ferryBookings)
+      .innerJoin(users, eq(ferryBookings.userId, users.id))
+      .innerJoin(
+        ferrySchedules,
+        eq(ferryBookings.scheduleId, ferrySchedules.id),
+      )
+      .innerJoin(ferryRoutes, eq(ferrySchedules.routeId, ferryRoutes.id))
+      .innerJoin(
+        hotelBookings,
+        eq(ferryBookings.hotelBookingId, hotelBookings.id),
+      )
+      .innerJoin(hotels, eq(hotelBookings.hotelId, hotels.id));
+  }
+
+  findBookingRows(
+    filters: FerryBookingFilters = {},
+  ): Promise<FerryBookingRow[]> {
+    const conditions: SQL[] = [];
+
+    if (filters.status) {
+      conditions.push(eq(ferryBookings.status, filters.status));
+    }
+    if (filters.scheduleId != null) {
+      conditions.push(eq(ferryBookings.scheduleId, filters.scheduleId));
+    }
+    if (filters.routeId != null) {
+      conditions.push(eq(ferrySchedules.routeId, filters.routeId));
+    }
+    if (filters.from) {
+      conditions.push(gte(ferrySchedules.departureAt, filters.from));
+    }
+    if (filters.to) {
+      conditions.push(lte(ferrySchedules.departureAt, filters.to));
+    }
+    if (filters.q) {
+      // SQLite LIKE is case-insensitive for ASCII, which is what staff expect.
+      const term = `%${filters.q}%`;
+      const match = or(
+        like(ferryBookings.bookingReference, term),
+        like(users.name, term),
+        like(users.email, term),
+      );
+      if (match) conditions.push(match);
+    }
+
+    const query = this.bookingRowsQuery();
+    const filtered = conditions.length
+      ? query.where(and(...conditions))
+      : query;
+    return Promise.resolve(
+      filtered.orderBy(desc(ferryBookings.createdAt)).all(),
+    );
+  }
+
+  findBookingRowById(id: number): Promise<FerryBookingRow | undefined> {
+    return Promise.resolve(
+      this.bookingRowsQuery().where(eq(ferryBookings.id, id)).get(),
+    );
+  }
+
+  findBookingRowByReference(
+    reference: string,
+  ): Promise<FerryBookingRow | undefined> {
+    return Promise.resolve(
+      this.bookingRowsQuery()
+        .where(eq(ferryBookings.bookingReference, reference))
+        .get(),
+    );
+  }
+
   findBookingById(id: number): Promise<FerryBooking | undefined> {
     return Promise.resolve(
       this.db
@@ -235,6 +409,45 @@ export class FerryRepository {
 
   deleteBooking(id: number): Promise<void> {
     this.db.delete(ferryBookings).where(eq(ferryBookings.id, id)).run();
+    return Promise.resolve();
+  }
+
+  /** Records the fare as taken when the pass is issued. No real processor is wired up. */
+  recordMockPayment(input: {
+    userId: number;
+    payableId: number;
+    amount: string;
+    /** Card online; whatever the desk actually took otherwise. */
+    method?: 'card' | 'cash' | 'bank_transfer';
+  }): Promise<void> {
+    this.db
+      .insert(payments)
+      .values({
+        userId: input.userId,
+        payableType: 'ferry_booking',
+        payableId: input.payableId,
+        amount: input.amount,
+        status: 'completed',
+        method: input.method ?? 'card',
+        paymentReference: randomUUID(),
+        paidAt: new Date(),
+      })
+      .run();
+    return Promise.resolve();
+  }
+
+  /** Money already collected has to stop counting as revenue once cancelled. */
+  refundPayment(bookingId: number): Promise<void> {
+    this.db
+      .update(payments)
+      .set({ status: 'refunded', updatedAt: new Date() })
+      .where(
+        and(
+          eq(payments.payableType, 'ferry_booking'),
+          eq(payments.payableId, bookingId),
+        ),
+      )
+      .run();
     return Promise.resolve();
   }
 }

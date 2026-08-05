@@ -387,3 +387,29 @@
   --sidebar-border: oklch(1 0 0 / 8%);
   --sidebar-ring: #5ea8ff;
 }
+
+/*
+ * Printing an operational artifact (a ferry pass, a manifest) should put that
+ * artifact on the paper and nothing else — not the sidebar, not the dialog
+ * overlay. Visibility rather than display:none so the element keeps its layout.
+ */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  [data-print-root],
+  [data-print-root] * {
+    visibility: visible;
+  }
+
+  [data-print-root] {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    max-width: none;
+    border: 0;
+    box-shadow: none;
+    transform: none;
+  }
+}

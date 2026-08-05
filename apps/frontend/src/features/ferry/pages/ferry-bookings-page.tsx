@@ -1,5 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2Icon, Clock3Icon, TicketIcon } from "lucide-react";
+import {
+  BadgeCheckIcon,
+  BanIcon,
+  CalendarClockIcon,
+  HotelIcon,
+  TicketIcon,
+  UserIcon,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "~/components/ui/badge";
@@ -24,67 +31,356 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { PageHeading } from "~/components/page-heading";
 import {
+  FerryBookingStatusBadge,
+  HotelStatusBadge,
+} from "~/features/ferry/components/ferry-badges";
+import { FerryPassDialog } from "~/features/ferry/components/ferry-pass-dialog";
+import {
+  FERRY_BOOKING_STATUSES,
+  FERRY_BOOKING_STATUS_LABELS,
+  FERRY_DIRECTION_LABELS,
+  gbp,
+  type FerryBookingStatus,
+} from "~/features/ferry/constants";
+import {
   ferryBookingsQueryOptions,
   ferryHotelBookingsForUserQueryOptions,
   ferryRoutesQueryOptions,
   ferrySchedulesQueryOptions,
 } from "~/features/ferry/queries";
 import {
+  cancelFerryBookingServerFn,
   createFerryBookingServerFn,
+  issueFerryPassServerFn,
   searchFerryUsersServerFn,
 } from "~/features/ferry/server";
 import type { FerryBooking } from "~/features/ferry/bookings-types";
-import type { FerryBookingUser, FerrySchedule } from "~/features/ferry/types";
+import type { FerryBookingUser } from "~/features/ferry/types";
 
-function formatBookingTime(value: string | Date | null) {
-  if (!value) return "Pending";
-  return new Date(value).toLocaleString([], {
-    month: "short",
+const fmtDateTime = (value: string | Date) =>
+  new Date(value).toLocaleString(undefined, {
     day: "numeric",
+    month: "short",
     hour: "2-digit",
     minute: "2-digit",
   });
-}
 
-function formatScheduleTime(value: string | Date) {
-  return new Date(value).toLocaleString([], {
-    month: "short",
+const fmtDate = (value: string | Date) =>
+  new Date(value).toLocaleDateString(undefined, {
     day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function formatDate(value: string | Date) {
-  return new Date(value).toLocaleDateString([], {
     month: "short",
-    day: "numeric",
   });
-}
 
-function getDirectionLabel(direction: FerrySchedule["direction"]) {
-  return direction === "to_theme_park" ? "To theme park" : "To island";
-}
-
-function getStatusLabel(status: FerryBooking["status"]) {
-  switch (status) {
-    case "validated":
-      return "Validated";
-    case "confirmed":
-      return "Confirmed";
-    case "cancelled":
-      return "Cancelled";
-    default:
-      return "Pending";
-  }
-}
+type StatusFilter = FerryBookingStatus | "all";
 
 export function FerryBookingsPage({
   initialSearch,
 }: { initialSearch?: string } = {}) {
   const queryClient = useQueryClient();
+
   const [search, setSearch] = useState(initialSearch ?? "");
+  const [debouncedSearch, setDebouncedSearch] = useState(initialSearch ?? "");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [passBookingId, setPassBookingId] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
+
+  // Filtering is server-side, so the query key carries the filters.
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(handle);
+  }, [search]);
+
+  const filters = useMemo(
+    () => ({
+      q: debouncedSearch.trim() || undefined,
+      status: statusFilter === "all" ? undefined : statusFilter,
+    }),
+    [debouncedSearch, statusFilter],
+  );
+
+  const {
+    data: bookings = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery(ferryBookingsQueryOptions(filters));
+
+  const invalidateBookings = () =>
+    queryClient.invalidateQueries({ queryKey: ["ferry", "bookings"] });
+
+  const issueMutation = useMutation({
+    mutationFn: (id: number) => issueFerryPassServerFn({ data: { id } }),
+    onSuccess: (pass, id) => {
+      invalidateBookings();
+      toast.success(`Pass ${pass.bookingReference} issued`);
+      // The guest is standing there — show the pass straight away.
+      setPassBookingId(id);
+    },
+    onError: (err) =>
+      toast.error(
+        err instanceof Error ? err.message : "Failed to issue ferry pass",
+      ),
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: (id: number) => cancelFerryBookingServerFn({ data: { id } }),
+    onSuccess: (booking) => {
+      invalidateBookings();
+      toast.success(`Booking ${booking.bookingReference} cancelled`);
+    },
+    onError: (err) =>
+      toast.error(
+        err instanceof Error ? err.message : "Failed to cancel booking",
+      ),
+  });
+
+  const pendingCount = bookings.filter((b) => b.status === "pending").length;
+
+  return (
+    <div className="flex flex-col gap-6">
+      <PageHeading />
+
+      <header className="border-border/60 bg-card flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="secondary" className="gap-1.5">
+            <TicketIcon className="size-3.5" />
+            Booking queue
+          </Badge>
+          <Badge variant="outline">{bookings.length} shown</Badge>
+          {pendingCount > 0 ? (
+            <Badge variant="outline">{pendingCount} awaiting a pass</Badge>
+          ) : null}
+        </div>
+        <Button className="w-fit" onClick={() => setOpen(true)}>
+          Create booking
+        </Button>
+      </header>
+
+      <Card className="border-border/60">
+        <CardHeader>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <CardTitle>Requests</CardTitle>
+              <CardDescription>
+                Issue a pass once the stay checks out, then board the passenger
+                at the jetty.
+              </CardDescription>
+            </div>
+            <Input
+              placeholder="Search reference, guest name or email"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              className="w-full sm:w-72"
+            />
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <FilterChip
+              label="All"
+              active={statusFilter === "all"}
+              onClick={() => setStatusFilter("all")}
+            />
+            {FERRY_BOOKING_STATUSES.map((status) => (
+              <FilterChip
+                key={status}
+                label={FERRY_BOOKING_STATUS_LABELS[status]}
+                active={statusFilter === status}
+                onClick={() => setStatusFilter(status)}
+              />
+            ))}
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-3">
+          {isLoading ? (
+            <EmptyState>Loading ferry bookings…</EmptyState>
+          ) : isError ? (
+            <div className="border-destructive/30 bg-destructive/10 text-destructive rounded-xl border p-4 text-sm">
+              {error instanceof Error
+                ? error.message
+                : "Failed to load ferry bookings."}
+            </div>
+          ) : bookings.length === 0 ? (
+            <EmptyState>
+              No bookings match this filter.
+              {search ? " Try a different search term." : ""}
+            </EmptyState>
+          ) : (
+            bookings.map((booking) => (
+              <BookingRow
+                key={booking.id}
+                booking={booking}
+                onIssue={() => issueMutation.mutate(booking.id)}
+                onViewPass={() => setPassBookingId(booking.id)}
+                onCancel={() => cancelMutation.mutate(booking.id)}
+                busy={issueMutation.isPending || cancelMutation.isPending}
+              />
+            ))
+          )}
+        </CardContent>
+      </Card>
+
+      <FerryPassDialog
+        bookingId={passBookingId}
+        open={passBookingId != null}
+        onOpenChange={(next) => {
+          if (!next) setPassBookingId(null);
+        }}
+      />
+
+      <CreateBookingDialog
+        open={open}
+        onOpenChange={setOpen}
+        onCreated={invalidateBookings}
+      />
+    </div>
+  );
+}
+
+function EmptyState({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="border-border/70 text-muted-foreground rounded-xl border border-dashed p-4 text-sm">
+      {children}
+    </div>
+  );
+}
+
+function FilterChip({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <Button
+      variant={active ? "default" : "outline"}
+      size="sm"
+      onClick={onClick}
+      aria-pressed={active}
+    >
+      {label}
+    </Button>
+  );
+}
+
+/**
+ * One request, with everything needed to decide on it: who is travelling, on
+ * what sailing, and which stay authorises it. The action is status-dependent —
+ * issuing a pass and boarding are different jobs at different moments.
+ */
+function BookingRow({
+  booking,
+  onIssue,
+  onViewPass,
+  onCancel,
+  busy,
+}: {
+  booking: FerryBooking;
+  onIssue: () => void;
+  onViewPass: () => void;
+  onCancel: () => void;
+  busy: boolean;
+}) {
+  const cancellable =
+    booking.status === "pending" || booking.status === "confirmed";
+
+  return (
+    <div className="border-border/60 rounded-xl border p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-mono text-sm font-medium">
+              {booking.bookingReference}
+            </p>
+            <FerryBookingStatusBadge status={booking.status} />
+          </div>
+          <p className="mt-1 flex items-center gap-1.5 text-sm">
+            <UserIcon className="text-muted-foreground size-3.5 shrink-0" />
+            <span className="font-medium">{booking.guestName}</span>
+            <span className="text-muted-foreground truncate">
+              {booking.guestEmail}
+            </span>
+          </p>
+        </div>
+        <p className="text-sm font-medium tabular-nums">
+          {gbp(Number(booking.totalAmount))}
+        </p>
+      </div>
+
+      <dl className="text-muted-foreground mt-3 grid grid-cols-1 gap-x-6 gap-y-1.5 text-sm sm:grid-cols-2">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <CalendarClockIcon className="size-3.5 shrink-0" />
+          <dt className="sr-only">Sailing</dt>
+          <dd>
+            {booking.routeName} · {fmtDateTime(booking.departureAt)} ·{" "}
+            {FERRY_DIRECTION_LABELS[booking.direction]}
+          </dd>
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <HotelIcon className="size-3.5 shrink-0" />
+          <dt className="sr-only">Stay</dt>
+          <dd className="flex flex-wrap items-center gap-1.5">
+            <span>
+              {booking.hotelName} · {fmtDate(booking.hotelCheckIn)}–
+              {fmtDate(booking.hotelCheckOut)}
+            </span>
+            <span className="font-mono text-xs">
+              {booking.hotelBookingReference}
+            </span>
+            <HotelStatusBadge status={booking.hotelStatus} />
+          </dd>
+        </div>
+      </dl>
+
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-muted-foreground text-sm">
+          {booking.passengerCount} passenger
+          {booking.passengerCount === 1 ? "" : "s"}
+          {booking.validatedAt
+            ? ` · boarded ${fmtDateTime(booking.validatedAt)}`
+            : ""}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {cancellable ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onCancel}
+              disabled={busy}
+            >
+              <BanIcon data-icon="inline-start" />
+              Cancel
+            </Button>
+          ) : null}
+          {booking.status === "pending" ? (
+            <Button size="sm" onClick={onIssue} disabled={busy}>
+              <BadgeCheckIcon data-icon="inline-start" />
+              Issue pass
+            </Button>
+          ) : booking.status === "cancelled" ? null : (
+            <Button variant="outline" size="sm" onClick={onViewPass}>
+              View pass
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Counter booking: staff take the request on a guest's behalf. */
+function CreateBookingDialog({
+  open,
+  onOpenChange,
+  onCreated,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreated: () => void;
+}) {
   const [selectedUser, setSelectedUser] = useState<FerryBookingUser | null>(
     null,
   );
@@ -95,12 +391,6 @@ export function FerryBookingsPage({
   const [passengerCount, setPassengerCount] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
 
-  const {
-    data: bookings = [],
-    isLoading,
-    isError,
-    error,
-  } = useQuery(ferryBookingsQueryOptions);
   const { data: schedules = [] } = useQuery(ferrySchedulesQueryOptions);
   const { data: routes = [] } = useQuery(ferryRoutesQueryOptions);
 
@@ -122,11 +412,6 @@ export function FerryBookingsPage({
   const { data: hotelBookingOptions = [], isLoading: isHotelBookingsLoading } =
     useQuery(ferryHotelBookingsForUserQueryOptions(selectedUser?.id ?? null));
 
-  const scheduleMap = useMemo(
-    () =>
-      Object.fromEntries(schedules.map((schedule) => [schedule.id, schedule])),
-    [schedules],
-  );
   const routeMap = useMemo(
     () => Object.fromEntries(routes.map((route) => [route.id, route.name])),
     [routes],
@@ -151,13 +436,20 @@ export function FerryBookingsPage({
     return options;
   }, [userResults, selectedUser]);
 
+  // Only sailings that can still be booked — the API rejects the rest anyway.
   const scheduleOptions: ComboboxOption[] = useMemo(
     () =>
-      schedules.map((schedule) => ({
-        value: String(schedule.id),
-        label: `${routeMap[schedule.routeId] ?? `Route ${schedule.routeId}`} · ${formatScheduleTime(schedule.departureAt)}`,
-        description: `${getDirectionLabel(schedule.direction)} · ${schedule.capacity} seats · $${Number(schedule.basePrice).toFixed(2)}/ticket`,
-      })),
+      schedules
+        .filter(
+          (schedule) =>
+            schedule.status === "scheduled" &&
+            new Date(schedule.departureAt).getTime() > Date.now(),
+        )
+        .map((schedule) => ({
+          value: String(schedule.id),
+          label: `${routeMap[schedule.routeId] ?? `Route ${schedule.routeId}`} · ${fmtDateTime(schedule.departureAt)}`,
+          description: `${FERRY_DIRECTION_LABELS[schedule.direction]} · ${schedule.capacity} seats · ${gbp(Number(schedule.basePrice))}/ticket`,
+        })),
     [schedules, routeMap],
   );
 
@@ -165,36 +457,21 @@ export function FerryBookingsPage({
     () =>
       hotelBookingOptions.map((booking) => ({
         value: String(booking.id),
-        label: `${booking.hotelName} · ${formatDate(booking.checkIn)}–${formatDate(booking.checkOut)}`,
+        label: `${booking.hotelName} · ${fmtDate(booking.checkIn)}–${fmtDate(booking.checkOut)}`,
         description: booking.bookingReference,
       })),
     [hotelBookingOptions],
   );
 
-  const filteredBookings = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return bookings;
-
-    return bookings.filter((booking) => {
-      const routeName =
-        routeMap[scheduleMap[booking.scheduleId]?.routeId ?? -1] ?? "";
-      return [
-        booking.bookingReference,
-        routeName,
-        getStatusLabel(booking.status),
-        formatBookingTime(booking.createdAt),
-        booking.passengerCount.toString(),
-      ].some((value) => value.toLowerCase().includes(query));
-    });
-  }, [bookings, routeMap, scheduleMap, search]);
-
-  const selectedSchedule = scheduleMap[Number(scheduleId)];
-  const totalAmountPreview =
+  const selectedSchedule = schedules.find(
+    (schedule) => String(schedule.id) === scheduleId,
+  );
+  const totalPreview =
     selectedSchedule && passengerCount !== ""
       ? Number(selectedSchedule.basePrice) * Number(passengerCount)
       : 0;
 
-  const resetForm = () => {
+  const reset = () => {
     setSelectedUser(null);
     setUserSearch("");
     setDebouncedUserSearch("");
@@ -215,12 +492,10 @@ export function FerryBookingsPage({
         },
       }),
     onSuccess: (created) => {
-      queryClient.invalidateQueries({
-        queryKey: ferryBookingsQueryOptions.queryKey,
-      });
+      onCreated();
       toast.success(`Ferry booking ${created.bookingReference} created`);
-      setOpen(false);
-      resetForm();
+      onOpenChange(false);
+      reset();
     },
     onError: (err) =>
       setFormError(
@@ -232,245 +507,122 @@ export function FerryBookingsPage({
     selectedUser != null &&
     scheduleId !== "" &&
     hotelBookingId !== "" &&
-    passengerCount !== "" &&
     Number(passengerCount) > 0;
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeading />
-      <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card p-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary" className="gap-1.5">
-            <TicketIcon className="size-3.5" />
-            Booking queue
-          </Badge>
-          <Badge variant="outline">{bookings.length} requests</Badge>
-        </div>
-        <Button className="w-fit" onClick={() => setOpen(true)}>
-          Create booking
-        </Button>
-      </header>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        onOpenChange(next);
+        if (!next) reset();
+      }}
+    >
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Create ferry booking</DialogTitle>
+          <DialogDescription>
+            The reference is generated automatically. The booking starts
+            awaiting a pass — issue it from the queue once you have taken
+            payment.
+          </DialogDescription>
+        </DialogHeader>
 
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_0.8fr]">
-        <Card className="border-border/60">
-          <CardHeader>
-            <CardTitle>Pending and confirmed requests</CardTitle>
-            <CardDescription>
-              Visitors waiting for ticket approval or boarding.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {isLoading ? (
-              <div className="rounded-xl border border-dashed border-border/70 p-4 text-sm text-muted-foreground">
-                Loading ferry bookings…
-              </div>
-            ) : isError ? (
-              <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-                {error instanceof Error
-                  ? error.message
-                  : "Failed to load ferry bookings."}
-              </div>
-            ) : filteredBookings.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-border/70 p-4 text-sm text-muted-foreground">
-                No bookings match your search yet.
-              </div>
-            ) : (
-              filteredBookings.map((booking) => {
-                const routeName =
-                  routeMap[scheduleMap[booking.scheduleId]?.routeId ?? -1] ??
-                  "Unknown route";
-                return (
-                  <div
-                    key={booking.id}
-                    className="rounded-xl border border-border/60 p-4"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="font-medium">
-                          {booking.bookingReference}
-                        </p>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {routeName}
-                        </p>
-                      </div>
-                      <Badge
-                        variant={
-                          booking.status === "validated"
-                            ? "secondary"
-                            : "outline"
-                        }
-                      >
-                        {getStatusLabel(booking.status)}
-                      </Badge>
-                    </div>
-                    <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                      <span>{booking.passengerCount} passenger(s)</span>
-                      <span>•</span>
-                      <span className="flex items-center gap-1">
-                        <Clock3Icon className="size-4" />
-                        {formatBookingTime(booking.createdAt)}
-                      </span>
-                      <span>•</span>
-                      <span>${Number(booking.totalAmount).toFixed(2)}</span>
-                    </div>
-                    <div className="mt-4 flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        {booking.status === "validated" ? (
-                          <CheckCircle2Icon className="size-4 text-emerald-600" />
-                        ) : (
-                          <Clock3Icon className="size-4" />
-                        )}
-                        {booking.status === "validated"
-                          ? "Ready for boarding"
-                          : "Needs review"}
-                      </div>
-                      <Button variant="ghost" size="sm" className="h-7 px-2">
-                        Review
-                      </Button>
-                    </div>
-                  </div>
+        <div className="grid gap-4 py-2">
+          <div className="grid gap-2">
+            <Label htmlFor="booking-user">Guest</Label>
+            <Combobox
+              id="booking-user"
+              options={userOptions}
+              value={selectedUser ? String(selectedUser.id) : ""}
+              onChange={(value) => {
+                const found = userResults.find(
+                  (user) => String(user.id) === value,
                 );
-              })
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/60">
-          <CardHeader>
-            <CardTitle>Find a booking</CardTitle>
-            <CardDescription>
-              Search by booking reference, route, or status.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Input
-              placeholder="Search bookings"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
+                setSelectedUser(found ?? null);
+                setHotelBookingId("");
+              }}
+              onSearchChange={setUserSearch}
+              loading={isUserSearchLoading}
+              placeholder="Search by name or email"
+              searchPlaceholder="Search guests…"
+              emptyText="No matching guests."
             />
-            <div className="rounded-xl border border-dashed border-border/70 p-4 text-sm text-muted-foreground">
-              Booking validation is tied to hotel confirmation. Staff should
-              confirm eligibility before issuing a ticket.
-            </div>
-            <div className="rounded-xl bg-emerald-500/10 p-4 text-sm text-emerald-800 dark:text-emerald-300">
-              Booking review uses the current ferry schedule and hotel booking
-              records from the backend.
-            </div>
-          </CardContent>
-        </Card>
-      </section>
-
-      <Dialog
-        open={open}
-        onOpenChange={(next) => {
-          setOpen(next);
-          if (!next) resetForm();
-        }}
-      >
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Create ferry booking</DialogTitle>
-            <DialogDescription>
-              Add a new ferry booking request to the system. The reference is
-              generated automatically and the booking starts as pending until a
-              pass is issued.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="grid gap-4 py-2">
-            <div className="grid gap-2">
-              <Label htmlFor="booking-user">Guest</Label>
-              <Combobox
-                id="booking-user"
-                options={userOptions}
-                value={selectedUser ? String(selectedUser.id) : ""}
-                onChange={(value) => {
-                  const found = userResults.find(
-                    (user) => String(user.id) === value,
-                  );
-                  setSelectedUser(found ?? null);
-                  setHotelBookingId("");
-                }}
-                onSearchChange={setUserSearch}
-                loading={isUserSearchLoading}
-                placeholder="Search by name or email"
-                searchPlaceholder="Search guests…"
-                emptyText="No matching guests."
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="booking-schedule">Sailing</Label>
-              <Combobox
-                id="booking-schedule"
-                options={scheduleOptions}
-                value={scheduleId}
-                onChange={setScheduleId}
-                placeholder="Select a sailing"
-                searchPlaceholder="Search sailings…"
-                emptyText="No sailings found."
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="booking-hotel">Hotel booking</Label>
-              <Combobox
-                id="booking-hotel"
-                options={hotelBookingComboOptions}
-                value={hotelBookingId}
-                onChange={setHotelBookingId}
-                loading={isHotelBookingsLoading}
-                disabled={!selectedUser}
-                placeholder={
-                  selectedUser
-                    ? "Select a hotel booking"
-                    : "Select a guest first"
-                }
-                searchPlaceholder="Search hotel bookings…"
-                emptyText="This guest has no eligible hotel bookings."
-              />
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="booking-passengers">Passenger count</Label>
-                <Input
-                  id="booking-passengers"
-                  type="number"
-                  min="1"
-                  value={passengerCount}
-                  onChange={(event) => setPassengerCount(event.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>Total amount</Label>
-                <p className="flex h-8 items-center text-sm text-muted-foreground">
-                  ${totalAmountPreview.toFixed(2)}
-                </p>
-              </div>
-            </div>
-            {formError ? (
-              <p className="text-sm text-destructive">{formError}</p>
-            ) : null}
           </div>
 
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={mutation.isPending}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => mutation.mutate()}
-              disabled={mutation.isPending || !canSubmit}
-            >
-              {mutation.isPending ? "Creating…" : "Create booking"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+          <div className="grid gap-2">
+            <Label htmlFor="booking-schedule">Sailing</Label>
+            <Combobox
+              id="booking-schedule"
+              options={scheduleOptions}
+              value={scheduleId}
+              onChange={setScheduleId}
+              placeholder="Select a sailing"
+              searchPlaceholder="Search sailings…"
+              emptyText="No upcoming sailings."
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="booking-hotel">Hotel booking</Label>
+            <Combobox
+              id="booking-hotel"
+              options={hotelBookingComboOptions}
+              value={hotelBookingId}
+              onChange={setHotelBookingId}
+              loading={isHotelBookingsLoading}
+              disabled={!selectedUser}
+              placeholder={
+                selectedUser ? "Select a hotel booking" : "Select a guest first"
+              }
+              searchPlaceholder="Search hotel bookings…"
+              emptyText="This guest has no confirmed stay to travel on."
+            />
+            <p className="text-muted-foreground text-xs">
+              Only confirmed stays covering the sailing date authorise ferry
+              travel.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="booking-passengers">Passenger count</Label>
+              <Input
+                id="booking-passengers"
+                type="number"
+                min="1"
+                value={passengerCount}
+                onChange={(event) => setPassengerCount(event.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Total</Label>
+              <p className="text-muted-foreground flex h-8 items-center text-sm tabular-nums">
+                {gbp(totalPreview)}
+              </p>
+            </div>
+          </div>
+
+          {formError ? (
+            <p className="text-destructive text-sm">{formError}</p>
+          ) : null}
+        </div>
+
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={mutation.isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={() => mutation.mutate()}
+            disabled={mutation.isPending || !canSubmit}
+          >
+            {mutation.isPending ? "Creating…" : "Create booking"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

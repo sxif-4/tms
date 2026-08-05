@@ -137,6 +137,11 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
           path: "/dashboard/ferry/bookings",
           icon: <TicketIcon />,
         },
+        {
+          title: "Validate",
+          path: "/dashboard/ferry/validate",
+          icon: <ScanLineIcon />,
+        },
       ],
     },
   ],
