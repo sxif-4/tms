@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, type LinkProps } from "@tanstack/react-router";
 import { Menu } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
@@ -14,14 +14,19 @@ import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/sheet";
 import { meQueryOptions, useLogout } from "~/features/auth";
 import { cn } from "~/lib/utils";
 
-const NAV_LINKS = [
-  { to: "/hotels", label: "Destinations" },
-  { to: "/hotels", label: "Hotels" },
-  { to: "/theme-park", label: "Theme Park" },
-  { to: "/theme-park/tickets", label: "Park Tickets" },
-  { to: "/theme-park", label: "Beach Events" },
-  { to: "/map", label: "Island Map" },
-] as const;
+/** `link` is spread straight onto `<Link>`, so entries can carry search params. */
+const NAV_LINKS: { label: string; link: LinkProps }[] = [
+  { label: "Destinations", link: { to: "/hotels" } },
+  { label: "Hotels", link: { to: "/hotels" } },
+  { label: "Theme Park", link: { to: "/theme-park" } },
+  { label: "Park Tickets", link: { to: "/theme-park/tickets" } },
+  { label: "What's On", link: { to: "/theme-park/events" } },
+  {
+    label: "Beach Events",
+    link: { to: "/theme-park/events", search: { locationType: "beach" } },
+  },
+  { label: "Island Map", link: { to: "/map" } },
+];
 
 export function SiteHeader() {
   const { data: user } = useQuery(meQueryOptions);
@@ -73,10 +78,10 @@ export function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex">
-          {NAV_LINKS.map((link) => (
+          {NAV_LINKS.map((item) => (
             <Link
-              key={link.label}
-              to={link.to}
+              key={item.label}
+              {...item.link}
               className={cn(
                 "rounded-full px-3.5 py-2 text-sm font-medium transition-colors",
                 overlay
@@ -84,7 +89,7 @@ export function SiteHeader() {
                   : "text-muted-foreground hover:bg-accent hover:text-foreground",
               )}
             >
-              {link.label}
+              {item.label}
             </Link>
           ))}
         </nav>
@@ -154,14 +159,14 @@ export function SiteHeader() {
             </SheetTrigger>
             <SheetContent side="right" className="w-72">
               <nav className="mt-10 flex flex-col gap-1 px-4">
-                {NAV_LINKS.map((link) => (
+                {NAV_LINKS.map((item) => (
                   <Link
-                    key={link.label}
-                    to={link.to}
+                    key={item.label}
+                    {...item.link}
                     onClick={() => setOpen(false)}
                     className="rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent"
                   >
-                    {link.label}
+                    {item.label}
                   </Link>
                 ))}
                 {user ? (

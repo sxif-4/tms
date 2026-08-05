@@ -120,7 +120,8 @@ export const getParkEventsServerFn = createServerFn({ method: "GET" })
       `/events${qs({
         eventType: data.eventType,
         locationType: data.locationType,
-        isActive: data.isActive === undefined ? undefined : String(data.isActive),
+        isActive:
+          data.isActive === undefined ? undefined : String(data.isActive),
       })}`,
     );
     if (!res.ok)
@@ -305,7 +306,9 @@ export const lookupParkTicketServerFn = createServerFn({ method: "GET" })
  */
 export const validateParkTicketServerFn = createServerFn({ method: "POST" })
   .validator((input: unknown) =>
-    z.object({ ticketReference: z.string().trim().min(1).max(20) }).parse(input),
+    z
+      .object({ ticketReference: z.string().trim().min(1).max(20) })
+      .parse(input),
   )
   .handler(async ({ data }): Promise<ParkTicket> => {
     const res = await apiFetch("/park-tickets/validate", {
@@ -379,6 +382,32 @@ export const getEventBookingsServerFn = createServerFn({ method: "GET" })
     if (!res.ok)
       throw new Error(await errorMessage(res, "Failed to load bookings"));
     return (await res.json()) as EventBooking[];
+  });
+
+/**
+ * Desk booking taken by staff for a walk-up guest. Sends the ticket
+ * *reference* — what's printed on the ticket in the guest's hand — and the API
+ * attaches the booking to the ticket's owner, never to the staff member.
+ */
+export const staffEventBookingServerFn = createServerFn({ method: "POST" })
+  .validator((input: unknown) =>
+    z
+      .object({
+        ticketReference: z.string().trim().min(1).max(64),
+        eventScheduleId: z.number().int().positive(),
+        quantity: z.number().int().min(1).max(50),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }): Promise<EventBooking> => {
+    const res = await apiFetch("/event-bookings/staff", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok)
+      throw new Error(await errorMessage(res, "Failed to create booking"));
+    return (await res.json()) as EventBooking;
   });
 
 export const updateEventBookingStatusServerFn = createServerFn({
@@ -458,14 +487,14 @@ export const clearParkDayServerFn = createServerFn({ method: "POST" })
 
 // ── Dashboard & reports ───────────────────────────────────────────────────
 
-export const getParkDashboardServerFn = createServerFn({ method: "GET" }).handler(
-  async (): Promise<ParkDashboardResponse> => {
-    const res = await apiFetch("/park-dashboard");
-    if (!res.ok)
-      throw new Error(await errorMessage(res, "Failed to load dashboard"));
-    return (await res.json()) as ParkDashboardResponse;
-  },
-);
+export const getParkDashboardServerFn = createServerFn({
+  method: "GET",
+}).handler(async (): Promise<ParkDashboardResponse> => {
+  const res = await apiFetch("/park-dashboard");
+  if (!res.ok)
+    throw new Error(await errorMessage(res, "Failed to load dashboard"));
+  return (await res.json()) as ParkDashboardResponse;
+});
 
 export const getParkSalesReportServerFn = createServerFn({ method: "GET" })
   .validator((input: unknown) =>

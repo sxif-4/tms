@@ -10,7 +10,12 @@ import {
   type PublicEventFilters,
   type PublicSchedule,
   type PublicTicketType,
+  type PublicUpcomingSchedule,
 } from './public-park.repository';
+
+/** Keeps a crafted `?limit=` from turning the agenda into a full table scan. */
+const MAX_UPCOMING = 50;
+const DEFAULT_UPCOMING = 6;
 
 export interface PublicEventDetail extends PublicEvent {
   schedules: PublicSchedule[];
@@ -36,6 +41,15 @@ export class PublicParkService {
 
   events(filters: PublicEventFilters): Promise<PublicEvent[]> {
     return this.parkRepo.activeEvents(filters);
+  }
+
+  /** Chronological "what's on", across every active event. */
+  upcoming(limit?: number): Promise<PublicUpcomingSchedule[]> {
+    const capped = Math.min(
+      Math.max(1, limit ?? DEFAULT_UPCOMING),
+      MAX_UPCOMING,
+    );
+    return this.parkRepo.upcomingAcrossEvents(capped);
   }
 
   async eventDetail(id: number): Promise<PublicEventDetail> {

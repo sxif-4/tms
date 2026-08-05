@@ -1,43 +1,33 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
+import { EVENT_TYPE_LABELS } from "~/features/park-browsing/constants";
+import type { PublicEvent } from "~/features/park-browsing/types";
 import { cn } from "~/lib/utils";
 
-const EXPERIENCES = [
-  {
-    name: "Lagoon Plunge",
-    meta: "Water coaster",
-    image: "/images/hero/hero-island-resort.jpg",
-  },
-  {
-    name: "Jungle Rapids",
-    meta: "River ride",
-    image: "/images/hotels/hotel-jungle-lodge.jpg",
-  },
-  {
-    name: "Lantern Wheel",
-    meta: "Observation wheel",
-    image: "/images/hotels/hotel-seaside-resort.jpg",
-  },
-  {
-    name: "Cliffside Drop",
-    meta: "Free fall",
-    image: "/images/hotels/hotel-cliffside.jpg",
-  },
-  {
-    name: "Sunset Boardwalk",
-    meta: "Evening parade",
-    image: "/images/hero/hero-island.jpg",
-  },
+/**
+ * Events carry no images yet — `imageables` would support them, but nothing
+ * uploads event photos. These island shots stand in, picked deterministically
+ * by event id so a given attraction always shows the same art.
+ */
+const ARTWORK = [
+  "/images/hero/hero-island-resort.jpg",
+  "/images/hotels/hotel-jungle-lodge.jpg",
+  "/images/hotels/hotel-seaside-resort.jpg",
+  "/images/hotels/hotel-cliffside.jpg",
+  "/images/hero/hero-island.jpg",
 ];
 
-/** Middle index — the track sits at translate 0 when this card is active. */
-const MID = (EXPERIENCES.length - 1) / 2;
+const artworkFor = (eventId: number) => ARTWORK[eventId % ARTWORK.length];
 
-export function ThemeParkExperiences() {
-  const [active, setActive] = useState(Math.round(MID));
+export function ThemeParkExperiences({ events }: { events: PublicEvent[] }) {
+  /** Middle index — the track sits at translate 0 when this card is active. */
+  const mid = (events.length - 1) / 2;
+  const [active, setActive] = useState(Math.round(mid));
 
-  const last = EXPERIENCES.length - 1;
+  if (events.length === 0) return null;
+
+  const last = events.length - 1;
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
@@ -52,8 +42,8 @@ export function ThemeParkExperiences() {
           </span>
         </h2>
         <p className="mt-5 text-base text-pretty text-muted-foreground sm:text-lg">
-          The park's headline attractions, from the lagoon plunge to the lantern
-          wheel. One dated ticket covers the lot.
+          The park&apos;s headline attractions. One dated ticket gets you in —
+          then reserve the ones you don&apos;t want to miss.
         </p>
       </div>
 
@@ -64,16 +54,16 @@ export function ThemeParkExperiences() {
           <div
             className="flex justify-center gap-[var(--gap)] transition-transform duration-500 ease-out motion-reduce:transition-none"
             style={{
-              transform: `translateX(calc(${MID - active} * (var(--cw) + var(--gap))))`,
+              transform: `translateX(calc(${mid - active} * (var(--cw) + var(--gap))))`,
             }}
           >
-            {EXPERIENCES.map(({ name, meta, image }, i) => {
+            {events.map((event, i) => {
               const dist = Math.abs(i - active);
               const isActive = dist === 0;
 
               return (
                 <button
-                  key={name}
+                  key={event.id}
                   type="button"
                   onClick={() => setActive(i)}
                   aria-current={isActive ? "true" : undefined}
@@ -99,7 +89,7 @@ export function ThemeParkExperiences() {
                     )}
                   >
                     <img
-                      src={image}
+                      src={artworkFor(event.id)}
                       alt=""
                       aria-hidden
                       className="size-full object-cover"
@@ -108,7 +98,7 @@ export function ThemeParkExperiences() {
                   </div>
 
                   <p className="mt-4 font-serif text-sm font-semibold italic sm:text-base">
-                    {name}
+                    {event.name}
                   </p>
                   <p
                     className={cn(
@@ -117,7 +107,7 @@ export function ThemeParkExperiences() {
                     )}
                   >
                     <span className="size-1.5 rounded-full bg-amber-400" />
-                    {meta}
+                    {EVENT_TYPE_LABELS[event.eventType]}
                   </p>
                 </button>
               );
@@ -145,13 +135,20 @@ export function ThemeParkExperiences() {
         </button>
       </div>
 
-      <div className="mt-12 flex justify-center">
+      <div className="mt-12 flex flex-wrap justify-center gap-3">
+        <Link
+          to="/theme-park/events/$eventId"
+          params={{ eventId: String(events[active]?.id ?? events[0].id) }}
+          className="inline-flex h-11 items-center gap-2 rounded-full border px-6 text-sm font-semibold transition-colors hover:bg-accent"
+        >
+          See {events[active]?.name ?? "this experience"}
+          <ArrowRight className="size-4" />
+        </Link>
         <Link
           to="/theme-park"
           className="inline-flex h-11 items-center gap-2 rounded-full border px-6 text-sm font-semibold transition-colors hover:bg-accent"
         >
           Explore the theme park
-          <ArrowRight className="size-4" />
         </Link>
       </div>
     </section>

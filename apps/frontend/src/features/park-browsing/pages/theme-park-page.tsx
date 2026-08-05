@@ -69,16 +69,29 @@ export function ThemeParkPage() {
 
       {parkEvents.length > 0 && (
         <section className="mt-16">
-          <h2 className="text-2xl font-semibold tracking-tight">
-            Rides &amp; shows
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Booked separately from your park ticket, and included in the price
-            shown.
-          </p>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-tight">
+                Rides &amp; shows
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Booked against a park ticket for the same day.
+              </p>
+            </div>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/theme-park/events">See all</Link>
+            </Button>
+          </div>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {parkEvents.map((event) => (
-              <EventCard key={event.id} event={event} />
+              <Link
+                key={event.id}
+                to="/theme-park/events/$eventId"
+                params={{ eventId: String(event.id) }}
+                className="rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              >
+                <EventCard event={event} />
+              </Link>
             ))}
           </div>
         </section>
@@ -86,15 +99,32 @@ export function ThemeParkPage() {
 
       {beachEvents.length > 0 && (
         <section className="mt-16">
-          <h2 className="text-2xl font-semibold tracking-tight">
-            Beach events
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Sandbank dinners, music and sunset sailings on the picnic island.
-          </p>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-tight">
+                Beach events
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Sandbank dinners, music and sunset sailings on the picnic
+                island.
+              </p>
+            </div>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/theme-park/events" search={{ locationType: "beach" }}>
+                See all
+              </Link>
+            </Button>
+          </div>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {beachEvents.map((event) => (
-              <EventCard key={event.id} event={event} />
+              <Link
+                key={event.id}
+                to="/theme-park/events/$eventId"
+                params={{ eventId: String(event.id) }}
+                className="rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              >
+                <EventCard event={event} />
+              </Link>
             ))}
           </div>
         </section>

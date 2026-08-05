@@ -8,6 +8,7 @@ import type {
   PublicEvent,
   PublicEventDetail,
   PublicTicketType,
+  PublicUpcomingSchedule,
 } from "./types";
 
 const EVENT_TYPES = ["ride", "show", "beach_event"] as const;
@@ -73,6 +74,23 @@ export const getPublicParkEventServerFn = createServerFn({ method: "GET" })
     return (await res.json()) as PublicEventDetail;
   });
 
+/** Next runs across every active event, for the homepage agenda. */
+export const getUpcomingParkSchedulesServerFn = createServerFn({
+  method: "GET",
+})
+  .validator((input: unknown) =>
+    z
+      .object({ limit: z.number().int().min(1).max(50).optional() })
+      .parse(input ?? {}),
+  )
+  .handler(async ({ data }): Promise<PublicUpcomingSchedule[]> => {
+    const qs = data.limit ? `?limit=${data.limit}` : "";
+    const res = await apiFetch(`/public/park/schedules/upcoming${qs}`);
+    if (!res.ok)
+      throw new Error(await errorMessage(res, "Failed to load what's on"));
+    return (await res.json()) as PublicUpcomingSchedule[];
+  });
+
 /**
  * Per-day remaining tickets for the date picker. `from`/`to` must be sent
  * together — the API rejects one without the other.
@@ -86,7 +104,9 @@ export const getParkAvailabilityServerFn = createServerFn({ method: "GET" })
       params.set("to", data.to);
     }
     const qs = params.toString();
-    const res = await apiFetch(`/public/park/availability${qs ? `?${qs}` : ""}`);
+    const res = await apiFetch(
+      `/public/park/availability${qs ? `?${qs}` : ""}`,
+    );
     if (!res.ok)
       throw new Error(await errorMessage(res, "Failed to load availability"));
     return (await res.json()) as PublicDayAvailability[];

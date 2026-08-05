@@ -7,6 +7,7 @@ import {
   getPublicParkEventServerFn,
   getPublicParkEventsServerFn,
   getPublicTicketTypesServerFn,
+  getUpcomingParkSchedulesServerFn,
   purchaseParkTicketServerFn,
 } from "./server";
 import type {
@@ -28,6 +29,14 @@ export const publicParkEventsQueryOptions = (
     queryKey: ["public-park", "events", filters] as const,
     queryFn: () => getPublicParkEventsServerFn({ data: filters }),
     staleTime: 30 * 1000,
+  });
+
+/** Chronological "what's on" — one request instead of one per event. */
+export const upcomingParkSchedulesQueryOptions = (limit?: number) =>
+  queryOptions({
+    queryKey: ["public-park", "upcoming", limit] as const,
+    queryFn: () => getUpcomingParkSchedulesServerFn({ data: { limit } }),
+    staleTime: 60 * 1000,
   });
 
 export const publicParkEventQueryOptions = (id: number) =>

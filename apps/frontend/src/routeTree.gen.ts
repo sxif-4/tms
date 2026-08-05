@@ -24,11 +24,13 @@ import { Route as ThemeParkConfirmationRouteImport } from './routes/theme-park/c
 import { Route as DashboardParkRouteRouteImport } from './routes/dashboard/park/route'
 import { Route as DashboardHotelRouteRouteImport } from './routes/dashboard/hotel/route'
 import { Route as DashboardAdminRouteRouteImport } from './routes/dashboard/admin/route'
+import { Route as ThemeParkEventsIndexRouteImport } from './routes/theme-park/events/index'
 import { Route as HotelsHotelIdIndexRouteImport } from './routes/hotels/$hotelId/index'
 import { Route as DashboardParkIndexRouteImport } from './routes/dashboard/park/index'
 import { Route as DashboardHotelIndexRouteImport } from './routes/dashboard/hotel/index'
 import { Route as DashboardFerryIndexRouteImport } from './routes/dashboard/ferry/index'
 import { Route as DashboardAdminIndexRouteImport } from './routes/dashboard/admin/index'
+import { Route as ThemeParkEventsEventIdRouteImport } from './routes/theme-park/events/$eventId'
 import { Route as HotelsHotelIdConfirmationRouteImport } from './routes/hotels/$hotelId/confirmation'
 import { Route as HotelsHotelIdBookRouteImport } from './routes/hotels/$hotelId/book'
 import { Route as DashboardParkTicketsIndexRouteImport } from './routes/dashboard/park/tickets/index'
@@ -135,6 +137,11 @@ const DashboardAdminRouteRoute = DashboardAdminRouteRouteImport.update({
   path: '/admin',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
+const ThemeParkEventsIndexRoute = ThemeParkEventsIndexRouteImport.update({
+  id: '/theme-park/events/',
+  path: '/theme-park/events/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HotelsHotelIdIndexRoute = HotelsHotelIdIndexRouteImport.update({
   id: '/hotels/$hotelId/',
   path: '/hotels/$hotelId/',
@@ -159,6 +166,11 @@ const DashboardAdminIndexRoute = DashboardAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardAdminRouteRoute,
+} as any)
+const ThemeParkEventsEventIdRoute = ThemeParkEventsEventIdRouteImport.update({
+  id: '/theme-park/events/$eventId',
+  path: '/theme-park/events/$eventId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const HotelsHotelIdConfirmationRoute =
   HotelsHotelIdConfirmationRouteImport.update({
@@ -354,11 +366,13 @@ export interface FileRoutesByFullPath {
   '/theme-park/': typeof ThemeParkIndexRoute
   '/hotels/$hotelId/book': typeof HotelsHotelIdBookRoute
   '/hotels/$hotelId/confirmation': typeof HotelsHotelIdConfirmationRoute
+  '/theme-park/events/$eventId': typeof ThemeParkEventsEventIdRoute
   '/dashboard/admin/': typeof DashboardAdminIndexRoute
   '/dashboard/ferry/': typeof DashboardFerryIndexRoute
   '/dashboard/hotel/': typeof DashboardHotelIndexRoute
   '/dashboard/park/': typeof DashboardParkIndexRoute
   '/hotels/$hotelId/': typeof HotelsHotelIdIndexRoute
+  '/theme-park/events/': typeof ThemeParkEventsIndexRoute
   '/dashboard/hotel/bookings/$bookingId': typeof DashboardHotelBookingsBookingIdRoute
   '/dashboard/hotel/bookings/new': typeof DashboardHotelBookingsNewRoute
   '/dashboard/hotel/rooms/$roomTypeId': typeof DashboardHotelRoomsRoomTypeIdRoute
@@ -403,11 +417,13 @@ export interface FileRoutesByTo {
   '/theme-park': typeof ThemeParkIndexRoute
   '/hotels/$hotelId/book': typeof HotelsHotelIdBookRoute
   '/hotels/$hotelId/confirmation': typeof HotelsHotelIdConfirmationRoute
+  '/theme-park/events/$eventId': typeof ThemeParkEventsEventIdRoute
   '/dashboard/admin': typeof DashboardAdminIndexRoute
   '/dashboard/ferry': typeof DashboardFerryIndexRoute
   '/dashboard/hotel': typeof DashboardHotelIndexRoute
   '/dashboard/park': typeof DashboardParkIndexRoute
   '/hotels/$hotelId': typeof HotelsHotelIdIndexRoute
+  '/theme-park/events': typeof ThemeParkEventsIndexRoute
   '/dashboard/hotel/bookings/$bookingId': typeof DashboardHotelBookingsBookingIdRoute
   '/dashboard/hotel/bookings/new': typeof DashboardHotelBookingsNewRoute
   '/dashboard/hotel/rooms/$roomTypeId': typeof DashboardHotelRoomsRoomTypeIdRoute
@@ -456,11 +472,13 @@ export interface FileRoutesById {
   '/theme-park/': typeof ThemeParkIndexRoute
   '/hotels/$hotelId/book': typeof HotelsHotelIdBookRoute
   '/hotels/$hotelId/confirmation': typeof HotelsHotelIdConfirmationRoute
+  '/theme-park/events/$eventId': typeof ThemeParkEventsEventIdRoute
   '/dashboard/admin/': typeof DashboardAdminIndexRoute
   '/dashboard/ferry/': typeof DashboardFerryIndexRoute
   '/dashboard/hotel/': typeof DashboardHotelIndexRoute
   '/dashboard/park/': typeof DashboardParkIndexRoute
   '/hotels/$hotelId/': typeof HotelsHotelIdIndexRoute
+  '/theme-park/events/': typeof ThemeParkEventsIndexRoute
   '/dashboard/hotel/bookings/$bookingId': typeof DashboardHotelBookingsBookingIdRoute
   '/dashboard/hotel/bookings/new': typeof DashboardHotelBookingsNewRoute
   '/dashboard/hotel/rooms/$roomTypeId': typeof DashboardHotelRoomsRoomTypeIdRoute
@@ -510,11 +528,13 @@ export interface FileRouteTypes {
     | '/theme-park/'
     | '/hotels/$hotelId/book'
     | '/hotels/$hotelId/confirmation'
+    | '/theme-park/events/$eventId'
     | '/dashboard/admin/'
     | '/dashboard/ferry/'
     | '/dashboard/hotel/'
     | '/dashboard/park/'
     | '/hotels/$hotelId/'
+    | '/theme-park/events/'
     | '/dashboard/hotel/bookings/$bookingId'
     | '/dashboard/hotel/bookings/new'
     | '/dashboard/hotel/rooms/$roomTypeId'
@@ -559,11 +579,13 @@ export interface FileRouteTypes {
     | '/theme-park'
     | '/hotels/$hotelId/book'
     | '/hotels/$hotelId/confirmation'
+    | '/theme-park/events/$eventId'
     | '/dashboard/admin'
     | '/dashboard/ferry'
     | '/dashboard/hotel'
     | '/dashboard/park'
     | '/hotels/$hotelId'
+    | '/theme-park/events'
     | '/dashboard/hotel/bookings/$bookingId'
     | '/dashboard/hotel/bookings/new'
     | '/dashboard/hotel/rooms/$roomTypeId'
@@ -611,11 +633,13 @@ export interface FileRouteTypes {
     | '/theme-park/'
     | '/hotels/$hotelId/book'
     | '/hotels/$hotelId/confirmation'
+    | '/theme-park/events/$eventId'
     | '/dashboard/admin/'
     | '/dashboard/ferry/'
     | '/dashboard/hotel/'
     | '/dashboard/park/'
     | '/hotels/$hotelId/'
+    | '/theme-park/events/'
     | '/dashboard/hotel/bookings/$bookingId'
     | '/dashboard/hotel/bookings/new'
     | '/dashboard/hotel/rooms/$roomTypeId'
@@ -661,7 +685,9 @@ export interface RootRouteChildren {
   ThemeParkIndexRoute: typeof ThemeParkIndexRoute
   HotelsHotelIdBookRoute: typeof HotelsHotelIdBookRoute
   HotelsHotelIdConfirmationRoute: typeof HotelsHotelIdConfirmationRoute
+  ThemeParkEventsEventIdRoute: typeof ThemeParkEventsEventIdRoute
   HotelsHotelIdIndexRoute: typeof HotelsHotelIdIndexRoute
+  ThemeParkEventsIndexRoute: typeof ThemeParkEventsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -771,6 +797,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminRouteRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/theme-park/events/': {
+      id: '/theme-park/events/'
+      path: '/theme-park/events'
+      fullPath: '/theme-park/events/'
+      preLoaderRoute: typeof ThemeParkEventsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/hotels/$hotelId/': {
       id: '/hotels/$hotelId/'
       path: '/hotels/$hotelId'
@@ -805,6 +838,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/admin/'
       preLoaderRoute: typeof DashboardAdminIndexRouteImport
       parentRoute: typeof DashboardAdminRouteRoute
+    }
+    '/theme-park/events/$eventId': {
+      id: '/theme-park/events/$eventId'
+      path: '/theme-park/events/$eventId'
+      fullPath: '/theme-park/events/$eventId'
+      preLoaderRoute: typeof ThemeParkEventsEventIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/hotels/$hotelId/confirmation': {
       id: '/hotels/$hotelId/confirmation'
@@ -1141,7 +1181,9 @@ const rootRouteChildren: RootRouteChildren = {
   ThemeParkIndexRoute: ThemeParkIndexRoute,
   HotelsHotelIdBookRoute: HotelsHotelIdBookRoute,
   HotelsHotelIdConfirmationRoute: HotelsHotelIdConfirmationRoute,
+  ThemeParkEventsEventIdRoute: ThemeParkEventsEventIdRoute,
   HotelsHotelIdIndexRoute: HotelsHotelIdIndexRoute,
+  ThemeParkEventsIndexRoute: ThemeParkEventsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -11,7 +11,8 @@ import {
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
-import { gbp } from "../constants";
+import { ParkTicketQr } from "../components/park-ticket-qr";
+import { gbp, utcDateKey } from "../constants";
 import {
   myEventBookingsQueryOptions,
   myParkTicketsQueryOptions,
@@ -124,14 +125,7 @@ export function ParkConfirmationPage({ reference }: { reference?: string }) {
                   </p>
                 </div>
               </div>
-              <div className="rounded-lg border border-dashed p-4 text-center">
-                <p className="text-xs tracking-wide text-muted-foreground uppercase">
-                  Show this at the gate
-                </p>
-                <p className="mt-2 font-mono text-2xl font-semibold tracking-widest">
-                  {ticket.ticketReference}
-                </p>
-              </div>
+              <ParkTicketQr reference={ticket.ticketReference} />
             </>
           ) : booking ? (
             <>
@@ -200,7 +194,10 @@ export function ParkConfirmationPage({ reference }: { reference?: string }) {
             booked separately — and they fill up.
           </p>
           <Button asChild className="mt-4">
-            <Link to="/theme-park">
+            <Link
+              to="/theme-park/events"
+              search={{ date: utcDateKey(ticket.visitDate) }}
+            >
               <FerrisWheel className="size-4" />
               Browse what&apos;s on
             </Link>

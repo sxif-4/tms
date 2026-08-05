@@ -3,7 +3,7 @@ import {
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query";
-import { CalendarCheckIcon } from "lucide-react";
+import { CalendarCheckIcon, PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "~/components/confirm-dialog";
@@ -32,6 +32,7 @@ import {
 } from "~/components/ui/table";
 import { PageHeading } from "~/components/page-heading";
 import { EmptyState } from "~/features/hotels/components/empty-state";
+import { ManualBookingDialog } from "../components/manual-booking-dialog";
 import { EventBookingStatusBadge } from "../components/park-badges";
 import {
   EVENT_BOOKING_STATUSES,
@@ -69,6 +70,7 @@ export function ParkBookingsPage() {
 
   const [confirming, setConfirming] = useState<EventBooking | null>(null);
   const [cancelling, setCancelling] = useState<EventBooking | null>(null);
+  const [booking, setBooking] = useState(false);
 
   const statusMutation = useMutation({
     mutationFn: (input: { id: number; status: "confirmed" | "cancelled" }) =>
@@ -95,11 +97,17 @@ export function ParkBookingsPage() {
     <div className="flex flex-col gap-6">
       <PageHeading />
       <Card>
-        <CardHeader>
-          <CardTitle>Bookings</CardTitle>
-          <CardDescription>
-            Cancelling a booking releases its seats and refunds the payment.
-          </CardDescription>
+        <CardHeader className="flex flex-row items-start justify-between gap-4">
+          <div className="flex flex-col gap-1.5">
+            <CardTitle>Bookings</CardTitle>
+            <CardDescription>
+              Cancelling a booking releases its seats and refunds the payment.
+            </CardDescription>
+          </div>
+          <Button onClick={() => setBooking(true)}>
+            <PlusIcon />
+            New booking
+          </Button>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-wrap items-end gap-3">
@@ -164,7 +172,7 @@ export function ParkBookingsPage() {
             <EmptyState
               icon={CalendarCheckIcon}
               title="No bookings match"
-              description="No event bookings match these filters. Visitors book seats from the event pages."
+              description="No event bookings match these filters. Visitors book seats from the event pages, or you can book one for a guest at the desk."
             />
           ) : (
             <Table>
@@ -238,6 +246,12 @@ export function ParkBookingsPage() {
           )}
         </CardContent>
       </Card>
+
+      <ManualBookingDialog
+        open={booking}
+        onOpenChange={setBooking}
+        events={events}
+      />
 
       <ConfirmDialog
         open={confirming != null}

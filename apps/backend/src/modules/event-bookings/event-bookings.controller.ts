@@ -13,6 +13,7 @@ import { Roles } from '../../shared/decorators/roles.decorator';
 import { Role } from '../../shared/enums/role.enum';
 import type { AuthenticatedUser } from '../../shared/interfaces/authenticated-user.interface';
 import { CreateEventBookingDto } from './dto/create-event-booking.dto';
+import { StaffEventBookingDto } from './dto/staff-event-booking.dto';
 import { UpdateEventBookingStatusDto } from './dto/update-event-booking-status.dto';
 import {
   type EventBookingRow,
@@ -55,6 +56,19 @@ export class EventBookingsController {
     @CurrentUser() currentUser: AuthenticatedUser,
   ): Promise<EventBookingRow> {
     return this.bookingsService.create(currentUser, dto);
+  }
+
+  /**
+   * Desk booking taken by staff for a walk-up guest. Deliberately *not* opened
+   * by a bare `@Roles()` — it skips the ticket-ownership check, so it must stay
+   * behind the class-level staff guard.
+   */
+  @Post('staff')
+  createForStaff(
+    @Body() dto: StaffEventBookingDto,
+    @CurrentUser() currentUser: AuthenticatedUser,
+  ): Promise<EventBookingRow> {
+    return this.bookingsService.createForStaff(currentUser, dto);
   }
 
   @Get(':id')

@@ -9,13 +9,22 @@
  */
 
 import type {
+  EventBooking,
+  EventBookingStatus,
   EventType,
   LocationType,
   ParkTicket,
-  EventBooking,
+  TicketStatus,
 } from "~/features/park/types";
 
-export type { EventType, LocationType, ParkTicket, EventBooking };
+export type {
+  EventBooking,
+  EventBookingStatus,
+  EventType,
+  LocationType,
+  ParkTicket,
+  TicketStatus,
+};
 
 /** `GET /public/park/ticket-types` */
 export interface PublicTicketType {
@@ -46,6 +55,18 @@ export interface PublicSchedule {
 /** `GET /public/park/events/:id` */
 export interface PublicEventDetail extends PublicEvent {
   schedules: PublicSchedule[];
+}
+
+/**
+ * `GET /public/park/schedules/upcoming` — a schedule carrying its event, so a
+ * chronological agenda needs one request rather than one per event.
+ */
+export interface PublicUpcomingSchedule extends PublicSchedule {
+  eventId: number;
+  eventName: string;
+  eventType: EventType;
+  locationType: LocationType;
+  basePrice: string;
 }
 
 /**

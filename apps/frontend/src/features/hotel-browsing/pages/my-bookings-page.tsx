@@ -3,7 +3,7 @@ import {
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, type LinkProps } from "@tanstack/react-router";
 import { ArrowRight, BedDouble, CalendarDays, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -12,6 +12,12 @@ import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { MyEventBookingCard } from "~/features/park-browsing/components/my-event-booking-card";
+import { MyParkTicketCard } from "~/features/park-browsing/components/my-park-ticket-card";
+import {
+  myEventBookingsQueryOptions,
+  myParkTicketsQueryOptions,
+} from "~/features/park-browsing/queries";
 import {
   BOOKING_STATUS_LABELS,
   BOOKING_STATUS_VARIANTS,
@@ -135,15 +141,22 @@ function BookingCard({
   );
 }
 
-function EmptyState() {
+function EmptyState({
+  title = "No bookings here yet.",
+  description = "Start planning your island escape.",
+  action,
+}: {
+  title?: string;
+  description?: string;
+  action?: { label: string; to: LinkProps["to"] };
+}) {
+  const cta = action ?? { label: "Browse hotels", to: "/hotels" };
   return (
     <div className="glass-data rounded-xl border p-12 text-center">
-      <p className="text-lg font-medium">No bookings here yet.</p>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Start planning your island escape.
-      </p>
+      <p className="text-lg font-medium">{title}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{description}</p>
       <Button asChild className="mt-4">
-        <Link to="/hotels">Browse hotels</Link>
+        <Link to={cta.to}>{cta.label}</Link>
       </Button>
     </div>
   );
@@ -152,6 +165,8 @@ function EmptyState() {
 export function MyBookingsPage() {
   const queryClient = useQueryClient();
   const { data: bookings } = useSuspenseQuery(myHotelBookingsQueryOptions);
+  const { data: parkTickets } = useSuspenseQuery(myParkTicketsQueryOptions);
+  const { data: eventBookings } = useSuspenseQuery(myEventBookingsQueryOptions);
   const [cancelling, setCancelling] = useState<HotelBooking | null>(null);
 
   const cancelMutation = useMutation({
@@ -175,55 +190,116 @@ export function MyBookingsPage() {
     (b) => visitorTab(b.status) === "cancelled",
   );
 
+  /** Newest visit first, so an upcoming day sits above last month's. */
+  const tickets = [...parkTickets].sort(
+    (a, b) => new Date(b.visitDate).getTime() - new Date(a.visitDate).getTime(),
+  );
+  const activities = [...eventBookings].sort(
+    (a, b) => new Date(b.startAt).getTime() - new Date(a.startAt).getTime(),
+  );
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
       <h1 className="text-3xl font-semibold tracking-tight">My bookings</h1>
       <p className="mt-2 text-muted-foreground">
-        Manage your upcoming trips and review past stays.
+        Manage your upcoming trips, park tickets and activities.
       </p>
 
-      <Tabs defaultValue="upcoming" className="mt-8">
+      <Tabs defaultValue="hotels" className="mt-8">
         <TabsList>
-          <TabsTrigger value="upcoming">
-            Upcoming
+          <TabsTrigger value="hotels">
+            Hotels
             <Badge variant="secondary" className="ml-2">
-              {upcoming.length}
+              {bookings.length}
             </Badge>
           </TabsTrigger>
-          <TabsTrigger value="completed">
-            Completed
+          <TabsTrigger value="park-tickets">
+            Park tickets
             <Badge variant="secondary" className="ml-2">
-              {completed.length}
+              {tickets.length}
             </Badge>
           </TabsTrigger>
-          <TabsTrigger value="cancelled">
-            Cancelled
+          <TabsTrigger value="activities">
+            Activities
             <Badge variant="secondary" className="ml-2">
-              {cancelled.length}
+              {activities.length}
             </Badge>
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="upcoming" className="mt-6 space-y-4">
-          {upcoming.length === 0 ? (
-            <EmptyState />
+
+        <TabsContent value="hotels" className="mt-6">
+          <Tabs defaultValue="upcoming">
+            <TabsList>
+              <TabsTrigger value="upcoming">
+                Upcoming
+                <Badge variant="secondary" className="ml-2">
+                  {upcoming.length}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger value="completed">
+                Completed
+                <Badge variant="secondary" className="ml-2">
+                  {completed.length}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger value="cancelled">
+                Cancelled
+                <Badge variant="secondary" className="ml-2">
+                  {cancelled.length}
+                </Badge>
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="upcoming" className="mt-6 space-y-4">
+              {upcoming.length === 0 ? (
+                <EmptyState />
+              ) : (
+                upcoming.map((b) => (
+                  <BookingCard
+                    key={b.id}
+                    booking={b}
+                    onCancel={setCancelling}
+                  />
+                ))
+              )}
+            </TabsContent>
+            <TabsContent value="completed" className="mt-6 space-y-4">
+              {completed.length === 0 ? (
+                <EmptyState />
+              ) : (
+                completed.map((b) => <BookingCard key={b.id} booking={b} />)
+              )}
+            </TabsContent>
+            <TabsContent value="cancelled" className="mt-6 space-y-4">
+              {cancelled.length === 0 ? (
+                <EmptyState />
+              ) : (
+                cancelled.map((b) => <BookingCard key={b.id} booking={b} />)
+              )}
+            </TabsContent>
+          </Tabs>
+        </TabsContent>
+
+        <TabsContent value="park-tickets" className="mt-6 space-y-4">
+          {tickets.length === 0 ? (
+            <EmptyState
+              title="No park tickets yet."
+              description="A park ticket admits you for one day — and it's what rides and shows are booked against."
+              action={{ label: "Buy park tickets", to: "/theme-park/tickets" }}
+            />
           ) : (
-            upcoming.map((b) => (
-              <BookingCard key={b.id} booking={b} onCancel={setCancelling} />
-            ))
+            tickets.map((t) => <MyParkTicketCard key={t.id} ticket={t} />)
           )}
         </TabsContent>
-        <TabsContent value="completed" className="mt-6 space-y-4">
-          {completed.length === 0 ? (
-            <EmptyState />
+
+        <TabsContent value="activities" className="mt-6 space-y-4">
+          {activities.length === 0 ? (
+            <EmptyState
+              title="No activities booked."
+              description="Rides, shows and beach events are booked against a park ticket for the same day."
+              action={{ label: "See what's on", to: "/theme-park" }}
+            />
           ) : (
-            completed.map((b) => <BookingCard key={b.id} booking={b} />)
-          )}
-        </TabsContent>
-        <TabsContent value="cancelled" className="mt-6 space-y-4">
-          {cancelled.length === 0 ? (
-            <EmptyState />
-          ) : (
-            cancelled.map((b) => <BookingCard key={b.id} booking={b} />)
+            activities.map((b) => <MyEventBookingCard key={b.id} booking={b} />)
           )}
         </TabsContent>
       </Tabs>

@@ -34,6 +34,15 @@ export interface PublicSchedule {
   remaining: number;
 }
 
+/** A schedule carrying its event, for the cross-event "what's on" agenda. */
+export interface PublicUpcomingSchedule extends PublicSchedule {
+  eventId: number;
+  eventName: string;
+  eventType: string;
+  locationType: string;
+  basePrice: string;
+}
+
 export interface PublicEventFilters {
   eventType?: EventType;
   locationType?: LocationType;
@@ -136,6 +145,51 @@ export class PublicParkRepository {
         )
         .groupBy(eventSchedules.id)
         .orderBy(asc(eventSchedules.startAt))
+        .all(),
+    );
+  }
+
+  /**
+   * The next runs of anything, across every active event — a chronological
+   * "what's on" agenda. Without this the homepage would have to fetch each
+   * event's detail separately just to learn when it next runs.
+   */
+  upcomingAcrossEvents(limit: number): Promise<PublicUpcomingSchedule[]> {
+    const booked = sql<number>`
+      COALESCE(SUM(
+        CASE WHEN ${eventBookings.status} != 'cancelled'
+        THEN ${eventBookings.quantity} ELSE 0 END
+      ), 0)
+    `;
+
+    return Promise.resolve(
+      this.db
+        .select({
+          id: eventSchedules.id,
+          eventId: events.id,
+          eventName: events.name,
+          eventType: events.eventType,
+          locationType: events.locationType,
+          basePrice: events.basePrice,
+          startAt: eventSchedules.startAt,
+          capacity: eventSchedules.capacity,
+          remaining: sql<number>`MAX(0, ${eventSchedules.capacity} - ${booked})`,
+        })
+        .from(eventSchedules)
+        .innerJoin(events, eq(events.id, eventSchedules.eventId))
+        .leftJoin(
+          eventBookings,
+          eq(eventBookings.eventScheduleId, eventSchedules.id),
+        )
+        .where(
+          and(
+            eq(events.isActive, true),
+            gt(eventSchedules.startAt, new Date()),
+          ),
+        )
+        .groupBy(eventSchedules.id)
+        .orderBy(asc(eventSchedules.startAt))
+        .limit(limit)
         .all(),
     );
   }

@@ -162,6 +162,8 @@ export class EventBookingsRepository {
     userId: number;
     payableId: number;
     amount: string;
+    /** Online bookings are paid by card; a desk booking is taken in cash. */
+    method?: 'card' | 'cash';
   }): Promise<void> {
     this.db
       .insert(payments)
@@ -171,7 +173,7 @@ export class EventBookingsRepository {
         payableId: input.payableId,
         amount: input.amount,
         status: 'completed',
-        method: 'card',
+        method: input.method ?? 'card',
         paymentReference: randomUUID(),
         paidAt: new Date(),
       })

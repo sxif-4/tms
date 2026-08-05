@@ -7,11 +7,18 @@ import { activeAdvertisementsQueryOptions } from "~/features/advertisements/quer
 import { HeroSearch } from "~/features/hotel-browsing/components/hero-search";
 import { HotelCard } from "~/features/hotel-browsing/components/hotel-card";
 import { publicHotelsQueryOptions } from "~/features/hotel-browsing/queries";
+import {
+  publicParkEventsQueryOptions,
+  upcomingParkSchedulesQueryOptions,
+} from "~/features/park-browsing/queries";
 import { WhyChooseUs } from "~/features/hotel-browsing/components/why-choose-us";
 import { HowItWorks } from "~/features/hotel-browsing/components/how-it-works";
 import { ThemeParkExperiences } from "~/features/hotel-browsing/components/theme-park-experiences";
 import { PromoBanner } from "~/features/hotel-browsing/components/promo-banner";
 import { UpcomingEvents } from "~/features/hotel-browsing/components/upcoming-events";
+
+/** How many upcoming runs the homepage agenda lists. */
+const HOMEPAGE_AGENDA_SIZE = 3;
 
 const PARTNER_LOGOS = [
   { src: "/logos/skyscanner-logo.svg", alt: "Skyscanner" },
@@ -25,6 +32,16 @@ export function HomePage() {
     activeAdvertisementsQueryOptions("homepage"),
   );
   const { data: hotels } = useSuspenseQuery(publicHotelsQueryOptions());
+  const { data: parkEvents } = useSuspenseQuery(publicParkEventsQueryOptions());
+  const { data: upcoming } = useSuspenseQuery(
+    upcomingParkSchedulesQueryOptions(HOMEPAGE_AGENDA_SIZE),
+  );
+
+  // The carousel is headlined "theme park experiences" — beach events get
+  // their own billing on /theme-park rather than being folded in here.
+  const attractions = parkEvents.filter(
+    (event) => event.locationType === "theme_park",
+  );
 
   return (
     <div>
@@ -94,11 +111,11 @@ export function HomePage() {
 
       <HowItWorks />
 
-      <ThemeParkExperiences />
+      <ThemeParkExperiences events={attractions} />
 
       <PromoBanner />
 
-      <UpcomingEvents />
+      <UpcomingEvents schedules={upcoming} />
 
       {hotels.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 py-12 pb-20 sm:px-6 lg:px-8">

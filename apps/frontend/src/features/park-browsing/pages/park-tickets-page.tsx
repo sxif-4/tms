@@ -115,8 +115,9 @@ export function ParkTicketsPage({ initialDate }: { initialDate?: string }) {
 
   const canProceed = useMemo(() => {
     if (step === 0)
-      return Boolean(visitDateKey && ticketTypeId && quantity > 0) &&
-        !overRemaining;
+      return (
+        Boolean(visitDateKey && ticketTypeId && quantity > 0) && !overRemaining
+      );
     if (step === 1) return contactValid;
     if (step === 2) return paymentMethod.length > 0;
     return false;
@@ -146,9 +147,7 @@ export function ParkTicketsPage({ initialDate }: { initialDate?: string }) {
 
   const total = (pricePerTicket ?? 0) * quantity;
   const mobilePriceLabel =
-    pricePerTicket != null
-      ? `${gbp(total)} total`
-      : "Select a ticket";
+    pricePerTicket != null ? `${gbp(total)} total` : "Select a ticket";
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 pb-28 sm:px-6 lg:px-8 lg:pb-10">

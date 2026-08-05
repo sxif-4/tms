@@ -31,6 +31,7 @@ import {
   imageables,
   images,
   mapLocations,
+  parkDayCapacities,
   parkTicketTypes,
   parkTickets,
   payments,
@@ -52,6 +53,15 @@ const DAY = 86_400_000;
 const now = Date.now();
 /** A Date `days` from now (negative = past), keeping the current time of day. */
 const at = (days: number) => new Date(now + days * DAY);
+/**
+ * `park_day_capacities.date` is looked up by exact UTC-midnight match, so day
+ * overrides must be normalised the same way the API normalises them on write.
+ */
+const day = (days: number) => {
+  const d = new Date(now + days * DAY);
+  d.setUTCHours(0, 0, 0, 0);
+  return d;
+};
 const ref = (prefix: string, n: number) =>
   `${prefix}-${String(n).padStart(4, '0')}`;
 
@@ -1199,10 +1209,46 @@ export async function seedDemo(db: DemoDb): Promise<void> {
         channel: 'online',
         status: 'used',
       },
+      // Aisha is the account demos sign in as. She needs a live ticket for
+      // *today* (so gate check-in works) and one for a day with events on it
+      // (so the ride/show booking flow is reachable) — without these the whole
+      // visitor path dead-ends at "you need a park ticket".
+      {
+        ticketReference: ref('PT', 6),
+        userId: aisha.id,
+        ticketTypeId: dayPass.id,
+        visitDate: at(0),
+        quantity: 2,
+        totalAmount: '150.00',
+        channel: 'online',
+        status: 'active',
+      },
+      {
+        ticketReference: ref('PT', 7),
+        userId: aisha.id,
+        ticketTypeId: vipPass.id,
+        visitDate: at(2),
+        quantity: 3,
+        totalAmount: '420.00',
+        channel: 'online',
+        status: 'active',
+      },
+      // Bulk sale that puts day +10 at 95% of its capped 20 — the trigger for
+      // the dashboard's "days near capacity" alert.
+      {
+        ticketReference: ref('PT', 8),
+        userId: priya.id,
+        ticketTypeId: dayPass.id,
+        visitDate: at(10),
+        quantity: 19,
+        totalAmount: '1425.00',
+        channel: 'online',
+        status: 'active',
+      },
     ])
     .returning()
     .all();
-  const [pt1, pt2, pt3] = parkTicketRows;
+  const [pt1, pt2, pt3, , , , aishaSoon] = parkTicketRows;
 
   const [snorkel, dolphin, sandbankBbq] = db
     .insert(events)
@@ -1235,13 +1281,30 @@ export async function seedDemo(db: DemoDb): Promise<void> {
     .returning()
     .all();
 
-  const [snorkelPast, dolphinFut, bbqFut] = db
+  const [
+    snorkelPast,
+    dolphinFut,
+    bbqFut,
+    ,
+    snorkelSoon,
+    dolphinSoon,
+    bbqSoon,
+    dolphinTight,
+  ] = db
     .insert(eventSchedules)
     .values([
       { eventId: snorkel.id, startAt: at(-8), capacity: 40 },
       { eventId: dolphin.id, startAt: at(6), capacity: 60 },
       { eventId: sandbankBbq.id, startAt: at(7), capacity: 30 },
       { eventId: snorkel.id, startAt: at(6), capacity: 40 },
+      // Day +2 mirrors Aisha's ticket, so one signed-in account can demo
+      // booking a ride, a show and a beach event without buying anything.
+      { eventId: snorkel.id, startAt: at(2), capacity: 40 },
+      { eventId: dolphin.id, startAt: at(2), capacity: 60 },
+      { eventId: sandbankBbq.id, startAt: at(2), capacity: 30 },
+      // Deliberately tight: 9 of 10 booked below, tripping the dashboard's
+      // ">90% full" schedule alert and the "N left" copy on the event page.
+      { eventId: dolphin.id, startAt: at(4), capacity: 10 },
     ])
     .returning()
     .all();
@@ -1276,9 +1339,46 @@ export async function seedDemo(db: DemoDb): Promise<void> {
         totalAmount: '90.00',
         status: 'pending',
       },
+      // Gives the demo visitor something in the "Activities" tab of My
+      // bookings, on a schedule that hasn't happened yet.
+      {
+        bookingReference: ref('EB', 4),
+        userId: aisha.id,
+        eventScheduleId: snorkelSoon.id,
+        parkTicketId: aishaSoon.id,
+        quantity: 2,
+        totalAmount: '70.00',
+        status: 'confirmed',
+      },
+      // Fills the tight schedule to 9/10.
+      {
+        bookingReference: ref('EB', 5),
+        userId: mei.id,
+        eventScheduleId: dolphinTight.id,
+        parkTicketId: pt3.id,
+        quantity: 9,
+        totalAmount: '495.00',
+        status: 'confirmed',
+      },
     ])
     .returning()
     .all();
+
+  // Per-day capacity overrides. A missing row means "default capacity, open",
+  // so only the exceptional days are stored — a raised cap for a busy weekend,
+  // a tight cap that trips the near-capacity alert, and a closure.
+  db.insert(parkDayCapacities)
+    .values([
+      { date: day(3), capacity: 2500, note: 'Extra staff on for the weekend' },
+      { date: day(10), capacity: 20, note: 'Reduced capacity — resurfacing' },
+      {
+        date: day(12),
+        capacity: 0,
+        isClosed: true,
+        note: 'Closed for a private event',
+      },
+    ])
+    .run();
 
   // ── Payments ─────────────────────────────────────────────────────────────
   const payment = (

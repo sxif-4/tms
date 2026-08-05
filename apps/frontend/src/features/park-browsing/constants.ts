@@ -1,21 +1,81 @@
 import { z } from "zod";
 import { gbp } from "~/features/reports/constants";
-import type { EventType, LocationType, PublicDayAvailability } from "./types";
+import type {
+  EventBookingStatus,
+  EventType,
+  LocationType,
+  PublicDayAvailability,
+  TicketStatus,
+} from "./types";
 
 export { gbp };
+
+type BadgeVariant = "default" | "secondary" | "destructive" | "outline";
+
+/** Visitor-facing wording. Staff see the raw status; a buyer sees the outcome. */
+export const TICKET_STATUS_LABELS: Record<TicketStatus, string> = {
+  active: "Valid",
+  used: "Checked in",
+  cancelled: "Cancelled",
+  refunded: "Refunded",
+};
+
+export const TICKET_STATUS_VARIANTS: Record<TicketStatus, BadgeVariant> = {
+  active: "default",
+  used: "outline",
+  cancelled: "destructive",
+  refunded: "destructive",
+};
+
+export const EVENT_BOOKING_STATUS_LABELS: Record<EventBookingStatus, string> = {
+  pending: "Pending",
+  confirmed: "Confirmed",
+  cancelled: "Cancelled",
+};
+
+export const EVENT_BOOKING_STATUS_VARIANTS: Record<
+  EventBookingStatus,
+  BadgeVariant
+> = {
+  pending: "secondary",
+  confirmed: "default",
+  cancelled: "destructive",
+};
 
 /** Deep-linked from the ticket confirmation and the event pages. */
 export const parkTicketsSearchSchema = z.object({
   /** `yyyy-MM-dd` — preselects the visit date. */
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
 });
 export type ParkTicketsSearch = z.infer<typeof parkTicketsSearchSchema>;
 
 export const parkEventsSearchSchema = z.object({
   eventType: z.enum(["ride", "show", "beach_event"]).optional(),
   locationType: z.enum(["theme_park", "beach"]).optional(),
+  /**
+   * `yyyy-MM-dd` — the day the visitor is planning for, carried over from a
+   * ticket purchase. Context only: the API has no date filter on events, so
+   * this highlights matching schedules rather than narrowing the list.
+   */
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
 });
 export type ParkEventsSearch = z.infer<typeof parkEventsSearchSchema>;
+
+/**
+ * `2026-08-12T00:00:00.000Z` → `2026-08-12`. Park days are whole UTC days on
+ * the backend (`toDateKey`/`isSameUtcDay`), so every "is this ticket for this
+ * event's day?" comparison must be made in UTC — doing it in local time puts
+ * anyone west of Greenwich on the wrong day.
+ */
+export function utcDateKey(value: string | Date): string {
+  return new Date(value).toISOString().slice(0, 10);
+}
 
 export const EVENT_TYPE_LABELS: Record<EventType, string> = {
   ride: "Ride",

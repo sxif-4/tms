@@ -6,6 +6,7 @@ import {
   ParseIntPipe,
   Query,
 } from '@nestjs/common';
+
 import { Public } from '../../shared/decorators/public.decorator';
 import { Roles } from '../../shared/decorators/roles.decorator';
 import { EVENT_TYPES, LOCATION_TYPES } from '../events/dto/create-event.dto';
@@ -14,7 +15,11 @@ import {
   type PublicDayAvailability,
   type PublicEventDetail,
 } from './public-park.service';
-import type { PublicEvent, PublicTicketType } from './public-park.repository';
+import type {
+  PublicEvent,
+  PublicTicketType,
+  PublicUpcomingSchedule,
+} from './public-park.repository';
 
 /**
  * Unauthenticated park browsing — the pages a visitor sees before logging in.
@@ -40,6 +45,14 @@ export class PublicParkController {
       eventType: oneOf(eventType, EVENT_TYPES, 'eventType'),
       locationType: oneOf(locationType, LOCATION_TYPES, 'locationType'),
     });
+  }
+
+  /** Next runs across every active event — the homepage "what's on" agenda. */
+  @Get('schedules/upcoming')
+  upcoming(
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+  ): Promise<PublicUpcomingSchedule[]> {
+    return this.parkService.upcoming(limit);
   }
 
   @Get('events/:id')

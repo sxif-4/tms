@@ -14,6 +14,7 @@ import { EventSchedulesRepository } from '../event-schedules/event-schedules.rep
 import { EventsRepository } from '../events/events.repository';
 import { ParkTicketsRepository } from '../park-tickets/park-tickets.repository';
 import { CreateEventBookingDto } from './dto/create-event-booking.dto';
+import { StaffEventBookingDto } from './dto/staff-event-booking.dto';
 import { UpdateEventBookingStatusDto } from './dto/update-event-booking-status.dto';
 import {
   EventBookingsRepository,
@@ -50,7 +51,7 @@ export class EventBookingsService {
   /**
    * The park's cross-domain prerequisite — the counterpart of "a ferry booking
    * needs a hotel booking". The FK on `park_ticket_id` only proves *a* ticket
-   * exists; all four checks below are what prove it's the *right* one.
+   * exists; the four checks below are what prove it's the *right* one.
    */
   async create(
     user: AuthenticatedUser,
@@ -69,10 +70,89 @@ export class EventBookingsService {
     }
 
     // 1. The ticket must be the caller's. Without this, anyone could pass a
-    //    stranger's ticket id and ride on it.
+    //    stranger's ticket id and ride on it. This is the one check the desk
+    //    flow drops — see `createForStaff`.
     if (ticket.userId !== user.id) {
       throw new ForbiddenException('That park ticket belongs to someone else');
     }
+
+    return this.bookSeats({
+      schedule,
+      ticket,
+      quantity: dto.quantity,
+      actorId: user.id,
+      channel: 'online',
+    });
+  }
+
+  /**
+   * Desk booking: park staff seat a guest who is standing in front of them
+   * holding a printed ticket. Ownership is not checked — possession of the
+   * ticket is the proof, exactly as it is at the gate — but every other rule
+   * is identical, because it runs through the same `bookSeats`.
+   *
+   * The booking belongs to the ticket's owner, never the staff member. Getting
+   * that backwards would put staff accounts in customer booking lists and
+   * corrupt every per-visitor report (the same trap `gateSale` avoids).
+   */
+  async createForStaff(
+    staff: AuthenticatedUser,
+    dto: StaffEventBookingDto,
+  ): Promise<EventBookingRow> {
+    const schedule = await this.schedulesRepo.findRowById(dto.eventScheduleId);
+    if (!schedule) {
+      throw new NotFoundException(
+        `Event schedule #${dto.eventScheduleId} not found`,
+      );
+    }
+
+    const ticket = await this.ticketsRepo.findRowByReference(
+      dto.ticketReference.trim(),
+    );
+    if (!ticket) {
+      throw new NotFoundException('No ticket with that reference');
+    }
+
+    return this.bookSeats({
+      schedule,
+      ticket,
+      quantity: dto.quantity,
+      actorId: ticket.userId,
+      channel: 'desk',
+      soldByUserId: staff.id,
+    });
+  }
+
+  /**
+   * Everything both entry points share: the remaining prerequisite checks,
+   * capacity, the price snapshot, the mock payment and the audit record.
+   * Keeping one path means the desk flow can never drift from the rules the
+   * visitor flow enforces.
+   */
+  private async bookSeats(input: {
+    schedule: {
+      id: number;
+      eventId: number;
+      startAt: Date;
+      capacity: number;
+      booked: number;
+    };
+    ticket: {
+      id: number;
+      userId: number;
+      status: string;
+      visitDate: Date;
+      quantity: number;
+    };
+    quantity: number;
+    /** Who the booking belongs to — always the ticket holder. */
+    actorId: number;
+    channel: 'online' | 'desk';
+    /** The staff member who took a desk booking, for the audit trail. */
+    soldByUserId?: number;
+  }): Promise<EventBookingRow> {
+    const { schedule, ticket, quantity } = input;
+
     // 2. A used, cancelled or refunded ticket buys nothing.
     if (ticket.status !== 'active') {
       throw new BadRequestException(`Your park ticket is ${ticket.status}`);
@@ -83,15 +163,16 @@ export class EventBookingsService {
         `Your park ticket is for ${toDateKey(ticket.visitDate)}, but this event runs on ${toDateKey(schedule.startAt)}`,
       );
     }
-    // 4. A 2-person ticket cannot book 5 event seats.
-    if (dto.quantity > ticket.quantity) {
+    // 4. A 2-person ticket cannot book 5 event seats. Checked per booking, not
+    //    cumulatively — the same two people may attend several events.
+    if (quantity > ticket.quantity) {
       throw new BadRequestException(
-        `Your park ticket covers ${ticket.quantity} visitor(s), so you cannot book ${dto.quantity} seat(s)`,
+        `Your park ticket covers ${ticket.quantity} visitor(s), so you cannot book ${quantity} seat(s)`,
       );
     }
 
     const remaining = Math.max(0, schedule.capacity - schedule.booked);
-    if (dto.quantity > remaining) {
+    if (quantity > remaining) {
       throw new ConflictException(
         `Only ${remaining} seat(s) left on this schedule`,
       );
@@ -103,35 +184,40 @@ export class EventBookingsService {
     }
 
     // Price snapshot at booking time — never re-derived from base_price later.
-    const totalAmount = (Number(event.basePrice) * dto.quantity).toFixed(2);
+    const totalAmount = (Number(event.basePrice) * quantity).toFixed(2);
 
     const booking = await this.bookingsRepo.create({
       bookingReference: ref(),
-      userId: user.id,
-      eventScheduleId: dto.eventScheduleId,
-      parkTicketId: dto.parkTicketId,
-      quantity: dto.quantity,
+      userId: input.actorId,
+      eventScheduleId: schedule.id,
+      parkTicketId: ticket.id,
+      quantity,
       totalAmount,
       status: 'confirmed',
     });
 
     await this.bookingsRepo.recordMockPayment({
-      userId: user.id,
+      userId: input.actorId,
       payableId: booking.id,
       amount: totalAmount,
+      method: input.channel === 'desk' ? 'cash' : 'card',
     });
 
     await this.audit.record({
-      userId: user.id,
+      // Attribute the action to whoever performed it: the staff member at the
+      // desk, or the visitor themselves online.
+      userId: input.soldByUserId ?? input.actorId,
       action: AuditAction.EventBookingCreated,
       subjectType: 'EventBooking',
       subjectId: booking.id,
       metadata: {
         bookingReference: booking.bookingReference,
-        eventScheduleId: dto.eventScheduleId,
-        parkTicketId: dto.parkTicketId,
-        quantity: dto.quantity,
+        eventScheduleId: schedule.id,
+        parkTicketId: ticket.id,
+        quantity,
         totalAmount,
+        channel: input.channel,
+        ...(input.soldByUserId ? { soldByUserId: input.soldByUserId } : {}),
       },
     });
 
