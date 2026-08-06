@@ -92,12 +92,15 @@ export function FerrySchedulesPage() {
     return schedules.filter((schedule) => {
       const routeName =
         routeNames[schedule.routeId] ?? `Route ${schedule.routeId}`;
+      // Falling back to the raw enum keeps an unmapped direction or status
+      // searchable, and keeps a stray value from crashing the whole list the
+      // moment someone types in the filter box.
       return [
         routeName,
         fmtDateTime(schedule.departureAt),
-        FERRY_DIRECTION_LABELS[schedule.direction],
-        FERRY_SCHEDULE_STATUS_LABELS[schedule.status],
-      ].some((value) => value.toLowerCase().includes(query));
+        FERRY_DIRECTION_LABELS[schedule.direction] ?? schedule.direction,
+        FERRY_SCHEDULE_STATUS_LABELS[schedule.status] ?? schedule.status,
+      ].some((value) => value?.toLowerCase().includes(query));
     });
   }, [routeNames, schedules, search]);
 

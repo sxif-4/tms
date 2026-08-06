@@ -278,7 +278,10 @@ function RoomChipGrid({
               key={entry.status}
               onClick={() => setFilter(entry.status)}
             >
-              {entry.count} {ROOM_STATUS_LABELS[entry.status].toLowerCase()}
+              {/* Fall back to the raw status: an unmapped one should still
+                  label its chip, not take the page down. */}
+              {entry.count}{" "}
+              {(ROOM_STATUS_LABELS[entry.status] ?? entry.status).toLowerCase()}
             </FilterChip>
           ))}
         </div>

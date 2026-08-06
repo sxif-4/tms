@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { AuditService } from '../../shared/audit/audit.service';
 import { AuditAction } from '../../shared/enums/audit-action.enum';
+import { toMoney } from '../../shared/utils/money';
 import { HotelAccessService } from '../../shared/hotel-access/hotel-access.service';
 import { AmenitiesRepository } from '../amenities/amenities.repository';
 import type { AuthenticatedUser } from '../../shared/interfaces/authenticated-user.interface';
@@ -60,7 +61,7 @@ export class RoomTypesService {
         hotelId: dto.hotelId,
         name: dto.name,
         description: dto.description,
-        basePricePerNight: dto.basePricePerNight,
+        basePricePerNight: toMoney(dto.basePricePerNight),
         maxOccupancy: dto.maxOccupancy,
       });
     } catch {
@@ -93,6 +94,10 @@ export class RoomTypesService {
     await this.findById(user, id); // 404 + access check
 
     const { amenityIds, ...fields } = dto;
+    // Optional on PATCH — only rewrite the nightly rate when one was sent.
+    if (fields.basePricePerNight !== undefined) {
+      fields.basePricePerNight = toMoney(fields.basePricePerNight);
+    }
     let updated: RoomTypeWithAmenities | undefined;
     try {
       updated = await this.roomTypesRepo.update(id, fields);

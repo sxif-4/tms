@@ -29,6 +29,7 @@ import {
 } from './dto/create-ferry-booking.dto';
 import { CreateFerryRouteDto } from './dto/create-ferry-route.dto';
 import { CreateFerryScheduleDto } from './dto/create-ferry-schedule.dto';
+import { toMoney } from '../../shared/utils/money';
 import { UpdateFerryBookingDto } from './dto/update-ferry-booking.dto';
 import { UpdateFerryRouteDto } from './dto/update-ferry-route.dto';
 import { UpdateFerryScheduleDto } from './dto/update-ferry-schedule.dto';
@@ -107,7 +108,8 @@ interface EligibleStay {
   checkOut: Date;
 }
 
-const money = (value: number | string) => Number(value).toFixed(2);
+/** Ferry got this right first; the helper now lives in shared/utils/money. */
+const money = toMoney;
 const newRef = (prefix: string) =>
   `${prefix}-${randomUUID().slice(0, 8).toUpperCase()}`;
 const ref = () => newRef('FB');

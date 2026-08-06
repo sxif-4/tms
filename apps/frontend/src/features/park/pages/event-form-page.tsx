@@ -8,7 +8,6 @@ import {
   InfoIcon,
   PoundSterlingIcon,
 } from "lucide-react";
-import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -39,7 +38,10 @@ import { Textarea } from "~/components/ui/textarea";
 import { PhotoDropzone } from "~/features/hotels/components/photo-dropzone";
 import { StagedPhotoGrid } from "~/features/hotels/components/staged-photo-grid";
 import { useStagedPhotos } from "~/features/hotels/hooks/use-staged-photos";
-import { setEventCoverImage, uploadEventImage } from "~/features/hotels/images-api";
+import {
+  setEventCoverImage,
+  uploadEventImage,
+} from "~/features/hotels/images-api";
 import { EventMedia } from "../components/event-media";
 import { EventSchedulesPanel } from "../components/event-schedules-panel";
 import { EventTypeBadge } from "../components/park-badges";
@@ -69,6 +71,27 @@ const eventSchema = z.object({
 });
 type EventValues = z.infer<typeof eventSchema>;
 
+const BLANK_EVENT: EventValues = {
+  name: "",
+  description: "",
+  eventType: "ride",
+  locationType: "theme_park",
+  basePrice: "",
+  isActive: true,
+};
+
+/** Narrows a fetched event down to just the fields this form owns. */
+function toFormValues(event: ParkEventDetail): EventValues {
+  return {
+    name: event.name,
+    description: event.description,
+    eventType: event.eventType,
+    locationType: event.locationType,
+    basePrice: event.basePrice,
+    isActive: event.isActive,
+  };
+}
+
 export function NewEventPage() {
   return <EventForm />;
 }
@@ -96,32 +119,22 @@ function EventForm({ event }: { event?: ParkEventDetail }) {
     register,
     control,
     handleSubmit,
-    reset,
     watch,
     formState: { errors },
   } = useForm<EventValues>({
     resolver: zodResolver(eventSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      eventType: "ride",
-      locationType: "theme_park",
-      basePrice: "",
-      isActive: true,
-    },
+    defaultValues: BLANK_EVENT,
+    /**
+     * Fed straight from the query instead of `reset()` in an effect. `values`
+     * syncs during render, so there is never a frame where the form still
+     * holds the previous event's fields — or, when the form is remounted
+     * mid-navigation, none at all. That gap is what left `watch("eventType")`
+     * undefined for a render and crashed the price hint below.
+     */
+    values: event ? toFormValues(event) : undefined,
+    /** A background refetch must not wipe what someone is halfway through typing. */
+    resetOptions: { keepDirtyValues: true },
   });
-
-  useEffect(() => {
-    if (!event) return;
-    reset({
-      name: event.name,
-      description: event.description,
-      eventType: event.eventType,
-      locationType: event.locationType,
-      basePrice: event.basePrice,
-      isActive: event.isActive,
-    });
-  }, [event, reset]);
 
   const mutation = useMutation({
     mutationFn: async (values: EventValues) => {
@@ -191,6 +204,12 @@ function EventForm({ event }: { event?: ParkEventDetail }) {
 
   const price = watch("basePrice");
   const eventType = watch("eventType");
+  // Belt and braces: `watch` is typed as always returning a member of the
+  // enum, but it reads live form state, so a value the label map doesn't know
+  // must degrade to generic copy rather than take the whole page down.
+  const typeLabel = eventType
+    ? EVENT_TYPE_LABELS[eventType]?.toLowerCase()
+    : undefined;
 
   return (
     <div className="flex flex-col gap-6">
@@ -351,7 +370,7 @@ function EventForm({ event }: { event?: ParkEventDetail }) {
                     {DECIMAL.test(price?.trim() ?? "") && (
                       <p className="text-muted-foreground text-xs">
                         {gbp(Number(price))} per seat on every{" "}
-                        {EVENT_TYPE_LABELS[eventType].toLowerCase()} booking.
+                        {typeLabel ? `${typeLabel} ` : ""}booking.
                       </p>
                     )}
                   </Field>

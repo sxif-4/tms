@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { AuditService } from '../../shared/audit/audit.service';
 import { AuditAction } from '../../shared/enums/audit-action.enum';
+import { toMoney, toMoneyOptional } from '../../shared/utils/money';
 import { Role } from '../../shared/enums/role.enum';
 import { HotelAccessService } from '../../shared/hotel-access/hotel-access.service';
 import { type PromotionUsage } from '../../shared/database/schema';
@@ -105,8 +106,10 @@ export class PromotionsService {
       description: dto.description,
       code: dto.code || null,
       discountType: dto.discountType,
-      discountValue: dto.discountValue,
-      minSpend: dto.minSpend ?? null,
+      // A percentage discount is stored in the same decimal(10,2) column as a
+      // fixed amount, so both normalise the same way.
+      discountValue: toMoney(dto.discountValue),
+      minSpend: toMoneyOptional(dto.minSpend) ?? null,
       usageLimit: dto.usageLimit ?? null,
       perUserLimit: dto.perUserLimit ?? null,
       validFrom: new Date(dto.validFrom),
@@ -155,8 +158,8 @@ export class PromotionsService {
       description: dto.description,
       code: dto.code !== undefined ? dto.code || null : undefined,
       discountType: dto.discountType,
-      discountValue: dto.discountValue,
-      minSpend: dto.minSpend,
+      discountValue: toMoneyOptional(dto.discountValue),
+      minSpend: toMoneyOptional(dto.minSpend),
       usageLimit: dto.usageLimit,
       perUserLimit: dto.perUserLimit,
       validFrom: dto.validFrom ? validFrom : undefined,

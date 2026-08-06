@@ -6,6 +6,7 @@ import {
 import { AuditService } from '../../shared/audit/audit.service';
 import { type ParkTicketType } from '../../shared/database/schema';
 import { AuditAction } from '../../shared/enums/audit-action.enum';
+import { toMoney } from '../../shared/utils/money';
 import { CreateParkTicketTypeDto } from './dto/create-park-ticket-type.dto';
 import { UpdateParkTicketTypeDto } from './dto/update-park-ticket-type.dto';
 import { ParkTicketTypesRepository } from './park-ticket-types.repository';
@@ -43,7 +44,7 @@ export class ParkTicketTypesService {
   ): Promise<ParkTicketType> {
     const ticketType = await this.ticketTypesRepo.create({
       name: dto.name,
-      price: dto.price,
+      price: toMoney(dto.price),
     });
     await this.audit.record({
       userId: actorId,
@@ -62,7 +63,11 @@ export class ParkTicketTypesService {
   ): Promise<ParkTicketType> {
     await this.findById(id); // 404 if missing
 
-    const updated = await this.ticketTypesRepo.update(id, dto);
+    const updated = await this.ticketTypesRepo.update(id, {
+      ...dto,
+      // Optional on PATCH — only rewrite the price when one was sent.
+      ...(dto.price !== undefined && { price: toMoney(dto.price) }),
+    });
     if (!updated) {
       throw new NotFoundException(`Park ticket type #${id} not found`);
     }

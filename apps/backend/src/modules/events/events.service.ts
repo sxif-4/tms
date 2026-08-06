@@ -7,6 +7,7 @@ import { AuditService } from '../../shared/audit/audit.service';
 import { type Event } from '../../shared/database/schema';
 import { AuditAction } from '../../shared/enums/audit-action.enum';
 import { ImagesRepository } from '../../shared/images/images.repository';
+import { toMoney } from '../../shared/utils/money';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { EventsRepository, type EventFilters } from './events.repository';
@@ -68,7 +69,7 @@ export class EventsService {
       description: dto.description,
       eventType: dto.eventType,
       locationType: dto.locationType,
-      basePrice: dto.basePrice,
+      basePrice: toMoney(dto.basePrice),
       isActive: dto.isActive ?? true,
     });
     await this.audit.record({
@@ -88,7 +89,13 @@ export class EventsService {
   ): Promise<Event> {
     await this.findById(id); // 404 if missing
 
-    const updated = await this.eventsRepo.update(id, dto);
+    const updated = await this.eventsRepo.update(id, {
+      ...dto,
+      // `basePrice` is optional on PATCH — only rewrite it when it was sent.
+      ...(dto.basePrice !== undefined && {
+        basePrice: toMoney(dto.basePrice),
+      }),
+    });
     if (!updated) throw new NotFoundException(`Event #${id} not found`);
 
     await this.audit.record({
