@@ -1,9 +1,8 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { activeAdvertisementsQueryOptions } from "~/features/advertisements/queries";
-import { HotelCard } from "~/features/hotel-browsing/components/hotel-card";
 import { publicHotelsQueryOptions } from "~/features/hotel-browsing/queries";
 import {
   publicParkEventsQueryOptions,
@@ -14,15 +13,18 @@ import { HowItWorks } from "~/features/hotel-browsing/components/how-it-works";
 import { ThemeParkExperiences } from "~/features/hotel-browsing/components/theme-park-experiences";
 import { PromoBanner } from "~/features/hotel-browsing/components/promo-banner";
 import { UpcomingEvents } from "~/features/hotel-browsing/components/upcoming-events";
+import { FeaturedStays } from "~/features/hotel-browsing/components/featured-stays";
 
 /** How many upcoming runs the homepage agenda lists. */
 const HOMEPAGE_AGENDA_SIZE = 3;
 
 const PARTNER_LOGOS = [
   { src: "/logos/skyscanner-logo.svg", alt: "Skyscanner" },
-  { src: "/logos/trip-logo.svg", alt: "Trip.com" },
   { src: "/logos/expedia-logo.svg", alt: "Expedia" },
-  { src: "/logos/advisor-logo.svg", alt: "Tripadvisor" },
+  { src: "/logos/tripadvisor-logo.svg", alt: "Tripadvisor" },
+  { src: "/logos/conde-nast-traveler-logo.svg", alt: "Condé Nast Traveler" },
+  { src: "/logos/cnn-logo.svg", alt: "CNN" },
+  { src: "/logos/bbc-logo.svg", alt: "BBC" },
 ];
 
 export function HomePage() {
@@ -85,7 +87,7 @@ export function HomePage() {
 
             <Button
               asChild
-              className="animate-fade-in mt-8 h-11 rounded-md bg-brand px-8 text-base font-semibold text-brand-foreground hover:bg-brand/90 sm:mt-10"
+              className="animate-fade-in mt-8 h-11 rounded-md bg-primary px-8 text-base font-semibold text-primary-foreground hover:bg-primary/80 sm:mt-10"
             >
               <Link to="/hotels">Explore</Link>
             </Button>
@@ -94,8 +96,12 @@ export function HomePage() {
 
         {/* Full-bleed partner strip: it runs edge to edge along the bottom of
             the hero image rather than sitting inside the 7xl content column. */}
-        <div className="w-full border-t border-white/10 bg-black/45 backdrop-blur-sm">
+        <div className="w-full border-t border-white/10 bg-black">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-10 gap-y-4 px-4 py-5 sm:justify-between sm:gap-x-12 sm:px-6 lg:px-8">
+            <span className="flex items-center gap-3 text-xs font-medium whitespace-nowrap text-white/60 sm:text-sm">
+              As featured in
+              <span className="h-4 w-px bg-white/20" aria-hidden="true" />
+            </span>
             {PARTNER_LOGOS.map((logo) => (
               <img
                 key={logo.alt}
@@ -111,6 +117,8 @@ export function HomePage() {
 
       <WhyChooseUs />
 
+      <FeaturedStays hotels={hotels} />
+
       <HowItWorks />
 
       <ThemeParkExperiences events={attractions} />
@@ -118,32 +126,6 @@ export function HomePage() {
       <PromoBanner ads={ads} />
 
       <UpcomingEvents schedules={upcoming} />
-
-      {hotels.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 py-12 pb-20 sm:px-6 lg:px-8">
-          <div className="mb-8 flex items-end justify-between">
-            <div>
-              <h2 className="text-3xl font-semibold tracking-tight">
-                Featured stays
-              </h2>
-              <p className="mt-2 text-muted-foreground">
-                Hand-picked properties across the island.
-              </p>
-            </div>
-            <Button asChild variant="ghost" className="hidden sm:inline-flex">
-              <Link to="/hotels">
-                View all
-                <ArrowRight className="size-4" />
-              </Link>
-            </Button>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {hotels.slice(0, 3).map((hotel) => (
-              <HotelCard key={hotel.id} hotel={hotel} />
-            ))}
-          </div>
-        </section>
-      )}
     </div>
   );
 }

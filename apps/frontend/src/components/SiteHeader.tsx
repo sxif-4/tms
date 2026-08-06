@@ -16,11 +16,9 @@ import { cn } from "~/lib/utils";
 
 /** `link` is spread straight onto `<Link>`, so entries can carry search params. */
 const NAV_LINKS: { label: string; link: LinkProps }[] = [
-  { label: "Destinations", link: { to: "/hotels" } },
   { label: "Hotels", link: { to: "/hotels" } },
   { label: "Theme Park", link: { to: "/theme-park" } },
   { label: "Ferry", link: { to: "/ferry" } },
-  { label: "Park Tickets", link: { to: "/theme-park/tickets" } },
   { label: "Island Map", link: { to: "/map" } },
 ];
 
@@ -76,11 +74,12 @@ export function SiteHeader() {
             <Link
               key={item.label}
               {...item.link}
+              activeProps={{ "aria-current": "page" }}
               className={cn(
                 "rounded-full px-3.5 py-2 text-sm font-medium transition-colors",
                 overlay
-                  ? "text-white/80 hover:bg-white/10 hover:text-white"
-                  : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                  ? "text-white/80 hover:bg-white/10 hover:text-white data-[status=active]:bg-white/15 data-[status=active]:text-white"
+                  : "text-muted-foreground hover:bg-accent hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-brand",
               )}
             >
               {item.label}
@@ -158,7 +157,8 @@ export function SiteHeader() {
                     key={item.label}
                     {...item.link}
                     onClick={() => setOpen(false)}
-                    className="rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent"
+                    activeProps={{ "aria-current": "page" }}
+                    className="rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent data-[status=active]:bg-accent data-[status=active]:text-brand"
                   >
                     {item.label}
                   </Link>

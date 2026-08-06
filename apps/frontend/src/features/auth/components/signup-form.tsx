@@ -112,7 +112,7 @@ export function SignupForm({
             {mutation.isPending ? "Creating account…" : "Create account"}
           </Button>
         </Field>
-        <SocialLogins />
+
         <FieldDescription className="text-center">
           Already have an account?{" "}
           <Link

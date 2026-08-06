@@ -93,7 +93,7 @@ export function LoginForm({
             {mutation.isPending ? "Signing in…" : "Sign in"}
           </Button>
         </Field>
-        <SocialLogins />
+
         <FieldDescription className="text-center">
           Don&apos;t have an account?{" "}
           <Link
