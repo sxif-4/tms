@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import { imageUrl } from "~/lib/image-url";
 import { PLACEMENT_LABELS } from "../constants";
 import type { Advertisement } from "../types";
 
@@ -31,7 +32,7 @@ export function AdvertisementCard({
   return (
     <Card className={ad.isActive ? undefined : "opacity-70"}>
       <img
-        src={ad.image}
+        src={imageUrl(ad.image)}
         alt={ad.title}
         className="h-32 w-full bg-muted object-cover"
       />

@@ -8,12 +8,13 @@ import {
   MaxLength,
 } from 'class-validator';
 
-export const AD_PLACEMENTS = [
-  'homepage',
-  'sidebar',
-  'checkout',
-  'map',
-] as const;
+/**
+ * Only surfaces that actually render ads belong here. `sidebar`, `checkout`
+ * and `map` were listed once but nothing ever requested them, so an ad saved
+ * against one was stored, listed in the admin table, and shown to nobody.
+ * Add a value back the same day the surface that renders it ships.
+ */
+export const AD_PLACEMENTS = ['homepage'] as const;
 export type AdPlacement = (typeof AD_PLACEMENTS)[number];
 
 export class CreateAdvertisementDto {

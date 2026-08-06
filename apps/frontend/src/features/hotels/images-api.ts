@@ -1,44 +1,8 @@
-import { API_URL } from "~/features/auth/api";
+import {
+  browserFetch as imageFetch,
+  failureMessage as failure,
+} from "~/lib/browser-api";
 import type { RoomTypeImage } from "./types";
-
-/**
- * Image operations run browser-direct rather than through a server function:
- * uploads are multipart, and routing the bytes through the SSR server just to
- * forward them again would double the transfer for no benefit. The other two
- * calls stay here so the whole Media card speaks to one client.
- *
- * The SSR helper refreshes expired access tokens for us; nothing does that on
- * the browser client, so this retries once after a 401 the same way.
- */
-async function imageFetch(path: string, init: RequestInit): Promise<Response> {
-  const send = () =>
-    fetch(`${API_URL}${path}`, { ...init, credentials: "include" });
-
-  const res = await send();
-  if (res.status !== 401) return res;
-
-  const refreshed = await fetch(`${API_URL}/auth/refresh`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "content-type": "application/json" },
-    body: "{}",
-  });
-  if (!refreshed.ok) return res; // surface the original 401
-
-  return send();
-}
-
-async function failure(res: Response, fallback: string): Promise<string> {
-  try {
-    const body = (await res.json()) as { message?: string | string[] };
-    const message = Array.isArray(body.message)
-      ? body.message[0]
-      : body.message;
-    return message ?? fallback;
-  } catch {
-    return fallback;
-  }
-}
 
 /**
  * Hotels, room types and events all expose the same `/images` sub-resource

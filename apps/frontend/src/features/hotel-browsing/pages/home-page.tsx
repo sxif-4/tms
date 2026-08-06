@@ -3,7 +3,6 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, Star } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { activeAdvertisementsQueryOptions } from "~/features/advertisements/queries";
-import { HeroSearch } from "~/features/hotel-browsing/components/hero-search";
 import { HotelCard } from "~/features/hotel-browsing/components/hotel-card";
 import { publicHotelsQueryOptions } from "~/features/hotel-browsing/queries";
 import {
@@ -59,7 +58,7 @@ export function HomePage() {
 
         {/* Top padding clears the fixed navbar (h-16 / sm:h-20) plus a 10px gap. */}
         <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col pt-30">
-          <div className="flex flex-1 flex-col items-center text-center">
+          <div className="flex flex-1 flex-col items-center px-4 pb-12 text-center sm:px-6">
             <div className="animate-fade-in flex items-center gap-2.5">
               <span className="flex items-center gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -84,24 +83,28 @@ export function HomePage() {
               days, and beach events in a single booking.
             </p>
 
-            <HeroSearch className="animate-fade-in mt-8 sm:mt-10" />
+            <Button
+              asChild
+              className="animate-fade-in mt-8 h-11 rounded-md bg-brand px-8 text-base font-semibold text-brand-foreground hover:bg-brand/90 sm:mt-10"
+            >
+              <Link to="/hotels">Explore</Link>
+            </Button>
           </div>
+        </div>
 
-          <div className="flex flex-col gap-4 border-t border-white/15 pt-6 sm:flex-row sm:items-center sm:gap-10">
-            <span className="text-[11px] font-medium tracking-[0.2em] text-white/50 uppercase">
-              As featured in
-            </span>
-            <div className="flex flex-wrap items-center gap-x-8 gap-y-5 sm:gap-x-12">
-              {PARTNER_LOGOS.map((logo) => (
-                <img
-                  key={logo.alt}
-                  src={logo.src}
-                  alt={logo.alt}
-                  className="h-4 w-auto opacity-70 brightness-0 invert transition-opacity hover:opacity-100 sm:h-5"
-                  loading="lazy"
-                />
-              ))}
-            </div>
+        {/* Full-bleed partner strip: it runs edge to edge along the bottom of
+            the hero image rather than sitting inside the 7xl content column. */}
+        <div className="w-full border-t border-white/10 bg-black/45 backdrop-blur-sm">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-10 gap-y-4 px-4 py-5 sm:justify-between sm:gap-x-12 sm:px-6 lg:px-8">
+            {PARTNER_LOGOS.map((logo) => (
+              <img
+                key={logo.alt}
+                src={logo.src}
+                alt={logo.alt}
+                className="h-5 w-auto opacity-80 brightness-0 invert transition-opacity hover:opacity-100 sm:h-6"
+                loading="lazy"
+              />
+            ))}
           </div>
         </div>
       </section>
@@ -112,7 +115,7 @@ export function HomePage() {
 
       <ThemeParkExperiences events={attractions} />
 
-      <PromoBanner />
+      <PromoBanner ads={ads} />
 
       <UpcomingEvents schedules={upcoming} />
 

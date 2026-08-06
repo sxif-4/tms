@@ -10,9 +10,9 @@ export const advertisements = sqliteTable('advertisements', {
   title: text('title').notNull(),
   image: text('image').notNull(),
   targetUrl: text('target_url').notNull(),
-  placement: text('placement', {
-    enum: ['homepage', 'sidebar', 'checkout', 'map'],
-  }).notNull(),
+  // Kept as a column so new surfaces can be added without a migration, but
+  // only values something actually renders are allowed. See AD_PLACEMENTS.
+  placement: text('placement', { enum: ['homepage'] }).notNull(),
   startsAt: integer('starts_at', { mode: 'timestamp' }).notNull(),
   endsAt: integer('ends_at', { mode: 'timestamp' }).notNull(),
   isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),

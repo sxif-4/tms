@@ -13,6 +13,7 @@ export enum AuditAction {
   AdvertisementCreated = 'advertisement.created',
   AdvertisementUpdated = 'advertisement.updated',
   AdvertisementDeleted = 'advertisement.deleted',
+  AdvertisementImageUploaded = 'advertisement.image_uploaded',
   PromotionCreated = 'promotion.created',
   PromotionUpdated = 'promotion.updated',
   PromotionDeleted = 'promotion.deleted',

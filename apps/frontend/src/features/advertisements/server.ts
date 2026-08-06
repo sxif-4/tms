@@ -34,7 +34,9 @@ export const createAdvertisementServerFn = createServerFn({ method: "POST" })
       body: JSON.stringify(data),
     });
     if (!res.ok)
-      throw new Error(await errorMessage(res, "Failed to create advertisement"));
+      throw new Error(
+        await errorMessage(res, "Failed to create advertisement"),
+      );
     return (await res.json()) as Advertisement;
   });
 
@@ -52,7 +54,9 @@ export const updateAdvertisementServerFn = createServerFn({ method: "POST" })
       body: JSON.stringify(body),
     });
     if (!res.ok)
-      throw new Error(await errorMessage(res, "Failed to update advertisement"));
+      throw new Error(
+        await errorMessage(res, "Failed to update advertisement"),
+      );
     return (await res.json()) as Advertisement;
   });
 
@@ -63,7 +67,9 @@ export const deleteAdvertisementServerFn = createServerFn({ method: "POST" })
       method: "DELETE",
     });
     if (!res.ok)
-      throw new Error(await errorMessage(res, "Failed to delete advertisement"));
+      throw new Error(
+        await errorMessage(res, "Failed to delete advertisement"),
+      );
   });
 
 /** Public homepage banner feed — no auth required on the API. */
@@ -77,9 +83,7 @@ export const getActiveAdvertisementsServerFn = createServerFn({
     const params = new URLSearchParams();
     if (data.placement) params.set("placement", data.placement);
     const qs = params.toString();
-    const res = await apiFetch(
-      `/advertisements/active${qs ? `?${qs}` : ""}`,
-    );
+    const res = await apiFetch(`/advertisements/active${qs ? `?${qs}` : ""}`);
     if (!res.ok)
       throw new Error(
         await errorMessage(res, "Failed to load active advertisements"),

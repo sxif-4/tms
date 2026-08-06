@@ -1,4 +1,5 @@
-export type AdPlacement = "homepage" | "sidebar" | "checkout" | "map";
+/** Only surfaces that actually render ads. Mirrors `AD_PLACEMENTS` on the API. */
+export type AdPlacement = "homepage";
 
 export interface Advertisement {
   id: number;
