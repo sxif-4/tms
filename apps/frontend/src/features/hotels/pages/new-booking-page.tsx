@@ -14,6 +14,7 @@ import { Button } from "~/components/ui/button";
 import { Field, FieldLabel } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import { Separator } from "~/components/ui/separator";
+import { imageUrl } from "~/lib/image-url";
 import { cn } from "~/lib/utils";
 import {
   BookingDetails,
@@ -442,7 +443,7 @@ function NewBookingForm({
                 <img
                   alt={selected.name}
                   className="size-full object-cover"
-                  src={selected.image}
+                  src={imageUrl(selected.image)}
                 />
               ) : (
                 <div className="text-muted-foreground flex size-full flex-col items-center justify-center gap-2">

@@ -3,7 +3,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { footerNavLinks, getNavGroups } from "~/components/app-shared";
+import { getNavGroups } from "~/components/app-shared";
 import {
   CommandDialog,
   Command,
@@ -38,10 +38,7 @@ export function AppSearch() {
   }, []);
 
   // Placeholder (`#/...`) destinations have nowhere to go, so they're left out.
-  const groups = [
-    ...getNavGroups(user?.role),
-    { label: "Help", items: footerNavLinks },
-  ]
+  const groups = getNavGroups(user?.role)
     .map((group, index) => ({
       label: group.label ?? `Group ${index + 1}`,
       items: group.items

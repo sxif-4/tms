@@ -45,6 +45,8 @@ export interface PublicUpcomingSchedule extends PublicSchedule {
   eventType: string;
   locationType: string;
   basePrice: string;
+  /** The event's cover photo, or `null` until one's uploaded. */
+  eventImage: string | null;
 }
 
 export interface PublicEventFilters {
@@ -211,6 +213,7 @@ export class PublicParkRepository {
           eventType: events.eventType,
           locationType: events.locationType,
           basePrice: events.basePrice,
+          eventImage: COVER_IMAGE,
           startAt: eventSchedules.startAt,
           capacity: eventSchedules.capacity,
           remaining: sql<number>`MAX(0, ${eventSchedules.capacity} - ${booked})`,

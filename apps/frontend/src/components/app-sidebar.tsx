@@ -1,6 +1,6 @@
 "use client";
 
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { cn } from "~/lib/utils";
 import { LogoIcon } from "~/components/logo";
 import {
@@ -8,22 +8,15 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem,
 } from "~/components/ui/sidebar";
-import {
-  footerNavLinks,
-  getNavGroups,
-  isNavPathActive,
-} from "~/components/app-shared";
+import { getNavGroups } from "~/components/app-shared";
 import { NavGroup } from "~/components/nav-group";
 import { useCurrentUser, landingPathForRole } from "~/features/auth";
 
 export function AppSidebar() {
   const user = useCurrentUser();
   const navGroups = getNavGroups(user?.role);
-  const { pathname } = useLocation();
 
   return (
     <Sidebar
@@ -57,24 +50,6 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
       <SidebarFooter className="gap-0 p-0">
-        <SidebarMenu className="gap-1 px-4 py-2">
-          {footerNavLinks.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton
-                asChild
-                className="text-muted-foreground"
-                isActive={isNavPathActive(pathname, item.path)}
-                size="sm"
-                tooltip={item.title}
-              >
-                <a href={item.path}>
-                  {item.icon}
-                  <span>{item.title}</span>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
         <div className="px-4 pt-1 pb-3 transition-opacity group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:opacity-0">
           <p className="text-nowrap text-[10px] text-muted-foreground">
             © {new Date().getFullYear()} FUNISLAND LLC

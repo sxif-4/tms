@@ -1,10 +1,12 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { Roles } from '../../shared/decorators/roles.decorator';
 import { Role } from '../../shared/enums/role.enum';
-import { type OverviewRow } from './reports.repository';
+import { type OperationsRow, type OverviewRow } from './reports.repository';
 import {
   ReportsService,
+  type OccupancyPoint,
   type SalesPoint,
+  type ScheduleFillPoint,
   type UsagePoint,
 } from './reports.service';
 
@@ -30,5 +32,23 @@ export class ReportsController {
   @Get('usage')
   usage(): Promise<UsagePoint[]> {
     return this.reportsService.usage();
+  }
+
+  /** Attention tiles for the admin overview. */
+  @Get('operations')
+  operations(): Promise<OperationsRow> {
+    return this.reportsService.operations();
+  }
+
+  /** Forward occupancy per hotel, busiest first. */
+  @Get('occupancy')
+  occupancy(): Promise<OccupancyPoint[]> {
+    return this.reportsService.occupancy();
+  }
+
+  /** Sailings and events departing in the next week. */
+  @Get('schedule-fill')
+  scheduleFill(): Promise<ScheduleFillPoint[]> {
+    return this.reportsService.scheduleFill();
   }
 }

@@ -1,3 +1,5 @@
+import { FerrisWheel, Palmtree, Sparkles } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { z } from "zod";
 import { gbp } from "~/features/reports/constants";
 import type {
@@ -81,6 +83,16 @@ export const EVENT_TYPE_LABELS: Record<EventType, string> = {
   ride: "Ride",
   show: "Show",
   beach_event: "Beach event",
+};
+
+/**
+ * Stands in for the photo until staff upload one, so an unphotographed ride
+ * still reads as a poster rather than a broken image.
+ */
+export const EVENT_ICONS: Record<EventType, LucideIcon> = {
+  ride: FerrisWheel,
+  show: Sparkles,
+  beach_event: Palmtree,
 };
 
 export const LOCATION_TYPE_LABELS: Record<LocationType, string> = {

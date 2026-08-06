@@ -237,6 +237,13 @@ export class HotelBookingsService {
       metadata: { status: dto.status },
     });
 
+    // Same rule as the visitor path: the stay was what authorised complimentary
+    // travel, so both legs go with it. Paid ferry bookings are left alone —
+    // refunding money the guest spent is a decision for staff, not a cascade.
+    if (dto.status === 'cancelled' && booking.status !== 'cancelled') {
+      await this.ferry.cancelComplimentaryPasses(user.id, bookingId);
+    }
+
     const row = await this.bookingsRepo.findRowById(bookingId);
     if (!row) throw new NotFoundException('Booking not found after update');
     return row;

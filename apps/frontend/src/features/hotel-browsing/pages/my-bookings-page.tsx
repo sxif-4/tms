@@ -34,6 +34,7 @@ import {
   tripPulse,
   type TripItem,
 } from "~/features/my-bookings/trip-items";
+import { cn } from "~/lib/utils";
 import { MyEventBookingCard } from "~/features/park-browsing/components/my-event-booking-card";
 import { MyParkTicketCard } from "~/features/park-browsing/components/my-park-ticket-card";
 import {
@@ -86,13 +87,23 @@ function BookingCard({
 }) {
   const badgeVariant = BOOKING_STATUS_VARIANTS[booking.status];
   const showCancel = onCancel && canVisitorCancel(booking);
+  /*
+   * A cancelled stay stays on the list rather than vanishing — a guest who has
+   * just cancelled needs to see it worked, and needs the reference afterwards.
+   * It reads as inactive at a glance: the domain spine drains to grey and the
+   * dates are struck through, so it can't be mistaken for a live booking.
+   */
+  const cancelled = booking.status === "cancelled";
 
   return (
     <Card className="relative overflow-hidden p-0">
       {/* Domain spine, matching the merged timeline and the ferry/park cards. */}
       <span
         aria-hidden
-        className="absolute inset-y-0 left-0 w-1 bg-series-hotel"
+        className={cn(
+          "absolute inset-y-0 left-0 w-1",
+          cancelled ? "bg-muted-foreground/30" : "bg-series-hotel",
+        )}
       />
       <CardContent className="p-5 pl-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -120,14 +131,22 @@ function BookingCard({
               <CalendarDays className="size-3.5" />
               Check-in
             </p>
-            <p className="mt-0.5 font-medium">{formatDate(booking.checkIn)}</p>
+            <p
+              className={cn("mt-0.5 font-medium", cancelled && "line-through")}
+            >
+              {formatDate(booking.checkIn)}
+            </p>
           </div>
           <div>
             <p className="flex items-center gap-1.5 text-muted-foreground">
               <CalendarDays className="size-3.5" />
               Check-out
             </p>
-            <p className="mt-0.5 font-medium">{formatDate(booking.checkOut)}</p>
+            <p
+              className={cn("mt-0.5 font-medium", cancelled && "line-through")}
+            >
+              {formatDate(booking.checkOut)}
+            </p>
           </div>
           <div>
             <p className="flex items-center gap-1.5 text-muted-foreground">
@@ -209,7 +228,14 @@ function CountTab({
   );
 }
 
-type HotelFilter = "upcoming" | "completed" | "cancelled";
+type HotelFilter = "all" | "upcoming" | "completed" | "cancelled";
+
+const HOTEL_FILTER_LABELS: Record<HotelFilter, string> = {
+  all: "All stays",
+  upcoming: "Upcoming",
+  completed: "Completed",
+  cancelled: "Cancelled",
+};
 
 export function MyBookingsPage() {
   const queryClient = useQueryClient();
@@ -219,13 +245,23 @@ export function MyBookingsPage() {
   const { data: eventBookings } = useSuspenseQuery(myEventBookingsQueryOptions);
   const { data: ferryBookings } = useSuspenseQuery(myFerryBookingsQueryOptions);
   const [cancelling, setCancelling] = useState<HotelBooking | null>(null);
-  const [hotelFilter, setHotelFilter] = useState<HotelFilter>("upcoming");
+  /*
+   * Defaults to every stay. Filtering to "upcoming" made a booking vanish the
+   * moment it was cancelled, which reads as "did that work?" — the card should
+   * stay put and simply show its new state.
+   */
+  const [hotelFilter, setHotelFilter] = useState<HotelFilter>("all");
 
   const cancelMutation = useMutation({
     ...cancelHotelBookingMutationOptions(),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: myHotelBookingsQueryOptions.queryKey,
+      });
+      // Cancelling the stay stands down the complimentary passes it authorised,
+      // so the ferry tab is stale too — it would still show them as confirmed.
+      void queryClient.invalidateQueries({
+        queryKey: myFerryBookingsQueryOptions.queryKey,
       });
       toast.success("Booking cancelled");
       setCancelling(null);
@@ -247,6 +283,7 @@ export function MyBookingsPage() {
   });
 
   const hotelCounts: Record<HotelFilter, number> = {
+    all: bookings.length,
     upcoming: bookings.filter((b) => visitorTab(b.status) === "upcoming")
       .length,
     completed: bookings.filter((b) => visitorTab(b.status) === "completed")
@@ -254,9 +291,10 @@ export function MyBookingsPage() {
     cancelled: bookings.filter((b) => visitorTab(b.status) === "cancelled")
       .length,
   };
-  const filteredHotels = bookings.filter(
-    (b) => visitorTab(b.status) === hotelFilter,
-  );
+  const filteredHotels =
+    hotelFilter === "all"
+      ? bookings
+      : bookings.filter((b) => visitorTab(b.status) === hotelFilter);
 
   /** Newest visit first, so an upcoming day sits above last month's. */
   const tickets = [...parkTickets].sort(
@@ -390,32 +428,36 @@ export function MyBookingsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="upcoming">
-                      Upcoming ({hotelCounts.upcoming})
-                    </SelectItem>
-                    <SelectItem value="completed">
-                      Completed ({hotelCounts.completed})
-                    </SelectItem>
-                    <SelectItem value="cancelled">
-                      Cancelled ({hotelCounts.cancelled})
-                    </SelectItem>
+                    {(Object.keys(HOTEL_FILTER_LABELS) as HotelFilter[]).map(
+                      (value) => (
+                        <SelectItem key={value} value={value}>
+                          {HOTEL_FILTER_LABELS[value]} ({hotelCounts[value]})
+                        </SelectItem>
+                      ),
+                    )}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-4">
                 {filteredHotels.length === 0 ? (
                   <EmptyState
-                    title={`No ${hotelFilter} stays.`}
+                    title={
+                      hotelFilter === "all"
+                        ? "No stays booked yet."
+                        : `No ${hotelFilter} stays.`
+                    }
                     description="Start planning your island escape."
                   />
                 ) : (
+                  // Every card offers the way out it qualifies for —
+                  // `canVisitorCancel` already rules out stays that are
+                  // cancelled, completed or inside the 48-hour window, so the
+                  // button doesn't depend on which filter is showing.
                   filteredHotels.map((b) => (
                     <BookingCard
                       key={b.id}
                       booking={b}
-                      onCancel={
-                        hotelFilter === "upcoming" ? setCancelling : undefined
-                      }
+                      onCancel={setCancelling}
                     />
                   ))
                 )}

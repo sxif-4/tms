@@ -59,6 +59,7 @@ import { Route as DashboardAdminRolesIndexRouteImport } from './routes/dashboard
 import { Route as DashboardAdminPromotionsIndexRouteImport } from './routes/dashboard/admin/promotions/index'
 import { Route as DashboardAdminMapIndexRouteImport } from './routes/dashboard/admin/map/index'
 import { Route as DashboardAdminHotelsIndexRouteImport } from './routes/dashboard/admin/hotels/index'
+import { Route as DashboardAdminCustomersIndexRouteImport } from './routes/dashboard/admin/customers/index'
 import { Route as DashboardAdminAuditLogsIndexRouteImport } from './routes/dashboard/admin/audit-logs/index'
 import { Route as DashboardAdminAnalyticsIndexRouteImport } from './routes/dashboard/admin/analytics/index'
 import { Route as DashboardAdminAdsIndexRouteImport } from './routes/dashboard/admin/ads/index'
@@ -68,6 +69,7 @@ import { Route as DashboardHotelRoomsNewRouteImport } from './routes/dashboard/h
 import { Route as DashboardHotelRoomsRoomTypeIdRouteImport } from './routes/dashboard/hotel/rooms/$roomTypeId'
 import { Route as DashboardHotelBookingsNewRouteImport } from './routes/dashboard/hotel/bookings/new'
 import { Route as DashboardHotelBookingsBookingIdRouteImport } from './routes/dashboard/hotel/bookings/$bookingId'
+import { Route as DashboardAdminCustomersCustomerIdRouteImport } from './routes/dashboard/admin/customers/$customerId'
 import { Route as DashboardFerrySchedulesScheduleIdManifestRouteImport } from './routes/dashboard/ferry/schedules/$scheduleId/manifest'
 
 const SignupRoute = SignupRouteImport.update({
@@ -342,6 +344,12 @@ const DashboardAdminHotelsIndexRoute =
     path: '/hotels/',
     getParentRoute: () => DashboardAdminRouteRoute,
   } as any)
+const DashboardAdminCustomersIndexRoute =
+  DashboardAdminCustomersIndexRouteImport.update({
+    id: '/customers/',
+    path: '/customers/',
+    getParentRoute: () => DashboardAdminRouteRoute,
+  } as any)
 const DashboardAdminAuditLogsIndexRoute =
   DashboardAdminAuditLogsIndexRouteImport.update({
     id: '/audit-logs/',
@@ -393,6 +401,12 @@ const DashboardHotelBookingsBookingIdRoute =
     path: '/bookings/$bookingId',
     getParentRoute: () => DashboardHotelRouteRoute,
   } as any)
+const DashboardAdminCustomersCustomerIdRoute =
+  DashboardAdminCustomersCustomerIdRouteImport.update({
+    id: '/customers/$customerId',
+    path: '/customers/$customerId',
+    getParentRoute: () => DashboardAdminRouteRoute,
+  } as any)
 const DashboardFerrySchedulesScheduleIdManifestRoute =
   DashboardFerrySchedulesScheduleIdManifestRouteImport.update({
     id: '/schedules/$scheduleId/manifest',
@@ -428,6 +442,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/hotel/': typeof DashboardHotelIndexRoute
   '/dashboard/park/': typeof DashboardParkIndexRoute
   '/hotels/$hotelId/': typeof HotelsHotelIdIndexRoute
+  '/dashboard/admin/customers/$customerId': typeof DashboardAdminCustomersCustomerIdRoute
   '/dashboard/hotel/bookings/$bookingId': typeof DashboardHotelBookingsBookingIdRoute
   '/dashboard/hotel/bookings/new': typeof DashboardHotelBookingsNewRoute
   '/dashboard/hotel/rooms/$roomTypeId': typeof DashboardHotelRoomsRoomTypeIdRoute
@@ -437,6 +452,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/admin/ads/': typeof DashboardAdminAdsIndexRoute
   '/dashboard/admin/analytics/': typeof DashboardAdminAnalyticsIndexRoute
   '/dashboard/admin/audit-logs/': typeof DashboardAdminAuditLogsIndexRoute
+  '/dashboard/admin/customers/': typeof DashboardAdminCustomersIndexRoute
   '/dashboard/admin/hotels/': typeof DashboardAdminHotelsIndexRoute
   '/dashboard/admin/map/': typeof DashboardAdminMapIndexRoute
   '/dashboard/admin/promotions/': typeof DashboardAdminPromotionsIndexRoute
@@ -486,6 +502,7 @@ export interface FileRoutesByTo {
   '/dashboard/hotel': typeof DashboardHotelIndexRoute
   '/dashboard/park': typeof DashboardParkIndexRoute
   '/hotels/$hotelId': typeof HotelsHotelIdIndexRoute
+  '/dashboard/admin/customers/$customerId': typeof DashboardAdminCustomersCustomerIdRoute
   '/dashboard/hotel/bookings/$bookingId': typeof DashboardHotelBookingsBookingIdRoute
   '/dashboard/hotel/bookings/new': typeof DashboardHotelBookingsNewRoute
   '/dashboard/hotel/rooms/$roomTypeId': typeof DashboardHotelRoomsRoomTypeIdRoute
@@ -495,6 +512,7 @@ export interface FileRoutesByTo {
   '/dashboard/admin/ads': typeof DashboardAdminAdsIndexRoute
   '/dashboard/admin/analytics': typeof DashboardAdminAnalyticsIndexRoute
   '/dashboard/admin/audit-logs': typeof DashboardAdminAuditLogsIndexRoute
+  '/dashboard/admin/customers': typeof DashboardAdminCustomersIndexRoute
   '/dashboard/admin/hotels': typeof DashboardAdminHotelsIndexRoute
   '/dashboard/admin/map': typeof DashboardAdminMapIndexRoute
   '/dashboard/admin/promotions': typeof DashboardAdminPromotionsIndexRoute
@@ -549,6 +567,7 @@ export interface FileRoutesById {
   '/dashboard/hotel/': typeof DashboardHotelIndexRoute
   '/dashboard/park/': typeof DashboardParkIndexRoute
   '/hotels/$hotelId/': typeof HotelsHotelIdIndexRoute
+  '/dashboard/admin/customers/$customerId': typeof DashboardAdminCustomersCustomerIdRoute
   '/dashboard/hotel/bookings/$bookingId': typeof DashboardHotelBookingsBookingIdRoute
   '/dashboard/hotel/bookings/new': typeof DashboardHotelBookingsNewRoute
   '/dashboard/hotel/rooms/$roomTypeId': typeof DashboardHotelRoomsRoomTypeIdRoute
@@ -558,6 +577,7 @@ export interface FileRoutesById {
   '/dashboard/admin/ads/': typeof DashboardAdminAdsIndexRoute
   '/dashboard/admin/analytics/': typeof DashboardAdminAnalyticsIndexRoute
   '/dashboard/admin/audit-logs/': typeof DashboardAdminAuditLogsIndexRoute
+  '/dashboard/admin/customers/': typeof DashboardAdminCustomersIndexRoute
   '/dashboard/admin/hotels/': typeof DashboardAdminHotelsIndexRoute
   '/dashboard/admin/map/': typeof DashboardAdminMapIndexRoute
   '/dashboard/admin/promotions/': typeof DashboardAdminPromotionsIndexRoute
@@ -613,6 +633,7 @@ export interface FileRouteTypes {
     | '/dashboard/hotel/'
     | '/dashboard/park/'
     | '/hotels/$hotelId/'
+    | '/dashboard/admin/customers/$customerId'
     | '/dashboard/hotel/bookings/$bookingId'
     | '/dashboard/hotel/bookings/new'
     | '/dashboard/hotel/rooms/$roomTypeId'
@@ -622,6 +643,7 @@ export interface FileRouteTypes {
     | '/dashboard/admin/ads/'
     | '/dashboard/admin/analytics/'
     | '/dashboard/admin/audit-logs/'
+    | '/dashboard/admin/customers/'
     | '/dashboard/admin/hotels/'
     | '/dashboard/admin/map/'
     | '/dashboard/admin/promotions/'
@@ -671,6 +693,7 @@ export interface FileRouteTypes {
     | '/dashboard/hotel'
     | '/dashboard/park'
     | '/hotels/$hotelId'
+    | '/dashboard/admin/customers/$customerId'
     | '/dashboard/hotel/bookings/$bookingId'
     | '/dashboard/hotel/bookings/new'
     | '/dashboard/hotel/rooms/$roomTypeId'
@@ -680,6 +703,7 @@ export interface FileRouteTypes {
     | '/dashboard/admin/ads'
     | '/dashboard/admin/analytics'
     | '/dashboard/admin/audit-logs'
+    | '/dashboard/admin/customers'
     | '/dashboard/admin/hotels'
     | '/dashboard/admin/map'
     | '/dashboard/admin/promotions'
@@ -733,6 +757,7 @@ export interface FileRouteTypes {
     | '/dashboard/hotel/'
     | '/dashboard/park/'
     | '/hotels/$hotelId/'
+    | '/dashboard/admin/customers/$customerId'
     | '/dashboard/hotel/bookings/$bookingId'
     | '/dashboard/hotel/bookings/new'
     | '/dashboard/hotel/rooms/$roomTypeId'
@@ -742,6 +767,7 @@ export interface FileRouteTypes {
     | '/dashboard/admin/ads/'
     | '/dashboard/admin/analytics/'
     | '/dashboard/admin/audit-logs/'
+    | '/dashboard/admin/customers/'
     | '/dashboard/admin/hotels/'
     | '/dashboard/admin/map/'
     | '/dashboard/admin/promotions/'
@@ -1142,6 +1168,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminHotelsIndexRouteImport
       parentRoute: typeof DashboardAdminRouteRoute
     }
+    '/dashboard/admin/customers/': {
+      id: '/dashboard/admin/customers/'
+      path: '/customers'
+      fullPath: '/dashboard/admin/customers/'
+      preLoaderRoute: typeof DashboardAdminCustomersIndexRouteImport
+      parentRoute: typeof DashboardAdminRouteRoute
+    }
     '/dashboard/admin/audit-logs/': {
       id: '/dashboard/admin/audit-logs/'
       path: '/audit-logs'
@@ -1205,6 +1238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardHotelBookingsBookingIdRouteImport
       parentRoute: typeof DashboardHotelRouteRoute
     }
+    '/dashboard/admin/customers/$customerId': {
+      id: '/dashboard/admin/customers/$customerId'
+      path: '/customers/$customerId'
+      fullPath: '/dashboard/admin/customers/$customerId'
+      preLoaderRoute: typeof DashboardAdminCustomersCustomerIdRouteImport
+      parentRoute: typeof DashboardAdminRouteRoute
+    }
     '/dashboard/ferry/schedules/$scheduleId/manifest': {
       id: '/dashboard/ferry/schedules/$scheduleId/manifest'
       path: '/schedules/$scheduleId/manifest'
@@ -1217,9 +1257,11 @@ declare module '@tanstack/react-router' {
 
 interface DashboardAdminRouteRouteChildren {
   DashboardAdminIndexRoute: typeof DashboardAdminIndexRoute
+  DashboardAdminCustomersCustomerIdRoute: typeof DashboardAdminCustomersCustomerIdRoute
   DashboardAdminAdsIndexRoute: typeof DashboardAdminAdsIndexRoute
   DashboardAdminAnalyticsIndexRoute: typeof DashboardAdminAnalyticsIndexRoute
   DashboardAdminAuditLogsIndexRoute: typeof DashboardAdminAuditLogsIndexRoute
+  DashboardAdminCustomersIndexRoute: typeof DashboardAdminCustomersIndexRoute
   DashboardAdminHotelsIndexRoute: typeof DashboardAdminHotelsIndexRoute
   DashboardAdminMapIndexRoute: typeof DashboardAdminMapIndexRoute
   DashboardAdminPromotionsIndexRoute: typeof DashboardAdminPromotionsIndexRoute
@@ -1230,9 +1272,12 @@ interface DashboardAdminRouteRouteChildren {
 
 const DashboardAdminRouteRouteChildren: DashboardAdminRouteRouteChildren = {
   DashboardAdminIndexRoute: DashboardAdminIndexRoute,
+  DashboardAdminCustomersCustomerIdRoute:
+    DashboardAdminCustomersCustomerIdRoute,
   DashboardAdminAdsIndexRoute: DashboardAdminAdsIndexRoute,
   DashboardAdminAnalyticsIndexRoute: DashboardAdminAnalyticsIndexRoute,
   DashboardAdminAuditLogsIndexRoute: DashboardAdminAuditLogsIndexRoute,
+  DashboardAdminCustomersIndexRoute: DashboardAdminCustomersIndexRoute,
   DashboardAdminHotelsIndexRoute: DashboardAdminHotelsIndexRoute,
   DashboardAdminMapIndexRoute: DashboardAdminMapIndexRoute,
   DashboardAdminPromotionsIndexRoute: DashboardAdminPromotionsIndexRoute,

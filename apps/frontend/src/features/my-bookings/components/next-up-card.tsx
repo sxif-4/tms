@@ -62,7 +62,10 @@ export function NextUpCard({ item }: { item: TripItem }) {
           accent.spine,
         )}
       />
-      <div aria-hidden className={cn("absolute inset-x-0 top-0 h-1", accent.spine)} />
+      <div
+        aria-hidden
+        className={cn("absolute inset-x-0 top-0 h-1", accent.spine)}
+      />
 
       <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:gap-6 sm:p-6">
         <div className="min-w-0 flex-1">

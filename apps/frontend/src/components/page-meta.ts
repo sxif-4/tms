@@ -15,7 +15,7 @@ const pageMeta: Record<string, PageMeta> = {
   // ---- Admin ----
   "/dashboard/admin": {
     title: "Dashboard",
-    description: "Sales, bookings and activity across every domain.",
+    description: "What needs attention today across every domain.",
   },
   "/dashboard/admin/analytics": {
     title: "Analytics",
@@ -42,6 +42,15 @@ const pageMeta: Record<string, PageMeta> = {
     title: "Users",
     description:
       "Manage accounts, roles, and access for everyone in the system.",
+  },
+  "/dashboard/admin/customers": {
+    title: "Customers",
+    description:
+      "Look up a customer to see every booking and payment they hold.",
+  },
+  "/dashboard/admin/customers/$customerId": {
+    title: "Customer",
+    description: "Bookings and payments across every domain.",
   },
   "/dashboard/admin/audit-logs": {
     title: "Audit logs",

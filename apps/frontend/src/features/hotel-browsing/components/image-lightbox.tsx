@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEffect } from "react";
 import { Button } from "~/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "~/components/ui/dialog";
+import { imageUrl } from "~/lib/image-url";
 import { cn } from "~/lib/utils";
 
 export function ImageLightbox({
@@ -83,7 +84,7 @@ export function ImageLightbox({
             </>
           )}
           <img
-            src={src}
+            src={imageUrl(src)}
             alt={`${alt} (${safeIndex + 1}/${count})`}
             className="max-h-[80vh] w-full object-contain"
           />

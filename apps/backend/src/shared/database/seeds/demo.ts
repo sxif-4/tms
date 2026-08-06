@@ -1573,12 +1573,27 @@ export async function seedDemo(db: DemoDb): Promise<void> {
     }
   });
 
+  // One cover per event: the homepage agenda and the event grid are both
+  // photo-first, so an event without one falls back to a placeholder icon.
+  const eventImageUrls: { eventId: number; url: string }[] = [
+    {
+      eventId: snorkel.id,
+      url: 'https://images.unsplash.com/photo-1468413253725-0d5181091126?auto=format&fit=crop&w=1200&q=80',
+    },
+    {
+      eventId: dolphin.id,
+      url: 'https://images.unsplash.com/photo-1506929562872-bb421503ef21?auto=format&fit=crop&w=1200&q=80',
+    },
+    {
+      eventId: sandbankBbq.id,
+      url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
+    },
+  ];
+
   const allImageInserts = [
     ...hotelImageRows,
     ...roomTypeImageUrls.map((r) => ({ url: r.url })),
-    {
-      url: 'https://images.unsplash.com/photo-1468413253725-0d5181091126?auto=format&fit=crop&w=1200&q=80',
-    },
+    ...eventImageUrls.map((r) => ({ url: r.url })),
   ];
   const insertedImages = db
     .insert(images)
@@ -1588,7 +1603,7 @@ export async function seedDemo(db: DemoDb): Promise<void> {
 
   const hotelImageCount = hotelImageRows.length;
   const roomTypeImageStart = hotelImageCount;
-  const snorkelImg = insertedImages[insertedImages.length - 1];
+  const eventImageStart = roomTypeImageStart + roomTypeImageUrls.length;
 
   /**
    * Marks the first image of each owner as its cover and numbers the rest, so
@@ -1617,11 +1632,11 @@ export async function seedDemo(db: DemoDb): Promise<void> {
           imageableId: r.roomTypeId,
           imageableType: 'room_type',
         })),
-        {
-          imageId: snorkelImg.id,
-          imageableId: snorkel.id,
+        ...eventImageUrls.map((r, i) => ({
+          imageId: insertedImages[eventImageStart + i].id,
+          imageableId: r.eventId,
           imageableType: 'event',
-        },
+        })),
       ].map(withCover),
     )
     .run();

@@ -6,6 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { imageUrl } from "~/lib/image-url";
 import { cn } from "~/lib/utils";
 import { gbp } from "../constants";
 import type { RoomTypeAvailability } from "../types";
@@ -177,7 +178,7 @@ export function RoomAvailabilityCard({
                 alt=""
                 className="size-full object-cover"
                 loading="lazy"
-                src={option.image}
+                src={imageUrl(option.image)}
               />
             ) : (
               <span className="text-muted-foreground flex size-full items-center justify-center">

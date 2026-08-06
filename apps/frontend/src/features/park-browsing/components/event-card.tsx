@@ -1,20 +1,7 @@
-import { FerrisWheel, Palmtree, Sparkles } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import { imageUrl } from "~/lib/image-url";
 import { cn } from "~/lib/utils";
-import { EVENT_TYPE_LABELS, gbp } from "../constants";
-import type { EventType, PublicEvent } from "../types";
-
-/**
- * Stands in for the photo until staff upload one. Sized large and set at low
- * opacity behind the gradient, so an unphotographed ride still reads as a
- * poster rather than a broken image.
- */
-const EVENT_ICONS: Record<EventType, LucideIcon> = {
-  ride: FerrisWheel,
-  show: Sparkles,
-  beach_event: Palmtree,
-};
+import { EVENT_ICONS, EVENT_TYPE_LABELS, gbp } from "../constants";
+import type { PublicEvent } from "../types";
 
 /**
  * A ride, show or beach event as a poster: photo first, name and price over a

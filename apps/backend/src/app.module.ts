@@ -38,6 +38,7 @@ import { ParkDaysModule } from './modules/park-days/park-days.module';
 import { ParkDashboardModule } from './modules/park-dashboard/park-dashboard.module';
 import { ParkReportsModule } from './modules/park-reports/park-reports.module';
 import { PublicParkModule } from './modules/public-park/public-park.module';
+import { CustomersModule } from './modules/customers/customers.module';
 
 @Module({
   imports: [
@@ -82,6 +83,7 @@ import { PublicParkModule } from './modules/public-park/public-park.module';
     ParkDashboardModule,
     ParkReportsModule,
     PublicParkModule,
+    CustomersModule,
   ],
   controllers: [HealthController],
   providers: [

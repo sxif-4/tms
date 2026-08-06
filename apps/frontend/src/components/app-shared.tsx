@@ -4,9 +4,6 @@ import {
   BarChart3Icon,
   UsersIcon,
   SettingsIcon,
-  CreditCardIcon,
-  HelpCircleIcon,
-  BookOpenIcon,
   HotelIcon,
   BedDoubleIcon,
   ShipIcon,
@@ -16,9 +13,8 @@ import {
   CalendarCheckIcon,
   CalendarClockIcon,
   ScanLineIcon,
-  TagIcon,
   PercentIcon,
-  ReceiptIcon,
+  UserRoundSearchIcon,
   ShieldCheckIcon,
   ScrollTextIcon,
   MegaphoneIcon,
@@ -43,33 +39,10 @@ export type SidebarNavGroup = {
  * matching routes exist — fill them in as features land.
  */
 export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
-  visitor: [
-    {
-      label: "Browse",
-      items: [
-        {
-          title: "Dashboard",
-          path: "#/dashboard",
-          icon: <LayoutGridIcon />,
-        },
-        { title: "Hotels", path: "#/hotels", icon: <HotelIcon /> },
-        { title: "Ferries", path: "#/ferries", icon: <ShipIcon /> },
-        { title: "Theme Park", path: "#/park", icon: <FerrisWheelIcon /> },
-      ],
-    },
-    {
-      label: "My Trips",
-      items: [
-        {
-          title: "My Bookings",
-          path: "#/bookings",
-          icon: <CalendarCheckIcon />,
-        },
-        { title: "Payments", path: "#/payments", icon: <CreditCardIcon /> },
-        { title: "Offers", path: "#/offers", icon: <TagIcon /> },
-      ],
-    },
-  ],
+  // Visitors never see this sidebar: it only renders inside `AppShell`, under
+  // /dashboard, and `dashboard/route.tsx` redirects visitors to `/`. They
+  // navigate via SiteHeader instead, so there is nothing to declare here.
+  visitor: [],
   hotel_staff: [
     {
       label: "Hotel",
@@ -232,13 +205,17 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
           path: "/dashboard/admin/hotels",
           icon: <HotelIcon />,
         },
-        { title: "Ferries", path: "#/ferries", icon: <ShipIcon /> },
+        { title: "Ferries", path: "/dashboard/ferry/", icon: <ShipIcon /> },
         {
           title: "Theme Park",
           path: "/dashboard/park/",
           icon: <FerrisWheelIcon />,
         },
-        { title: "Payments", path: "#/payments", icon: <ReceiptIcon /> },
+        {
+          title: "Customers",
+          path: "/dashboard/admin/customers",
+          icon: <UserRoundSearchIcon />,
+        },
         {
           title: "Advertisements",
           path: "/dashboard/admin/ads",
@@ -280,35 +257,18 @@ export const navGroupsByRole: Record<Role, SidebarNavGroup[]> = {
   ],
 };
 
-/** Footer links shown to every role. */
-export const footerNavLinks: SidebarNavItem[] = [
-  {
-    title: "Help Center",
-    path: "#/help",
-    icon: <HelpCircleIcon />,
-  },
-  {
-    title: "Documentation",
-    path: "#/documentation",
-    icon: <BookOpenIcon />,
-  },
-];
-
 /** Sidebar groups for a role. Returns an empty menu when there's no role. */
 export function getNavGroups(role: Role | undefined): SidebarNavGroup[] {
   return role ? (navGroupsByRole[role] ?? []) : [];
 }
 
-/** Flat list of a role's links (incl. footer) for breadcrumb/active lookups. */
+/** Flat list of a role's links for breadcrumb/active lookups. */
 export function getNavLinks(role: Role | undefined): SidebarNavItem[] {
-  return [
-    ...getNavGroups(role).flatMap((group) =>
-      group.items.flatMap((item) =>
-        item.subItems?.length ? [item, ...item.subItems] : [item],
-      ),
+  return getNavGroups(role).flatMap((group) =>
+    group.items.flatMap((item) =>
+      item.subItems?.length ? [item, ...item.subItems] : [item],
     ),
-    ...footerNavLinks,
-  ];
+  );
 }
 
 function withoutTrailingSlash(path: string): string {

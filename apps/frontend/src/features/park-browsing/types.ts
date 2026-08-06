@@ -71,6 +71,8 @@ export interface PublicUpcomingSchedule extends PublicSchedule {
   eventType: EventType;
   locationType: LocationType;
   basePrice: string;
+  /** The event's cover photo, or `null` until staff upload one. */
+  eventImage: string | null;
 }
 
 /**
