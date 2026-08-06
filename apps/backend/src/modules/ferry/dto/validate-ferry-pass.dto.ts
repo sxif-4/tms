@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
 
-/** What the jetty operator types (or pastes from a scanned QR) into the boarding box. */
+/** The booking reference the jetty operator types into the boarding box. */
 export class ValidateFerryPassDto {
   @IsString()
   @IsNotEmpty()

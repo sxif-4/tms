@@ -11,7 +11,7 @@ import {
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Separator } from "~/components/ui/separator";
-import { ParkTicketQr } from "../components/park-ticket-qr";
+import { ParkTicketCode } from "../components/park-ticket-code";
 import { gbp, utcDateKey } from "../constants";
 import {
   myEventBookingsQueryOptions,
@@ -125,7 +125,7 @@ export function ParkConfirmationPage({ reference }: { reference?: string }) {
                   </p>
                 </div>
               </div>
-              <ParkTicketQr reference={ticket.ticketReference} />
+              <ParkTicketCode reference={ticket.ticketReference} />
             </>
           ) : booking ? (
             <>

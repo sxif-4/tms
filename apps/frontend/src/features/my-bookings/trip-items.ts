@@ -70,11 +70,12 @@ export interface TripItem {
   /** Cancelled/refunded rows are excluded from spend, alerts and next-up. */
   live: boolean;
   /**
-   * A scannable reference, set only once the pass actually exists. A QR for a
-   * booking still awaiting approval sends the guest to a gate that turns them
-   * away, so the per-domain cards gate on the same condition.
+   * The boarding/entry reference, set only once the pass actually exists.
+   * Presenting one for a booking still awaiting approval sends the guest to a
+   * gate that turns them away, so the per-domain cards gate on the same
+   * condition.
    */
-  qr: string | null;
+  code: string | null;
 }
 
 export const DOMAIN_LABELS: Record<TripDomain, string> = {
@@ -133,7 +134,7 @@ function hotelItem(b: HotelBooking): TripItem {
     statusLabel: BOOKING_STATUS_LABELS[b.status],
     badgeVariant: BOOKING_STATUS_VARIANTS[b.status],
     live: b.status === "pending" || b.status === "confirmed",
-    qr: null,
+    code: null,
   };
 }
 
@@ -155,7 +156,7 @@ function ferryItem(b: FerryBooking): TripItem {
     statusLabel: FERRY_BOOKING_STATUS_LABELS[b.status],
     badgeVariant: ferryBookingStatusBadgeVariant(b.status),
     live: b.status === "pending" || b.status === "confirmed",
-    qr: b.status === "confirmed" ? b.bookingReference : null,
+    code: b.status === "confirmed" ? b.bookingReference : null,
   };
 }
 
@@ -174,7 +175,7 @@ function parkItem(t: ParkTicket): TripItem {
     statusLabel: TICKET_STATUS_LABELS[t.status],
     badgeVariant: TICKET_STATUS_VARIANTS[t.status],
     live: t.status === "active",
-    qr: t.status === "active" ? t.ticketReference : null,
+    code: t.status === "active" ? t.ticketReference : null,
   };
 }
 
@@ -193,7 +194,7 @@ function eventItem(b: EventBooking): TripItem {
     statusLabel: EVENT_BOOKING_STATUS_LABELS[b.status],
     badgeVariant: EVENT_BOOKING_STATUS_VARIANTS[b.status],
     live: b.status === "pending" || b.status === "confirmed",
-    qr: null,
+    code: null,
   };
 }
 

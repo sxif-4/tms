@@ -1,4 +1,3 @@
-import { QRCodeSVG } from "qrcode.react";
 import { ClientOnly } from "~/components/client-only";
 import { Badge } from "~/components/ui/badge";
 import { gbp } from "~/features/reports/constants";
@@ -111,21 +110,13 @@ export function NextUpCard({ item }: { item: TripItem }) {
           </div>
         </div>
 
-        {item.qr ? (
+        {item.code ? (
           <div className="flex shrink-0 flex-col items-center gap-2 rounded-lg border border-dashed bg-background/40 p-4">
-            {/* Dark-on-white regardless of theme — inverting a QR breaks scanners. */}
-            <div className="rounded-md bg-white p-2.5">
-              <QRCodeSVG
-                value={item.qr}
-                size={104}
-                level="M"
-                bgColor="#ffffff"
-                fgColor="#000000"
-                aria-label={`QR code for ${item.reference}`}
-              />
-            </div>
-            <p className="font-mono text-sm font-semibold tracking-widest">
-              {item.reference}
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+              {item.domain === "ferry" ? "Boarding reference" : "Ticket"}
+            </p>
+            <p className="font-mono text-lg font-semibold tracking-widest">
+              {item.code}
             </p>
           </div>
         ) : (

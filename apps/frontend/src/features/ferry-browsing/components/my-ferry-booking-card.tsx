@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { QRCodeSVG } from "qrcode.react";
 import {
   ArrowLeftRight,
   CalendarDays,
@@ -42,10 +41,10 @@ export function MyFerryBookingCard({
 }) {
   const complimentary = isComplimentary(booking.bookingReference);
   /**
-   * Only an issued pass gets a QR. Showing a scannable code for a booking still
-   * awaiting approval sends the guest to a jetty that will turn them away.
+   * Only an issued pass gets the boarding panel. Presenting one for a booking
+   * still awaiting approval sends the guest to a jetty that will turn them away.
    */
-  const showQr = booking.status === "confirmed";
+  const showPass = booking.status === "confirmed";
   const canCancel =
     booking.status === "pending" || booking.status === "confirmed";
 
@@ -89,22 +88,11 @@ export function MyFerryBookingCard({
           </span>
         </div>
 
-        {showQr ? (
-          <div className="mt-4 flex flex-col items-center gap-3 rounded-lg border border-dashed p-4">
+        {showPass ? (
+          <div className="mt-4 flex flex-col items-center gap-2 rounded-lg border border-dashed p-4">
             <p className="text-muted-foreground text-xs tracking-wide uppercase">
               Show this at the jetty
             </p>
-            {/* Dark-on-white regardless of theme — inverting a QR breaks scanners. */}
-            <div className="rounded-md bg-white p-3">
-              <QRCodeSVG
-                value={booking.bookingReference}
-                size={132}
-                level="M"
-                bgColor="#ffffff"
-                fgColor="#000000"
-                aria-label={`QR code for ferry booking ${booking.bookingReference}`}
-              />
-            </div>
             <p className="font-mono text-lg font-semibold tracking-widest">
               {booking.bookingReference}
             </p>

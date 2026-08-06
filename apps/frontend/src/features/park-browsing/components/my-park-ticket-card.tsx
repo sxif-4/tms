@@ -7,7 +7,7 @@ import {
   gbp,
 } from "../constants";
 import type { ParkTicket } from "../types";
-import { ParkTicketQr } from "./park-ticket-qr";
+import { ParkTicketCode } from "./park-ticket-code";
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("en-GB", {
@@ -20,11 +20,11 @@ function formatDate(value: string) {
 
 export function MyParkTicketCard({ ticket }: { ticket: ParkTicket }) {
   /**
-   * Only a live ticket gets a QR. Offering a scannable code for one that's
-   * already been used, cancelled or refunded just sends the guest to a gate
-   * that will turn them away.
+   * Only a live ticket gets the gate panel. Presenting one that's already been
+   * used, cancelled or refunded just sends the guest to a gate that will turn
+   * them away.
    */
-  const showQr = ticket.status === "active";
+  const showCode = ticket.status === "active";
 
   return (
     <Card className="overflow-hidden p-0">
@@ -65,12 +65,8 @@ export function MyParkTicketCard({ ticket }: { ticket: ParkTicket }) {
           </div>
         </div>
 
-        {showQr ? (
-          <ParkTicketQr
-            reference={ticket.ticketReference}
-            size={132}
-            className="mt-4"
-          />
+        {showCode ? (
+          <ParkTicketCode reference={ticket.ticketReference} className="mt-4" />
         ) : (
           <div className="mt-4 flex items-center justify-between gap-2 border-t pt-4">
             <span className="font-mono text-xs text-muted-foreground">

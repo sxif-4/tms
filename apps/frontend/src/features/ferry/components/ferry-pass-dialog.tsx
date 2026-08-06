@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { QRCodeSVG } from "qrcode.react";
 import { AnchorIcon, PrinterIcon } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import {
@@ -25,9 +24,8 @@ const fmtDateTime = (value: string | Date) =>
 
 /**
  * The ferry pass itself — what the operator hands (or prints) for the guest.
- * The QR encodes the booking reference, which is exactly what the boarding
- * screen accepts typed or pasted, so the printed text below it is a working
- * fallback rather than decoration.
+ * The booking reference is the whole pass: the boarding screen accepts it
+ * typed or pasted, so it is printed large enough to read off at the jetty.
  */
 export function FerryPassDialog({
   bookingId,
@@ -52,7 +50,8 @@ export function FerryPassDialog({
         <DialogHeader className="print:hidden">
           <DialogTitle>Ferry pass</DialogTitle>
           <DialogDescription>
-            Show this at the jetty. The reference works typed or scanned.
+            Show this at the jetty. The operator enters the reference on the
+            boarding screen.
           </DialogDescription>
         </DialogHeader>
 
@@ -103,19 +102,11 @@ export function FerryPassBody({ pass }: { pass: FerryPass }) {
         <AnchorIcon className="text-series-ferry size-8 shrink-0" />
       </div>
 
-      {/* Dark-on-white regardless of theme: inverting a QR breaks scanners. */}
-      <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed p-4">
-        <div className="rounded-md bg-white p-3">
-          <QRCodeSVG
-            value={pass.bookingReference}
-            size={148}
-            level="M"
-            bgColor="#ffffff"
-            fgColor="#000000"
-            aria-label={`QR code for ferry booking ${pass.bookingReference}`}
-          />
-        </div>
-        <p className="font-mono text-lg font-semibold tracking-widest">
+      <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed p-4">
+        <p className="text-muted-foreground text-xs tracking-wide uppercase">
+          Boarding reference
+        </p>
+        <p className="font-mono text-2xl font-semibold tracking-widest">
           {pass.bookingReference}
         </p>
       </div>

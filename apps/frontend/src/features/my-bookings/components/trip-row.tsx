@@ -31,10 +31,10 @@ function timeLabel(item: TripItem) {
  * One booking in the merged chronological view, compact enough that a whole
  * trip fits on a screen.
  *
- * The per-domain tabs still own the detailed cards — passes, QR codes and the
- * cancel/change actions live there. This row is for scanning: which day, which
- * domain, what state. The coloured spine carries the domain so the four kinds
- * stay distinguishable without a label being read.
+ * The per-domain tabs still own the detailed cards — passes, boarding
+ * references and the cancel/change actions live there. This row is for
+ * scanning: which day, which domain, what state. The coloured spine carries the
+ * domain so the four kinds stay distinguishable without a label being read.
  */
 export function TripRow({ item }: { item: TripItem }) {
   const accent = DOMAIN_ACCENT[item.domain];
